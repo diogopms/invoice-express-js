@@ -1,0 +1,25 @@
+{
+  "name": "@diogopms/invoice-express-js",
+  "version": "1.0.0",
+  "description": "JavaScript client for the Invoice Express API",
+  "main": "dist/index.js",
+  "type": "commonjs",
+  "scripts": {
+    "generate": "node generate.mjs",
+    "build": "tsc"
+  },
+  "keywords": [
+    "invoice-express-js",
+    "typescript",
+    "JavaScript"
+  ],
+  "repository": "https://github.com/diogopms/invoice-express-js",
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "@hey-api/openapi-ts": "^0.41.0",
+    "prettier": "^3.2.5",
+    "typescript": "^5.4.5",
+    "yaml": "^2.4.1"
+  }
+}
