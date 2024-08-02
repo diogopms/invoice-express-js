@@ -1,0 +1,984 @@
+openapi: 3.0.1
+info:
+  version: 1.0.0
+  title: InvoiceExpress API
+  description: API documentation for InvoiceExpress clients endpoint
+servers:
+  - url: https://{account_name}.app.invoicexpress.com
+    variables:
+      account_name:
+        default: 'account_name'
+tags:
+  - name: Invoices
+    description: |
+      Create invoices, invoice receipts, simplified invoices, vat moss invoices, credit notes & debit notes and send them to your clients.
+  - name: Estimates
+    description: |
+      Create quotes, proformas or fees notes and send them to your clients.
+  - name: Guides
+    description: |
+      Create shippings, transports & devolutions and send them to your clients.
+  - name: Clients
+    description: |
+      A Client is an entity you send invoices to.
+  - name: Items
+    description: |
+      An Item is the product or service you invoice.
+  - name: Sequences
+    description: |
+      A Sequence is used to group invoices in a sequential order.
+  - name: Taxes
+    description: |
+      A Tax is applied to invoice items when creating invoices.
+  - name: Accounts
+    description: |
+      Create, update and get info about your account.
+  - name: SAFT
+    description: |
+      Create, update and get info about your account.
+  - name: Treasury
+    description: |
+      Section dedicated to treasury movements.
+paths:
+  /{document-type}/{document-id}/email-document.json:
+    put:
+      tags:
+        - Invoices
+      summary: Send document by email
+      parameters:
+        - name: document-type
+          in: path
+          required: true
+          schema:
+            type: string
+            enum:
+              [
+                invoices,
+                invoice_receipts,
+                simplified_invoices,
+                credit_notes,
+                debit_notes,
+              ]
+        - name: document-id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                message:
+                  type: object
+                  properties:
+                    client:
+                      type: object
+                      properties:
+                        email:
+                          type: string
+                          format: email
+                        save:
+                          type: string
+                          enum: ["0", "1"]
+                    subject:
+                      type: string
+                    body:
+                      type: string
+                    cc:
+                      type: string
+                      format: email
+                    bcc:
+                      type: string
+                      format: email
+                    logo:
+                      type: string
+                      enum: ["0", "1"]
+      responses:
+        "200":
+          description: The email was sent successfully.
+        "401":
+          description: Access denied. The API Key parameter is missing or is incorrectly entered.
+        "404":
+          description: Not found. The supplied document-id doesn’t match any existing document.
+        "422":
+          description: Unprocessable Entity. Some parameters sent were incorrect.
+  /{document-type}/{document-id}.json:
+    get:
+      tags:
+        - Invoices
+      summary: Get Invoice
+      parameters:
+        - name: document-type
+          in: path
+          required: true
+          schema:
+            type: string
+            enum:
+              [
+                invoices,
+                invoice_receipts,
+                simplified_invoices,
+                vat_moss_invoices,
+                credit_notes,
+                debit_notes,
+              ]
+        - name: document-id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: The invoice was returned successfully.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Invoice"
+        "401":
+          description: Access denied. The API Key parameter is missing or is incorrectly entered.
+        "404":
+          description: Not found. No invoice matches the supplied document-id.
+
+  /api/pdf/{document-id}.json:
+    get:
+      tags:
+        - Invoices
+      summary: Generate PDF
+      parameters:
+        - name: document-id
+          in: path
+          required: true
+          schema:
+            type: integer
+        - name: second_copy
+          in: query
+          required: false
+          schema:
+            type: boolean
+      responses:
+        "200":
+          description: The request has been successfully processed.
+        "202":
+          description: The request will be processed. You need to keep requesting until you get a response with HTTP status code 200.
+        "401":
+          description: Access denied. The API Key parameter is missing or is incorrectly entered.
+        "404":
+          description: Not found. No document matches the supplied document-id.
+        "422":
+          description: Not acceptable. The document-id provided is in an invalid state.
+  /invoices.json:
+    get:
+      tags:
+        - Invoices
+      summary: List all invoices
+      parameters:
+        - name: text
+          in: query
+          schema:
+            type: string
+        - name: type[]
+          in: query
+          required: true
+          schema:
+            type: array
+            items:
+              type: string
+              enum:
+                [
+                  Invoice,
+                  InvoiceReceipt,
+                  SimplifiedInvoice,
+                  VatMossInvoice,
+                  CreditNote,
+                  DebitNote,
+                  Receipt,
+                  CashInvoice,
+                  VatMossReceipt,
+                  VatMossCreditNote,
+                ]
+        - name: status[]
+          in: query
+          required: true
+          schema:
+            type: array
+            items:
+              type: string
+              enum: [draft, sent, settled, canceled, second_copy]
+        - name: date[from]
+          in: query
+          schema:
+            type: string
+            format: date
+        - name: date[to]
+          in: query
+          schema:
+            type: string
+            format: date
+        - name: due_date[from]
+          in: query
+          schema:
+            type: string
+            format: date
+        - name: due_date[to]
+          in: query
+          schema:
+            type: string
+            format: date
+        - name: total_before_taxes[from]
+          in: query
+          schema:
+            type: number
+        - name: total_before_taxes[to]
+          in: query
+          schema:
+            type: number
+        - name: non_archived
+          in: query
+          required: true
+          schema:
+            type: boolean
+        - name: archived
+          in: query
+          schema:
+            type: boolean
+        - name: page
+          in: query
+          required: true
+          schema:
+            type: integer
+          description: Page number to retrieve.
+        - name: per_page
+          in: query
+          required: true
+          schema:
+            type: integer
+          description: Per_page number to retrieve.
+        - name: reference
+          in: query
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Invoices were returned successfully.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  invoices:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/Invoice"
+                  pagination:
+                    type: object
+                    properties:
+                      total_entries:
+                        type: integer
+                      current_page:
+                        type: integer
+                      total_pages:
+                        type: integer
+                      per_page:
+                        type: integer
+        "401":
+          description: Access denied. The API Key parameter is missing or is incorrectly entered.
+
+  /{document-type}.json:
+    post:
+      tags:
+        - Invoices
+      summary: Create an invoice
+      parameters:
+        - name: document-type
+          in: path
+          required: true
+          schema:
+            type: string
+            enum:
+              [
+                invoices,
+                simplified_invoices,
+                invoice_receipts,
+                credit_notes,
+                debit_notes,
+              ]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                invoice:
+                  $ref: "#/components/schemas/Invoice"
+      responses:
+        "201":
+          description: Invoice was created successfully.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  invoice:
+                    $ref: "#/components/schemas/Invoice"
+        "401":
+          description: Access denied. The API Key parameter is missing or is incorrectly entered.
+        "409":
+          description: Conflict. There’s an ongoing document creation with the provided UID.
+        "422":
+          description: Unprocessable Entity. Some parameters were incorrect.
+
+  /clients.json:
+    get:
+      tags:
+        - Clients
+      summary: List all clients
+      description: Retrieves a list of clients.
+      parameters:
+        - name: page
+          in: query
+          required: true
+          schema:
+            type: integer
+          description: Page number to retrieve.
+        - name: per_page
+          in: query
+          required: true
+          schema:
+            type: integer
+          description: Number of clients per page.
+      responses:
+        "200":
+          description: Clients List all
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ClientsResponse"
+        "401":
+          description: ACCESS DENIED
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+    post:
+      tags:
+        - Clients
+      summary: Create a new client
+      description: Creates a new client.
+      parameters:
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ClientRequest"
+      responses:
+        "201":
+          description: SUCCESS
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ClientResponse"
+        "401":
+          description: ACCESS DENIED
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "422":
+          description: UNPROCESSABLE ENTITY
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /clients/{client-id}.json:
+    get:
+      tags:
+        - Clients
+      summary: Get a client by ID
+      description: Retrieves a client by their ID.
+      parameters:
+        - name: client-id
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: The ID of the client you want to get.
+      responses:
+        "200":
+          description: Clients Get
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ClientResponse"
+        "401":
+          description: ACCESS DENIED
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: NOT FOUND
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+    put:
+      tags:
+        - Clients
+      summary: Update a client by ID
+      description: Updates a client's information by their ID.
+      parameters:
+        - name: client-id
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: The ID of the client to be updated.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ClientRequest"
+      responses:
+        "200":
+          description: SUCCESS
+        "401":
+          description: ACCESS DENIED
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: NOT FOUND
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "422":
+          description: UNPROCESSABLE ENTITY
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /clients/find-by-name.json:
+    get:
+      tags:
+        - Clients
+      summary: Find client by name
+      description: Retrieves a client by their name.
+      parameters:
+        - name: client_name
+          in: query
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Client Get
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ClientResponse"
+        "401":
+          description: ACCESS DENIED
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: NOT FOUND
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /clients/find-by-code.json:
+    get:
+      tags:
+        - Clients
+      summary: Find client by code
+      description: Retrieves a client by their code.
+      parameters:
+        - name: client_code
+          in: query
+          required: true
+          schema:
+            type: string
+          description: The client code you want to search.
+      responses:
+        "200":
+          description: Client Get
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ClientResponse"
+        "401":
+          description: ACCESS DENIED
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: NOT FOUND
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /clients/{client-id}/invoices.json:
+    post:
+      tags:
+        - Clients
+      summary: List invoices for a client
+      description: Retrieves a list of invoices for a specific client.
+      parameters:
+        - name: client-id
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: Filter invoices for this client.
+        - name: page
+          in: query
+          schema:
+            type: integer
+          description: You can ask for a specific page of invoices. Defaults to 1.
+        - name: per_page
+          in: query
+          schema:
+            type: integer
+          description: You can specify how many results you want to fetch. Defaults to 10 or value defined in account settings (10, 20 or 30).
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                filter:
+                  type: object
+                  properties:
+                    status:
+                      type: array
+                      items:
+                        type: string
+                    by_type:
+                      type: array
+                      items:
+                        type: string
+                    archived:
+                      type: array
+                      items:
+                        type: string
+      responses:
+        "200":
+          description: The client’s invoices
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InvoicesResponse"
+        "401":
+          description: ACCESS DENIED
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: NOT FOUND
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /api/export_saft.json:
+      get:
+        tags:
+          - SAFT
+        summary: Export SAF-T
+        description: Generates the SAF-T file for a specific date (month and year). The first response given will have a HTTP 202 code, meaning the generation was started. You need to keep requesting until you get a response with HTTP status code 200, and the URL to download the file in the message body.
+        parameters:
+          - name: month
+            in: query
+            required: true
+            schema:
+              type: string
+            example: '10'
+          - name: year
+            in: query
+            required: true
+            schema:
+              type: string
+            example: '2017'
+        responses:
+          '200':
+            description: The link to download your SAF-T file.
+            content:
+              application/json:
+                schema:
+                  type: object
+                  properties:
+                    url:
+                      type: string
+                      example: "https://some.url"
+          '202':
+            description: Your SAF-T file is being generated. You need to keep requesting until you get a response with HTTP status code 200.
+            content:
+              application/json:
+                schema:
+                  type: object
+                  properties:
+                    message:
+                      type: string
+                      example: "The SAF-T file generation was started. Please keep requesting until you get back the url."
+          '422':
+            description: Some parameters sent in the request were not valid.
+          '500':
+            description: The SAF-T file generation failed.
+            content:
+              application/json:
+                schema:
+                  type: object
+                  properties:
+                    message:
+                      type: string
+                      example: "Error generating SAF-T. Please try again."
+
+components:
+  schemas:
+    Item:
+      type: object
+      properties:
+        name:
+          type: string
+        description:
+          type: string
+        unit_price:
+          type: number
+        unit:
+          type: string
+        quantity:
+          type: number
+        tax:
+          type: object
+          properties:
+            id:
+              type: integer
+            name:
+              type: string
+            value:
+              type: number
+        discount:
+          type: number
+        subtotal:
+          type: number
+        tax_amount:
+          type: number
+        discount_amount:
+          type: number
+        total:
+          type: number
+    MBReference:
+      type: object
+      properties:
+        entity:
+          type: string
+        value:
+          type: number
+        reference:
+          type: string
+    GlobalDiscount:
+      type: object
+      properties:
+        value_type:
+          type: string
+        value:
+          type: number
+    Invoice:
+      type: object
+      properties:
+        id:
+          type: integer
+        status:
+          type: string
+        archived:
+          type: boolean
+        type:
+          type: string
+        sequence_number:
+          type: string
+        inverted_sequence_number:
+          type: string
+        atcud:
+          type: string
+        sequence_id:
+          type: string
+        tax_exemption:
+          type: string
+        date:
+          type: string
+          format: date
+        due_date:
+          type: string
+          format: date
+        reference:
+          type: string
+        observations:
+          type: string
+        retention:
+          type: string
+        permalink:
+          type: string
+        saft_hash:
+          type: string
+        sum:
+          type: number
+        discount:
+          type: number
+        before_taxes:
+          type: number
+        taxes:
+          type: number
+        total:
+          type: number
+        currency:
+          type: string
+        client:
+          $ref: "#/components/schemas/Client"
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/Item"
+        mb_reference:
+          $ref: "#/components/schemas/MBReference"
+        global_discount:
+          $ref: "#/components/schemas/GlobalDiscount"
+    Client:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        email:
+          type: string
+        address:
+          type: string
+        city:
+          type: string
+        postal_code:
+          type: string
+        fiscal_id:
+          type: string
+        website:
+          type: string
+        country:
+          type: string
+        phone:
+          type: string
+        fax:
+          type: string
+        preferred_contact:
+          type: object
+          properties:
+            name:
+              type: string
+            email:
+              type: string
+            phone:
+              type: string
+        observations:
+          type: string
+        open_account_link:
+          type: string
+        send_options:
+          type: string
+        payment_days:
+          type: string
+        tax_exemption_code:
+          type: string
+    ClientsResponse:
+      type: object
+      properties:
+        clients:
+          type: array
+          items:
+            $ref: "#/components/schemas/Client"
+        pagination:
+          type: object
+          properties:
+            total_entries:
+              type: integer
+            current_page:
+              type: integer
+            total_pages:
+              type: integer
+            per_page:
+              type: integer
+    ClientResponse:
+      type: object
+      properties:
+        client:
+          $ref: "#/components/schemas/Client"
+    ClientRequest:
+      type: object
+      properties:
+        client:
+          type: object
+          properties:
+            name:
+              type: string
+            code:
+              type: string
+            email:
+              type: string
+            language:
+              type: string
+            address:
+              type: string
+            city:
+              type: string
+            postal_code:
+              type: string
+            country:
+              type: string
+            fiscal_id:
+              type: string
+            website:
+              type: string
+            phone:
+              type: string
+            fax:
+              type: string
+            preferred_contact:
+              type: object
+              properties:
+                name:
+                  type: string
+                email:
+                  type: string
+                phone:
+                  type: string
+            observations:
+              type: string
+            send_options:
+              type: string
+    InvoicesResponse:
+      type: object
+      properties:
+        invoices:
+          type: array
+          items:
+            type: object
+            properties:
+              id:
+                type: integer
+              status:
+                type: string
+              archived:
+                type: boolean
+              type:
+                type: string
+              sequence_number:
+                type: string
+              inverted_sequence_number:
+                type: string
+              date:
+                type: string
+              due_date:
+                type: string
+              reference:
+                type: string
+              observations:
+                type: string
+              retention:
+                type: string
+              permalink:
+                type: string
+              saft_hash:
+                type: string
+              sum:
+                type: number
+              discount:
+                type: number
+              before_taxes:
+                type: number
+              taxes:
+                type: number
+              total:
+                type: number
+              currency:
+                type: string
+              client:
+                type: object
+                properties:
+                  id:
+                    type: integer
+                  name:
+                    type: string
+                  country:
+                    type: string
+              items:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    name:
+                      type: string
+                    description:
+                      type: string
+                    unit_price:
+                      type: number
+                    unit:
+                      type: string
+                    quantity:
+                      type: number
+                    tax:
+                      type: object
+                      properties:
+                        id:
+                          type: integer
+                        name:
+                          type: string
+                        value:
+                          type: number
+                    discount:
+                      type: number
+                    subtotal:
+                      type: number
+                    tax_amount:
+                      type: number
+                    discount_amount:
+                      type: number
+                    total:
+                      type: number
+              sequence_id:
+                type: string
+              tax_exemption:
+                type: string
+        pagination:
+          type: object
+          properties:
+            total_entries:
+              type: integer
+            current_page:
+              type: integer
+            total_pages:
+              type: integer
+            per_page:
+              type: integer
+    ErrorResponse:
+      type: object
+      properties:
+        error:
+          type: string
+
+  securitySchemes:
+    api_key:
+      type: apiKey
+      name: api_key
+      in: query
+
+security:
+  - api_key: []
