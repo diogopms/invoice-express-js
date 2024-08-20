@@ -182,6 +182,7 @@ export type $OpenApiTs = {
   "/{document-type}/{document-id}/email-document.json": {
     put: {
       req: {
+        apiKey: string;
         documentId: number;
         documentType:
           | "invoices"
@@ -214,6 +215,7 @@ export type $OpenApiTs = {
   "/{document-type}/{document-id}.json": {
     get: {
       req: {
+        apiKey: string;
         documentId: number;
         documentType:
           | "invoices"
@@ -234,6 +236,7 @@ export type $OpenApiTs = {
   "/api/pdf/{document-id}.json": {
     get: {
       req: {
+        apiKey: string;
         documentId: number;
         secondCopy?: boolean;
       };
@@ -248,6 +251,7 @@ export type $OpenApiTs = {
   "/invoices.json": {
     get: {
       req: {
+        apiKey: string;
         archived?: boolean;
         dateFrom?: string;
         dateTo?: string;
@@ -298,17 +302,12 @@ export type $OpenApiTs = {
       };
     };
   };
-  "/{document-type}.json": {
+  "/invoice_receipts.json": {
     post: {
       req: {
-        documentType:
-          | "invoices"
-          | "simplified_invoices"
-          | "invoice_receipts"
-          | "credit_notes"
-          | "debit_notes";
+        apiKey: string;
         requestBody: {
-          invoice?: Invoice;
+          invoice_receipt?: Invoice;
         };
       };
       res: {
@@ -316,7 +315,7 @@ export type $OpenApiTs = {
          * Invoice was created successfully.
          */
         201: {
-          invoice?: Invoice;
+          invoice_receipts?: Invoice;
         };
       };
     };
@@ -324,6 +323,7 @@ export type $OpenApiTs = {
   "/clients.json": {
     get: {
       req: {
+        apiKey: string;
         /**
          * Page number to retrieve.
          */
@@ -342,6 +342,7 @@ export type $OpenApiTs = {
     };
     post: {
       req: {
+        apiKey: string;
         requestBody: ClientRequest;
       };
       res: {
@@ -355,6 +356,7 @@ export type $OpenApiTs = {
   "/clients/{client-id}.json": {
     get: {
       req: {
+        apiKey: string;
         /**
          * The ID of the client you want to get.
          */
@@ -369,6 +371,7 @@ export type $OpenApiTs = {
     };
     put: {
       req: {
+        apiKey: string;
         /**
          * The ID of the client to be updated.
          */
@@ -386,6 +389,7 @@ export type $OpenApiTs = {
   "/clients/find-by-name.json": {
     get: {
       req: {
+        apiKey: string;
         clientName: string;
       };
       res: {
@@ -399,6 +403,7 @@ export type $OpenApiTs = {
   "/clients/find-by-code.json": {
     get: {
       req: {
+        apiKey: string;
         /**
          * The client code you want to search.
          */
@@ -415,6 +420,7 @@ export type $OpenApiTs = {
   "/clients/{client-id}/invoices.json": {
     post: {
       req: {
+        apiKey: string;
         /**
          * Filter invoices for this client.
          */
@@ -446,6 +452,7 @@ export type $OpenApiTs = {
   "/api/export_saft.json": {
     get: {
       req: {
+        apiKey: string;
         month: string;
         year: string;
       };

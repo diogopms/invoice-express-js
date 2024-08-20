@@ -7,7 +7,7 @@ servers:
   - url: https://{account_name}.app.invoicexpress.com
     variables:
       account_name:
-        default: 'account_name'
+        default: "account_name"
 tags:
   - name: Invoices
     description: |
@@ -46,6 +46,11 @@ paths:
         - Invoices
       summary: Send document by email
       parameters:
+        - name: api_key
+          in: query
+          required: true
+          schema:
+            type: string
         - name: document-type
           in: path
           required: true
@@ -111,6 +116,11 @@ paths:
         - Invoices
       summary: Get Invoice
       parameters:
+        - name: api_key
+          in: query
+          required: true
+          schema:
+            type: string
         - name: document-type
           in: path
           required: true
@@ -148,6 +158,11 @@ paths:
         - Invoices
       summary: Generate PDF
       parameters:
+        - name: api_key
+          required: true
+          in: query
+          schema:
+            type: string
         - name: document-id
           in: path
           required: true
@@ -175,6 +190,11 @@ paths:
         - Invoices
       summary: List all invoices
       parameters:
+        - name: api_key
+          in: query
+          required: true
+          schema:
+            type: string
         - name: text
           in: query
           schema:
@@ -286,25 +306,17 @@ paths:
         "401":
           description: Access denied. The API Key parameter is missing or is incorrectly entered.
 
-  /{document-type}.json:
+  /invoice_receipts.json:
     post:
       tags:
         - Invoices
-      summary: Create an invoice
+      summary: Create an invoice_receipts
       parameters:
-        - name: document-type
-          in: path
+        - name: api_key
+          in: query
           required: true
           schema:
             type: string
-            enum:
-              [
-                invoices,
-                simplified_invoices,
-                invoice_receipts,
-                credit_notes,
-                debit_notes,
-              ]
       requestBody:
         required: true
         content:
@@ -312,7 +324,7 @@ paths:
             schema:
               type: object
               properties:
-                invoice:
+                invoice_receipt:
                   $ref: "#/components/schemas/Invoice"
       responses:
         "201":
@@ -322,7 +334,7 @@ paths:
               schema:
                 type: object
                 properties:
-                  invoice:
+                  invoice_receipts:
                     $ref: "#/components/schemas/Invoice"
         "401":
           description: Access denied. The API Key parameter is missing or is incorrectly entered.
@@ -338,6 +350,11 @@ paths:
       summary: List all clients
       description: Retrieves a list of clients.
       parameters:
+        - name: api_key
+          in: query
+          required: true
+          schema:
+            type: string
         - name: page
           in: query
           required: true
@@ -369,6 +386,11 @@ paths:
       summary: Create a new client
       description: Creates a new client.
       parameters:
+        - name: api_key
+          in: query
+          required: true
+          schema:
+            type: string
       requestBody:
         required: true
         content:
@@ -401,6 +423,11 @@ paths:
       summary: Get a client by ID
       description: Retrieves a client by their ID.
       parameters:
+        - name: api_key
+          in: query
+          required: true
+          schema:
+            type: string
         - name: client-id
           in: path
           required: true
@@ -432,6 +459,11 @@ paths:
       summary: Update a client by ID
       description: Updates a client's information by their ID.
       parameters:
+        - name: api_key
+          in: query
+          required: true
+          schema:
+            type: string
         - name: client-id
           in: path
           required: true
@@ -472,6 +504,11 @@ paths:
       summary: Find client by name
       description: Retrieves a client by their name.
       parameters:
+        - name: api_key
+          in: query
+          required: true
+          schema:
+            type: string
         - name: client_name
           in: query
           required: true
@@ -503,6 +540,11 @@ paths:
       summary: Find client by code
       description: Retrieves a client by their code.
       parameters:
+        - name: api_key
+          in: query
+          required: true
+          schema:
+            type: string
         - name: client_code
           in: query
           required: true
@@ -535,6 +577,11 @@ paths:
       summary: List invoices for a client
       description: Retrieves a list of invoices for a specific client.
       parameters:
+        - name: api_key
+          in: query
+          required: true
+          schema:
+            type: string
         - name: client-id
           in: path
           required: true
@@ -593,57 +640,62 @@ paths:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
   /api/export_saft.json:
-      get:
-        tags:
-          - SAFT
-        summary: Export SAF-T
-        description: Generates the SAF-T file for a specific date (month and year). The first response given will have a HTTP 202 code, meaning the generation was started. You need to keep requesting until you get a response with HTTP status code 200, and the URL to download the file in the message body.
-        parameters:
-          - name: month
-            in: query
-            required: true
-            schema:
-              type: string
-            example: '10'
-          - name: year
-            in: query
-            required: true
-            schema:
-              type: string
-            example: '2017'
-        responses:
-          '200':
-            description: The link to download your SAF-T file.
-            content:
-              application/json:
-                schema:
-                  type: object
-                  properties:
-                    url:
-                      type: string
-                      example: "https://some.url"
-          '202':
-            description: Your SAF-T file is being generated. You need to keep requesting until you get a response with HTTP status code 200.
-            content:
-              application/json:
-                schema:
-                  type: object
-                  properties:
-                    message:
-                      type: string
-                      example: "The SAF-T file generation was started. Please keep requesting until you get back the url."
-          '422':
-            description: Some parameters sent in the request were not valid.
-          '500':
-            description: The SAF-T file generation failed.
-            content:
-              application/json:
-                schema:
-                  type: object
-                  properties:
-                    message:
-                      type: string
-                      example: "Error generating SAF-T. Please try again."
+    get:
+      tags:
+        - SAFT
+      summary: Export SAF-T
+      description: Generates the SAF-T file for a specific date (month and year). The first response given will have a HTTP 202 code, meaning the generation was started. You need to keep requesting until you get a response with HTTP status code 200, and the URL to download the file in the message body.
+      parameters:
+        - name: api_key
+          in: query
+          required: true
+          schema:
+            type: string
+        - name: month
+          in: query
+          required: true
+          schema:
+            type: string
+          example: "10"
+        - name: year
+          in: query
+          required: true
+          schema:
+            type: string
+          example: "2017"
+      responses:
+        "200":
+          description: The link to download your SAF-T file.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  url:
+                    type: string
+                    example: "https://some.url"
+        "202":
+          description: Your SAF-T file is being generated. You need to keep requesting until you get a response with HTTP status code 200.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "The SAF-T file generation was started. Please keep requesting until you get back the url."
+        "422":
+          description: Some parameters sent in the request were not valid.
+        "500":
+          description: The SAF-T file generation failed.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Error generating SAF-T. Please try again."
 
 components:
   schemas:
