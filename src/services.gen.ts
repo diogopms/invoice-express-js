@@ -17,13 +17,16 @@ export class InvoicesService {
   ): CancelablePromise<
     $OpenApiTs["/{document-type}/{document-id}/email-document.json"]["put"]["res"][200]
   > {
-    const { documentType, documentId, requestBody } = data;
+    const { apiKey, documentType, documentId, requestBody } = data;
     return this.httpRequest.request({
       method: "PUT",
       url: "/{document-type}/{document-id}/email-document.json",
       path: {
         "document-type": documentType,
         "document-id": documentId,
+      },
+      query: {
+        api_key: apiKey,
       },
       body: requestBody,
       mediaType: "application/json",
@@ -45,13 +48,16 @@ export class InvoicesService {
   ): CancelablePromise<
     $OpenApiTs["/{document-type}/{document-id}.json"]["get"]["res"][200]
   > {
-    const { documentType, documentId } = data;
+    const { apiKey, documentType, documentId } = data;
     return this.httpRequest.request({
       method: "GET",
       url: "/{document-type}/{document-id}.json",
       path: {
         "document-type": documentType,
         "document-id": documentId,
+      },
+      query: {
+        api_key: apiKey,
       },
       errors: {
         401: "Access denied. The API Key parameter is missing or is incorrectly entered.",
@@ -70,7 +76,7 @@ export class InvoicesService {
   ): CancelablePromise<
     $OpenApiTs["/api/pdf/{document-id}.json"]["get"]["res"][200]
   > {
-    const { documentId, secondCopy } = data;
+    const { apiKey, documentId, secondCopy } = data;
     return this.httpRequest.request({
       method: "GET",
       url: "/api/pdf/{document-id}.json",
@@ -78,6 +84,7 @@ export class InvoicesService {
         "document-id": documentId,
       },
       query: {
+        api_key: apiKey,
         second_copy: secondCopy,
       },
       errors: {
@@ -97,6 +104,7 @@ export class InvoicesService {
     data: $OpenApiTs["/invoices.json"]["get"]["req"],
   ): CancelablePromise<$OpenApiTs["/invoices.json"]["get"]["res"][200]> {
     const {
+      apiKey,
       typeArray,
       statusArray,
       nonArchived,
@@ -116,6 +124,7 @@ export class InvoicesService {
       method: "GET",
       url: "/invoices.json",
       query: {
+        api_key: apiKey,
         text,
         "type[]": typeArray,
         "status[]": statusArray,
@@ -138,21 +147,21 @@ export class InvoicesService {
   }
 
   /**
-   * Create an invoice
+   * Create an invoice_receipts
    * @returns unknown Invoice was created successfully.
    * @throws ApiError
    */
-  public postByDocumentTypeJson(
-    data: $OpenApiTs["/{document-type}.json"]["post"]["req"],
+  public postInvoiceReceiptsJson(
+    data: $OpenApiTs["/invoice_receipts.json"]["post"]["req"],
   ): CancelablePromise<
-    $OpenApiTs["/{document-type}.json"]["post"]["res"][201]
+    $OpenApiTs["/invoice_receipts.json"]["post"]["res"][201]
   > {
-    const { documentType, requestBody } = data;
+    const { apiKey, requestBody } = data;
     return this.httpRequest.request({
       method: "POST",
-      url: "/{document-type}.json",
-      path: {
-        "document-type": documentType,
+      url: "/invoice_receipts.json",
+      query: {
+        api_key: apiKey,
       },
       body: requestBody,
       mediaType: "application/json",
@@ -177,11 +186,12 @@ export class ClientsService {
   public getClientsJson(
     data: $OpenApiTs["/clients.json"]["get"]["req"],
   ): CancelablePromise<$OpenApiTs["/clients.json"]["get"]["res"][200]> {
-    const { page, perPage } = data;
+    const { apiKey, page, perPage } = data;
     return this.httpRequest.request({
       method: "GET",
       url: "/clients.json",
       query: {
+        api_key: apiKey,
         page,
         per_page: perPage,
       },
@@ -200,10 +210,13 @@ export class ClientsService {
   public postClientsJson(
     data: $OpenApiTs["/clients.json"]["post"]["req"],
   ): CancelablePromise<$OpenApiTs["/clients.json"]["post"]["res"][201]> {
-    const { requestBody } = data;
+    const { apiKey, requestBody } = data;
     return this.httpRequest.request({
       method: "POST",
       url: "/clients.json",
+      query: {
+        api_key: apiKey,
+      },
       body: requestBody,
       mediaType: "application/json",
       errors: {
@@ -224,12 +237,15 @@ export class ClientsService {
   ): CancelablePromise<
     $OpenApiTs["/clients/{client-id}.json"]["get"]["res"][200]
   > {
-    const { clientId } = data;
+    const { apiKey, clientId } = data;
     return this.httpRequest.request({
       method: "GET",
       url: "/clients/{client-id}.json",
       path: {
         "client-id": clientId,
+      },
+      query: {
+        api_key: apiKey,
       },
       errors: {
         401: "ACCESS DENIED",
@@ -249,12 +265,15 @@ export class ClientsService {
   ): CancelablePromise<
     $OpenApiTs["/clients/{client-id}.json"]["put"]["res"][200]
   > {
-    const { clientId, requestBody } = data;
+    const { apiKey, clientId, requestBody } = data;
     return this.httpRequest.request({
       method: "PUT",
       url: "/clients/{client-id}.json",
       path: {
         "client-id": clientId,
+      },
+      query: {
+        api_key: apiKey,
       },
       body: requestBody,
       mediaType: "application/json",
@@ -277,11 +296,12 @@ export class ClientsService {
   ): CancelablePromise<
     $OpenApiTs["/clients/find-by-name.json"]["get"]["res"][200]
   > {
-    const { clientName } = data;
+    const { apiKey, clientName } = data;
     return this.httpRequest.request({
       method: "GET",
       url: "/clients/find-by-name.json",
       query: {
+        api_key: apiKey,
         client_name: clientName,
       },
       errors: {
@@ -302,11 +322,12 @@ export class ClientsService {
   ): CancelablePromise<
     $OpenApiTs["/clients/find-by-code.json"]["get"]["res"][200]
   > {
-    const { clientCode } = data;
+    const { apiKey, clientCode } = data;
     return this.httpRequest.request({
       method: "GET",
       url: "/clients/find-by-code.json",
       query: {
+        api_key: apiKey,
         client_code: clientCode,
       },
       errors: {
@@ -327,7 +348,7 @@ export class ClientsService {
   ): CancelablePromise<
     $OpenApiTs["/clients/{client-id}/invoices.json"]["post"]["res"][200]
   > {
-    const { clientId, requestBody, page, perPage } = data;
+    const { apiKey, clientId, requestBody, page, perPage } = data;
     return this.httpRequest.request({
       method: "POST",
       url: "/clients/{client-id}/invoices.json",
@@ -335,6 +356,7 @@ export class ClientsService {
         "client-id": clientId,
       },
       query: {
+        api_key: apiKey,
         page,
         per_page: perPage,
       },
@@ -360,11 +382,12 @@ export class SaftService {
   public getApiExportSaftJson(
     data: $OpenApiTs["/api/export_saft.json"]["get"]["req"],
   ): CancelablePromise<$OpenApiTs["/api/export_saft.json"]["get"]["res"][200]> {
-    const { month, year } = data;
+    const { apiKey, month, year } = data;
     return this.httpRequest.request({
       method: "GET",
       url: "/api/export_saft.json",
       query: {
+        api_key: apiKey,
         month,
         year,
       },
