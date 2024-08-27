@@ -179,17 +179,11 @@ export type ErrorResponse = {
 };
 
 export type $OpenApiTs = {
-  "/{document-type}/{document-id}/email-document.json": {
+  "/invoice_receipts/{document-id}/email-document.json": {
     put: {
       req: {
         apiKey: string;
         documentId: number;
-        documentType:
-          | "invoices"
-          | "invoice_receipts"
-          | "simplified_invoices"
-          | "credit_notes"
-          | "debit_notes";
         requestBody: {
           message?: {
             client?: {
@@ -212,18 +206,57 @@ export type $OpenApiTs = {
       };
     };
   };
-  "/{document-type}/{document-id}.json": {
+  "/invoice_receipts/{document-id}/change-state.json": {
+    put: {
+      req: {
+        /**
+         * Your API key.
+         */
+        apiKey: string;
+        /**
+         * The unique identifier of the document.
+         */
+        documentId: string;
+        requestBody: {
+          invoice_receipt: {
+            /**
+             * The new state of the document.
+             */
+            state?:
+              | "finalized"
+              | "deleted"
+              | "canceled"
+              | "settled"
+              | "unsettled";
+            /**
+             * The reason for changing the state (required for cancellation).
+             */
+            message?: string;
+          };
+        };
+      };
+      res: {
+        /**
+         * Successfully changed the document state.
+         */
+        200: {
+          /**
+           * Status of the request.
+           */
+          status?: string;
+          /**
+           * Details about the request outcome.
+           */
+          message?: string;
+        };
+      };
+    };
+  };
+  "/invoice_receipts/{document-id}.json": {
     get: {
       req: {
         apiKey: string;
         documentId: number;
-        documentType:
-          | "invoices"
-          | "invoice_receipts"
-          | "simplified_invoices"
-          | "vat_moss_invoices"
-          | "credit_notes"
-          | "debit_notes";
       };
       res: {
         /**
@@ -248,7 +281,23 @@ export type $OpenApiTs = {
       };
     };
   };
-  "/invoices.json": {
+  "/invoice_receipts.json": {
+    post: {
+      req: {
+        apiKey: string;
+        requestBody: {
+          invoice_receipt?: Invoice;
+        };
+      };
+      res: {
+        /**
+         * Invoice was created successfully.
+         */
+        201: {
+          invoice_receipts?: Invoice;
+        };
+      };
+    };
     get: {
       req: {
         apiKey: string;
@@ -298,24 +347,6 @@ export type $OpenApiTs = {
             total_pages?: number;
             per_page?: number;
           };
-        };
-      };
-    };
-  };
-  "/invoice_receipts.json": {
-    post: {
-      req: {
-        apiKey: string;
-        requestBody: {
-          invoice_receipt?: Invoice;
-        };
-      };
-      res: {
-        /**
-         * Invoice was created successfully.
-         */
-        201: {
-          invoice_receipts?: Invoice;
         };
       };
     };
