@@ -4,7 +4,7 @@ import type { CancelablePromise } from "./core/CancelablePromise";
 import type { BaseHttpRequest } from "./core/BaseHttpRequest";
 import type { $OpenApiTs } from "./types.gen";
 
-export class InvoicesService {
+export class InvoicesReceiptsService {
   constructor(public readonly httpRequest: BaseHttpRequest) {}
 
   /**
@@ -148,17 +148,19 @@ export class InvoicesService {
       },
     });
   }
+}
+
+export class InvoicesService {
+  constructor(public readonly httpRequest: BaseHttpRequest) {}
 
   /**
-   * List all invoices
+   * List all Invoices eceipts
    * @returns unknown Invoices were returned successfully.
    * @throws ApiError
    */
-  public getInvoiceReceiptsJson(
-    data: $OpenApiTs["/invoice_receipts.json"]["get"]["req"],
-  ): CancelablePromise<
-    $OpenApiTs["/invoice_receipts.json"]["get"]["res"][200]
-  > {
+  public getInvoicesJson(
+    data: $OpenApiTs["/invoices.json"]["get"]["req"],
+  ): CancelablePromise<$OpenApiTs["/invoices.json"]["get"]["res"][200]> {
     const {
       apiKey,
       typeArray,
@@ -178,7 +180,7 @@ export class InvoicesService {
     } = data;
     return this.httpRequest.request({
       method: "GET",
-      url: "/invoice_receipts.json",
+      url: "/invoices.json",
       query: {
         api_key: apiKey,
         text,

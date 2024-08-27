@@ -298,6 +298,8 @@ export type $OpenApiTs = {
         };
       };
     };
+  };
+  "/invoices.json": {
     get: {
       req: {
         apiKey: string;

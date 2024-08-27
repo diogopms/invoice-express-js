@@ -12,6 +12,9 @@ tags:
   - name: Invoices
     description: |
       Create invoices, invoice receipts, simplified invoices, vat moss invoices, credit notes & debit notes and send them to your clients.
+  - name: InvoicesReceipts
+    description: |
+      Create invoices, invoice receipts, simplified invoices, vat moss invoices, credit notes & debit notes and send them to your clients.
   - name: Estimates
     description: |
       Create quotes, proformas or fees notes and send them to your clients.
@@ -43,7 +46,7 @@ paths:
   /invoice_receipts/{document-id}/email-document.json:
     put:
       tags:
-        - Invoices
+        - InvoicesReceipts
       summary: Send document by email
       parameters:
         - name: api_key
@@ -100,7 +103,7 @@ paths:
   /invoice_receipts/{document-id}/change-state.json:
     put:
       tags:
-        - Invoices
+        - InvoicesReceipts
       summary: Change the state of a document
       description: Changes the state of an invoice, simplified_invoice, invoice_receipt, credit_note, or debit_note.
       parameters:
@@ -170,7 +173,7 @@ paths:
   /invoice_receipts/{document-id}.json:
     get:
       tags:
-        - Invoices
+        - InvoicesReceipts
       summary: Get Invoice
       parameters:
         - name: api_key
@@ -198,7 +201,7 @@ paths:
   /api/pdf/{document-id}.json:
     get:
       tags:
-        - Invoices
+        - InvoicesReceipts
       summary: Generate PDF
       parameters:
         - name: api_key
@@ -230,7 +233,7 @@ paths:
   /invoice_receipts.json:
     post:
       tags:
-        - Invoices
+        - InvoicesReceipts
       summary: Create an invoice_receipts
       parameters:
         - name: api_key
@@ -263,10 +266,12 @@ paths:
           description: Conflict. There’s an ongoing document creation with the provided UID.
         "422":
           description: Unprocessable Entity. Some parameters were incorrect.
+
+  /invoices.json:
     get:
       tags:
         - Invoices
-      summary: List all invoices
+      summary: List all Invoices eceipts
       parameters:
         - name: api_key
           in: query
