@@ -40,7 +40,7 @@ tags:
     description: |
       Section dedicated to treasury movements.
 paths:
-  /{document-type}/{document-id}/email-document.json:
+  /invoice_receipts/{document-id}/email-document.json:
     put:
       tags:
         - Invoices
@@ -51,19 +51,6 @@ paths:
           required: true
           schema:
             type: string
-        - name: document-type
-          in: path
-          required: true
-          schema:
-            type: string
-            enum:
-              [
-                invoices,
-                invoice_receipts,
-                simplified_invoices,
-                credit_notes,
-                debit_notes,
-              ]
         - name: document-id
           in: path
           required: true
@@ -110,7 +97,77 @@ paths:
           description: Not found. The supplied document-id doesn’t match any existing document.
         "422":
           description: Unprocessable Entity. Some parameters sent were incorrect.
-  /{document-type}/{document-id}.json:
+  /invoice_receipts/{document-id}/change-state.json:
+    put:
+      tags:
+        - Invoices
+      summary: Change the state of a document
+      description: Changes the state of an invoice, simplified_invoice, invoice_receipt, credit_note, or debit_note.
+      parameters:
+        - name: document-id
+          in: path
+          required: true
+          description: The unique identifier of the document.
+          schema:
+            type: string
+        - name: api_key
+          in: query
+          required: true
+          description: Your API key.
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                invoice_receipt:
+                  type: object
+                  properties:
+                    state:
+                      type: string
+                      enum:
+                        - finalized
+                        - deleted
+                        - canceled
+                        - settled
+                        - unsettled
+                      description: The new state of the document.
+                    message:
+                      type: string
+                      description: The reason for changing the state (required for cancellation).
+              required:
+                - invoice_receipt
+      responses:
+        "200":
+          description: Successfully changed the document state.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    description: Status of the request.
+                    example: success
+                  message:
+                    type: string
+                    description: Details about the request outcome.
+                    example: State changed successfully.
+        "400":
+          description: Invalid request.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    description: Status of the request.
+
+  /invoice_receipts/{document-id}.json:
     get:
       tags:
         - Invoices
@@ -121,20 +178,6 @@ paths:
           required: true
           schema:
             type: string
-        - name: document-type
-          in: path
-          required: true
-          schema:
-            type: string
-            enum:
-              [
-                invoices,
-                invoice_receipts,
-                simplified_invoices,
-                vat_moss_invoices,
-                credit_notes,
-                debit_notes,
-              ]
         - name: document-id
           in: path
           required: true
@@ -184,7 +227,42 @@ paths:
           description: Not found. No document matches the supplied document-id.
         "422":
           description: Not acceptable. The document-id provided is in an invalid state.
-  /invoices.json:
+  /invoice_receipts.json:
+    post:
+      tags:
+        - Invoices
+      summary: Create an invoice_receipts
+      parameters:
+        - name: api_key
+          in: query
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                invoice_receipt:
+                  $ref: "#/components/schemas/Invoice"
+      responses:
+        "201":
+          description: Invoice was created successfully.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  invoice_receipts:
+                    $ref: "#/components/schemas/Invoice"
+        "401":
+          description: Access denied. The API Key parameter is missing or is incorrectly entered.
+        "409":
+          description: Conflict. There’s an ongoing document creation with the provided UID.
+        "422":
+          description: Unprocessable Entity. Some parameters were incorrect.
     get:
       tags:
         - Invoices
@@ -305,43 +383,6 @@ paths:
                         type: integer
         "401":
           description: Access denied. The API Key parameter is missing or is incorrectly entered.
-
-  /invoice_receipts.json:
-    post:
-      tags:
-        - Invoices
-      summary: Create an invoice_receipts
-      parameters:
-        - name: api_key
-          in: query
-          required: true
-          schema:
-            type: string
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                invoice_receipt:
-                  $ref: "#/components/schemas/Invoice"
-      responses:
-        "201":
-          description: Invoice was created successfully.
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  invoice_receipts:
-                    $ref: "#/components/schemas/Invoice"
-        "401":
-          description: Access denied. The API Key parameter is missing or is incorrectly entered.
-        "409":
-          description: Conflict. There’s an ongoing document creation with the provided UID.
-        "422":
-          description: Unprocessable Entity. Some parameters were incorrect.
 
   /clients.json:
     get:

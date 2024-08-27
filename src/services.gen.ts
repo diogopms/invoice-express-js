@@ -12,17 +12,16 @@ export class InvoicesService {
    * @returns unknown The email was sent successfully.
    * @throws ApiError
    */
-  public putByDocumentTypeByDocumentIdEmailDocumentJson(
-    data: $OpenApiTs["/{document-type}/{document-id}/email-document.json"]["put"]["req"],
+  public putInvoiceReceiptsByDocumentIdEmailDocumentJson(
+    data: $OpenApiTs["/invoice_receipts/{document-id}/email-document.json"]["put"]["req"],
   ): CancelablePromise<
-    $OpenApiTs["/{document-type}/{document-id}/email-document.json"]["put"]["res"][200]
+    $OpenApiTs["/invoice_receipts/{document-id}/email-document.json"]["put"]["res"][200]
   > {
-    const { apiKey, documentType, documentId, requestBody } = data;
+    const { apiKey, documentId, requestBody } = data;
     return this.httpRequest.request({
       method: "PUT",
-      url: "/{document-type}/{document-id}/email-document.json",
+      url: "/invoice_receipts/{document-id}/email-document.json",
       path: {
-        "document-type": documentType,
         "document-id": documentId,
       },
       query: {
@@ -39,21 +38,49 @@ export class InvoicesService {
   }
 
   /**
+   * Change the state of a document
+   * Changes the state of an invoice, simplified_invoice, invoice_receipt, credit_note, or debit_note.
+   * @returns unknown Successfully changed the document state.
+   * @throws ApiError
+   */
+  public putInvoiceReceiptsByDocumentIdChangeStateJson(
+    data: $OpenApiTs["/invoice_receipts/{document-id}/change-state.json"]["put"]["req"],
+  ): CancelablePromise<
+    $OpenApiTs["/invoice_receipts/{document-id}/change-state.json"]["put"]["res"][200]
+  > {
+    const { documentId, apiKey, requestBody } = data;
+    return this.httpRequest.request({
+      method: "PUT",
+      url: "/invoice_receipts/{document-id}/change-state.json",
+      path: {
+        "document-id": documentId,
+      },
+      query: {
+        api_key: apiKey,
+      },
+      body: requestBody,
+      mediaType: "application/json",
+      errors: {
+        400: "Invalid request.",
+      },
+    });
+  }
+
+  /**
    * Get Invoice
    * @returns Invoice The invoice was returned successfully.
    * @throws ApiError
    */
-  public getByDocumentTypeByDocumentIdJson(
-    data: $OpenApiTs["/{document-type}/{document-id}.json"]["get"]["req"],
+  public getInvoiceReceiptsByDocumentIdJson(
+    data: $OpenApiTs["/invoice_receipts/{document-id}.json"]["get"]["req"],
   ): CancelablePromise<
-    $OpenApiTs["/{document-type}/{document-id}.json"]["get"]["res"][200]
+    $OpenApiTs["/invoice_receipts/{document-id}.json"]["get"]["res"][200]
   > {
-    const { apiKey, documentType, documentId } = data;
+    const { apiKey, documentId } = data;
     return this.httpRequest.request({
       method: "GET",
-      url: "/{document-type}/{document-id}.json",
+      url: "/invoice_receipts/{document-id}.json",
       path: {
-        "document-type": documentType,
         "document-id": documentId,
       },
       query: {
@@ -96,57 +123,6 @@ export class InvoicesService {
   }
 
   /**
-   * List all invoices
-   * @returns unknown Invoices were returned successfully.
-   * @throws ApiError
-   */
-  public getInvoicesJson(
-    data: $OpenApiTs["/invoices.json"]["get"]["req"],
-  ): CancelablePromise<$OpenApiTs["/invoices.json"]["get"]["res"][200]> {
-    const {
-      apiKey,
-      typeArray,
-      statusArray,
-      nonArchived,
-      page,
-      perPage,
-      text,
-      dateFrom,
-      dateTo,
-      dueDateFrom,
-      dueDateTo,
-      totalBeforeTaxesFrom,
-      totalBeforeTaxesTo,
-      archived,
-      reference,
-    } = data;
-    return this.httpRequest.request({
-      method: "GET",
-      url: "/invoices.json",
-      query: {
-        api_key: apiKey,
-        text,
-        "type[]": typeArray,
-        "status[]": statusArray,
-        "date[from]": dateFrom,
-        "date[to]": dateTo,
-        "due_date[from]": dueDateFrom,
-        "due_date[to]": dueDateTo,
-        "total_before_taxes[from]": totalBeforeTaxesFrom,
-        "total_before_taxes[to]": totalBeforeTaxesTo,
-        non_archived: nonArchived,
-        archived,
-        page,
-        per_page: perPage,
-        reference,
-      },
-      errors: {
-        401: "Access denied. The API Key parameter is missing or is incorrectly entered.",
-      },
-    });
-  }
-
-  /**
    * Create an invoice_receipts
    * @returns unknown Invoice was created successfully.
    * @throws ApiError
@@ -169,6 +145,59 @@ export class InvoicesService {
         401: "Access denied. The API Key parameter is missing or is incorrectly entered.",
         409: "Conflict. There’s an ongoing document creation with the provided UID.",
         422: "Unprocessable Entity. Some parameters were incorrect.",
+      },
+    });
+  }
+
+  /**
+   * List all invoices
+   * @returns unknown Invoices were returned successfully.
+   * @throws ApiError
+   */
+  public getInvoiceReceiptsJson(
+    data: $OpenApiTs["/invoice_receipts.json"]["get"]["req"],
+  ): CancelablePromise<
+    $OpenApiTs["/invoice_receipts.json"]["get"]["res"][200]
+  > {
+    const {
+      apiKey,
+      typeArray,
+      statusArray,
+      nonArchived,
+      page,
+      perPage,
+      text,
+      dateFrom,
+      dateTo,
+      dueDateFrom,
+      dueDateTo,
+      totalBeforeTaxesFrom,
+      totalBeforeTaxesTo,
+      archived,
+      reference,
+    } = data;
+    return this.httpRequest.request({
+      method: "GET",
+      url: "/invoice_receipts.json",
+      query: {
+        api_key: apiKey,
+        text,
+        "type[]": typeArray,
+        "status[]": statusArray,
+        "date[from]": dateFrom,
+        "date[to]": dateTo,
+        "due_date[from]": dueDateFrom,
+        "due_date[to]": dueDateTo,
+        "total_before_taxes[from]": totalBeforeTaxesFrom,
+        "total_before_taxes[to]": totalBeforeTaxesTo,
+        non_archived: nonArchived,
+        archived,
+        page,
+        per_page: perPage,
+        reference,
+      },
+      errors: {
+        401: "Access denied. The API Key parameter is missing or is incorrectly entered.",
       },
     });
   }
