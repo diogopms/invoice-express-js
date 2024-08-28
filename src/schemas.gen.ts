@@ -321,7 +321,10 @@ export const $InvoiceReceiptsRequest = {
           },
         },
         items: {
-          $ref: "#/components/schemas/Item",
+          type: "array",
+          items: {
+            $ref: "#/components/schemas/Item",
+          },
         },
       },
     },
@@ -399,9 +402,9 @@ export const $ClientRequest = {
 
 export const $InvoicesResponse = {
   type: "object",
-  required: ["clients", "pagination"],
+  required: ["invoices", "pagination"],
   properties: {
-    clients: {
+    invoices: {
       type: "array",
       items: {
         $ref: "#/components/schemas/Invoice",
@@ -440,7 +443,6 @@ export const $InvoiceResponse = {
 
 export const $ErrorResponse = {
   type: "object",
-  required: ["error"],
   properties: {
     error: {
       type: "string",

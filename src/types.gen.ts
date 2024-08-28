@@ -105,7 +105,7 @@ export type InvoiceReceiptsRequest = {
     client?: {
       [key: string]: unknown;
     };
-    items?: Item;
+    items?: Array<Item>;
   };
 };
 
@@ -134,7 +134,7 @@ export type ClientRequest = {
 };
 
 export type InvoicesResponse = {
-  clients: Array<Invoice>;
+  invoices: Array<Invoice>;
   pagination: {
     total_entries: number;
     current_page: number;
@@ -148,7 +148,7 @@ export type InvoiceResponse = {
 };
 
 export type ErrorResponse = {
-  error: string;
+  error?: string;
 };
 
 export type PutInvoiceReceiptsByDocumentIdEmailDocumentJsonData = {
@@ -264,15 +264,7 @@ export type GetInvoicesJsonData = {
   >;
 };
 
-export type GetInvoicesJsonResponse = {
-  invoices?: Array<Invoice>;
-  pagination?: {
-    total_entries?: number;
-    current_page?: number;
-    total_pages?: number;
-    per_page?: number;
-  };
-};
+export type GetInvoicesJsonResponse = InvoicesResponse;
 
 export type GetClientsJsonData = {
   apiKey: string;
