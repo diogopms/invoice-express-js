@@ -11,7 +11,7 @@ async function main() {
     },
     client: "fetch",
     name: "InvoiceExpressClient",
-    useOptions: true,
+    useOptions: true
   });
 }
 

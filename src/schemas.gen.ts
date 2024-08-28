@@ -2,6 +2,7 @@
 
 export const $Item = {
   type: "object",
+  required: ["name", "unit_price", "unit", "quantity"],
   properties: {
     name: {
       type: "string",
@@ -52,6 +53,7 @@ export const $Item = {
 
 export const $MBReference = {
   type: "object",
+  required: ["entity", "value", "reference"],
   properties: {
     entity: {
       type: "string",
@@ -67,6 +69,7 @@ export const $MBReference = {
 
 export const $GlobalDiscount = {
   type: "object",
+  required: ["value_type", "value"],
   properties: {
     value_type: {
       type: "string",
@@ -79,6 +82,17 @@ export const $GlobalDiscount = {
 
 export const $Invoice = {
   type: "object",
+  required: [
+    "id",
+    "status",
+    "type",
+    "sequence_number",
+    "date",
+    "due_date",
+    "total",
+    "client",
+    "items",
+  ],
   properties: {
     id: {
       type: "integer",
@@ -168,6 +182,7 @@ export const $Invoice = {
 
 export const $Client = {
   type: "object",
+  required: ["id", "name"],
   properties: {
     id: {
       type: "string",
@@ -236,6 +251,7 @@ export const $Client = {
 
 export const $ClientsResponse = {
   type: "object",
+  required: ["clients", "pagination"],
   properties: {
     clients: {
       type: "array",
@@ -245,6 +261,7 @@ export const $ClientsResponse = {
     },
     pagination: {
       type: "object",
+      required: ["total_entries", "current_page", "total_pages", "per_page"],
       properties: {
         total_entries: {
           type: "integer",
@@ -272,11 +289,52 @@ export const $ClientResponse = {
   },
 } as const;
 
+export const $InvoiceReceiptsRequest = {
+  type: "object",
+  required: ["invoice_receipt"],
+  properties: {
+    invoice_receipt: {
+      type: "object",
+      required: ["date", "due_date", "status"],
+      properties: {
+        date: {
+          type: "string",
+          format: "date",
+        },
+        due_date: {
+          type: "string",
+          format: "date",
+        },
+        status: {
+          type: "string",
+        },
+        sequence_id: {
+          type: "string",
+        },
+        client: {
+          type: "object",
+          required: ["name"],
+          projects: {
+            name: {
+              type: "string",
+            },
+          },
+        },
+        items: {
+          $ref: "#/components/schemas/Item",
+        },
+      },
+    },
+  },
+} as const;
+
 export const $ClientRequest = {
   type: "object",
+  required: ["client"],
   properties: {
     client: {
       type: "object",
+      required: ["name"],
       properties: {
         name: {
           type: "string",
@@ -341,146 +399,17 @@ export const $ClientRequest = {
 
 export const $InvoicesResponse = {
   type: "object",
+  required: ["clients", "pagination"],
   properties: {
-    invoices: {
+    clients: {
       type: "array",
       items: {
-        type: "object",
-        properties: {
-          id: {
-            type: "integer",
-          },
-          status: {
-            type: "string",
-          },
-          archived: {
-            type: "boolean",
-          },
-          type: {
-            type: "string",
-          },
-          sequence_number: {
-            type: "string",
-          },
-          inverted_sequence_number: {
-            type: "string",
-          },
-          date: {
-            type: "string",
-          },
-          due_date: {
-            type: "string",
-          },
-          reference: {
-            type: "string",
-          },
-          observations: {
-            type: "string",
-          },
-          retention: {
-            type: "string",
-          },
-          permalink: {
-            type: "string",
-          },
-          saft_hash: {
-            type: "string",
-          },
-          sum: {
-            type: "number",
-          },
-          discount: {
-            type: "number",
-          },
-          before_taxes: {
-            type: "number",
-          },
-          taxes: {
-            type: "number",
-          },
-          total: {
-            type: "number",
-          },
-          currency: {
-            type: "string",
-          },
-          client: {
-            type: "object",
-            properties: {
-              id: {
-                type: "integer",
-              },
-              name: {
-                type: "string",
-              },
-              country: {
-                type: "string",
-              },
-            },
-          },
-          items: {
-            type: "array",
-            items: {
-              type: "object",
-              properties: {
-                name: {
-                  type: "string",
-                },
-                description: {
-                  type: "string",
-                },
-                unit_price: {
-                  type: "number",
-                },
-                unit: {
-                  type: "string",
-                },
-                quantity: {
-                  type: "number",
-                },
-                tax: {
-                  type: "object",
-                  properties: {
-                    id: {
-                      type: "integer",
-                    },
-                    name: {
-                      type: "string",
-                    },
-                    value: {
-                      type: "number",
-                    },
-                  },
-                },
-                discount: {
-                  type: "number",
-                },
-                subtotal: {
-                  type: "number",
-                },
-                tax_amount: {
-                  type: "number",
-                },
-                discount_amount: {
-                  type: "number",
-                },
-                total: {
-                  type: "number",
-                },
-              },
-            },
-          },
-          sequence_id: {
-            type: "string",
-          },
-          tax_exemption: {
-            type: "string",
-          },
-        },
+        $ref: "#/components/schemas/Invoice",
       },
     },
     pagination: {
       type: "object",
+      required: ["total_entries", "current_page", "total_pages", "per_page"],
       properties: {
         total_entries: {
           type: "integer",
@@ -499,8 +428,19 @@ export const $InvoicesResponse = {
   },
 } as const;
 
+export const $InvoiceResponse = {
+  type: "object",
+  required: ["invoice"],
+  properties: {
+    invoice: {
+      $ref: "#/components/schemas/Invoice",
+    },
+  },
+} as const;
+
 export const $ErrorResponse = {
   type: "object",
+  required: ["error"],
   properties: {
     error: {
       type: "string",
