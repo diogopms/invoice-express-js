@@ -204,7 +204,7 @@ export class InvoicesService {
    * @param data.totalBeforeTaxesTo
    * @param data.archived
    * @param data.reference
-   * @returns unknown Invoices were returned successfully.
+   * @returns InvoicesResponse The client’s invoices
    * @throws ApiError
    */
   public getInvoicesJson(
