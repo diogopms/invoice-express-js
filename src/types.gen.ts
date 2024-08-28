@@ -178,325 +178,225 @@ export type ErrorResponse = {
   error?: string;
 };
 
-export type $OpenApiTs = {
-  "/invoice_receipts/{document-id}/email-document.json": {
-    put: {
-      req: {
-        apiKey: string;
-        documentId: number;
-        requestBody: {
-          message?: {
-            client?: {
-              email?: string;
-              save?: "0" | "1";
-            };
-            subject?: string;
-            body?: string;
-            cc?: string;
-            bcc?: string;
-            logo?: "0" | "1";
-          };
-        };
+export type PutInvoiceReceiptsByDocumentIdEmailDocumentJsonData = {
+  apiKey: string;
+  documentId: number;
+  requestBody: {
+    message?: {
+      client?: {
+        email?: string;
+        save?: "0" | "1";
       };
-      res: {
-        /**
-         * The email was sent successfully.
-         */
-        200: unknown;
-      };
-    };
-  };
-  "/invoice_receipts/{document-id}/change-state.json": {
-    put: {
-      req: {
-        /**
-         * Your API key.
-         */
-        apiKey: string;
-        /**
-         * The unique identifier of the document.
-         */
-        documentId: string;
-        requestBody: {
-          invoice_receipt: {
-            /**
-             * The new state of the document.
-             */
-            state?:
-              | "finalized"
-              | "deleted"
-              | "canceled"
-              | "settled"
-              | "unsettled";
-            /**
-             * The reason for changing the state (required for cancellation).
-             */
-            message?: string;
-          };
-        };
-      };
-      res: {
-        /**
-         * Successfully changed the document state.
-         */
-        200: {
-          /**
-           * Status of the request.
-           */
-          status?: string;
-          /**
-           * Details about the request outcome.
-           */
-          message?: string;
-        };
-      };
-    };
-  };
-  "/invoice_receipts/{document-id}.json": {
-    get: {
-      req: {
-        apiKey: string;
-        documentId: number;
-      };
-      res: {
-        /**
-         * The invoice was returned successfully.
-         */
-        200: Invoice;
-      };
-    };
-  };
-  "/api/pdf/{document-id}.json": {
-    get: {
-      req: {
-        apiKey: string;
-        documentId: number;
-        secondCopy?: boolean;
-      };
-      res: {
-        /**
-         * The request has been successfully processed.
-         */
-        200: unknown;
-      };
-    };
-  };
-  "/invoice_receipts.json": {
-    post: {
-      req: {
-        apiKey: string;
-        requestBody: {
-          invoice_receipt?: Invoice;
-        };
-      };
-      res: {
-        /**
-         * Invoice was created successfully.
-         */
-        201: {
-          invoice_receipts?: Invoice;
-        };
-      };
-    };
-  };
-  "/invoices.json": {
-    get: {
-      req: {
-        apiKey: string;
-        archived?: boolean;
-        dateFrom?: string;
-        dateTo?: string;
-        dueDateFrom?: string;
-        dueDateTo?: string;
-        nonArchived: boolean;
-        /**
-         * Page number to retrieve.
-         */
-        page: number;
-        /**
-         * Per_page number to retrieve.
-         */
-        perPage: number;
-        reference?: string;
-        statusArray: Array<
-          "draft" | "sent" | "settled" | "canceled" | "second_copy"
-        >;
-        text?: string;
-        totalBeforeTaxesFrom?: number;
-        totalBeforeTaxesTo?: number;
-        typeArray: Array<
-          | "Invoice"
-          | "InvoiceReceipt"
-          | "SimplifiedInvoice"
-          | "VatMossInvoice"
-          | "CreditNote"
-          | "DebitNote"
-          | "Receipt"
-          | "CashInvoice"
-          | "VatMossReceipt"
-          | "VatMossCreditNote"
-        >;
-      };
-      res: {
-        /**
-         * Invoices were returned successfully.
-         */
-        200: {
-          invoices?: Array<Invoice>;
-          pagination?: {
-            total_entries?: number;
-            current_page?: number;
-            total_pages?: number;
-            per_page?: number;
-          };
-        };
-      };
-    };
-  };
-  "/clients.json": {
-    get: {
-      req: {
-        apiKey: string;
-        /**
-         * Page number to retrieve.
-         */
-        page: number;
-        /**
-         * Number of clients per page.
-         */
-        perPage: number;
-      };
-      res: {
-        /**
-         * Clients List all
-         */
-        200: ClientsResponse;
-      };
-    };
-    post: {
-      req: {
-        apiKey: string;
-        requestBody: ClientRequest;
-      };
-      res: {
-        /**
-         * SUCCESS
-         */
-        201: ClientResponse;
-      };
-    };
-  };
-  "/clients/{client-id}.json": {
-    get: {
-      req: {
-        apiKey: string;
-        /**
-         * The ID of the client you want to get.
-         */
-        clientId: number;
-      };
-      res: {
-        /**
-         * Clients Get
-         */
-        200: ClientResponse;
-      };
-    };
-    put: {
-      req: {
-        apiKey: string;
-        /**
-         * The ID of the client to be updated.
-         */
-        clientId: number;
-        requestBody: ClientRequest;
-      };
-      res: {
-        /**
-         * SUCCESS
-         */
-        200: unknown;
-      };
-    };
-  };
-  "/clients/find-by-name.json": {
-    get: {
-      req: {
-        apiKey: string;
-        clientName: string;
-      };
-      res: {
-        /**
-         * Client Get
-         */
-        200: ClientResponse;
-      };
-    };
-  };
-  "/clients/find-by-code.json": {
-    get: {
-      req: {
-        apiKey: string;
-        /**
-         * The client code you want to search.
-         */
-        clientCode: string;
-      };
-      res: {
-        /**
-         * Client Get
-         */
-        200: ClientResponse;
-      };
-    };
-  };
-  "/clients/{client-id}/invoices.json": {
-    post: {
-      req: {
-        apiKey: string;
-        /**
-         * Filter invoices for this client.
-         */
-        clientId: number;
-        /**
-         * You can ask for a specific page of invoices. Defaults to 1.
-         */
-        page?: number;
-        /**
-         * You can specify how many results you want to fetch. Defaults to 10 or value defined in account settings (10, 20 or 30).
-         */
-        perPage?: number;
-        requestBody: {
-          filter?: {
-            status?: Array<string>;
-            by_type?: Array<string>;
-            archived?: Array<string>;
-          };
-        };
-      };
-      res: {
-        /**
-         * The client’s invoices
-         */
-        200: InvoicesResponse;
-      };
-    };
-  };
-  "/api/export_saft.json": {
-    get: {
-      req: {
-        apiKey: string;
-        month: string;
-        year: string;
-      };
-      res: {
-        /**
-         * The link to download your SAF-T file.
-         */
-        200: {
-          url?: string;
-        };
-      };
+      subject?: string;
+      body?: string;
+      cc?: string;
+      bcc?: string;
+      logo?: "0" | "1";
     };
   };
 };
+
+export type PutInvoiceReceiptsByDocumentIdEmailDocumentJsonResponse = unknown;
+
+export type PutInvoiceReceiptsByDocumentIdChangeStateJsonData = {
+  /**
+   * Your API key.
+   */
+  apiKey: string;
+  /**
+   * The unique identifier of the document.
+   */
+  documentId: string;
+  requestBody: {
+    invoice_receipt: {
+      /**
+       * The new state of the document.
+       */
+      state?: "finalized" | "deleted" | "canceled" | "settled" | "unsettled";
+      /**
+       * The reason for changing the state (required for cancellation).
+       */
+      message?: string;
+    };
+  };
+};
+
+export type PutInvoiceReceiptsByDocumentIdChangeStateJsonResponse = {
+  /**
+   * Status of the request.
+   */
+  status?: string;
+  /**
+   * Details about the request outcome.
+   */
+  message?: string;
+};
+
+export type GetInvoiceReceiptsByDocumentIdJsonData = {
+  apiKey: string;
+  documentId: number;
+};
+
+export type GetInvoiceReceiptsByDocumentIdJsonResponse = Invoice;
+
+export type GetApiPdfByDocumentIdJsonData = {
+  apiKey: string;
+  documentId: number;
+  secondCopy?: boolean;
+};
+
+export type GetApiPdfByDocumentIdJsonResponse = unknown;
+
+export type PostInvoiceReceiptsJsonData = {
+  apiKey: string;
+  requestBody: {
+    invoice_receipt?: Invoice;
+  };
+};
+
+export type PostInvoiceReceiptsJsonResponse = {
+  invoice_receipts?: Invoice;
+};
+
+export type GetInvoicesJsonData = {
+  apiKey: string;
+  archived?: boolean;
+  dateFrom?: string;
+  dateTo?: string;
+  dueDateFrom?: string;
+  dueDateTo?: string;
+  nonArchived: boolean;
+  /**
+   * Page number to retrieve.
+   */
+  page: number;
+  /**
+   * Per_page number to retrieve.
+   */
+  perPage: number;
+  reference?: string;
+  statusArray: Array<"draft" | "sent" | "settled" | "canceled" | "second_copy">;
+  text?: string;
+  totalBeforeTaxesFrom?: number;
+  totalBeforeTaxesTo?: number;
+  typeArray: Array<
+    | "Invoice"
+    | "InvoiceReceipt"
+    | "SimplifiedInvoice"
+    | "VatMossInvoice"
+    | "CreditNote"
+    | "DebitNote"
+    | "Receipt"
+    | "CashInvoice"
+    | "VatMossReceipt"
+    | "VatMossCreditNote"
+  >;
+};
+
+export type GetInvoicesJsonResponse = {
+  invoices?: Array<Invoice>;
+  pagination?: {
+    total_entries?: number;
+    current_page?: number;
+    total_pages?: number;
+    per_page?: number;
+  };
+};
+
+export type GetClientsJsonData = {
+  apiKey: string;
+  /**
+   * Page number to retrieve.
+   */
+  page: number;
+  /**
+   * Number of clients per page.
+   */
+  perPage: number;
+};
+
+export type GetClientsJsonResponse = ClientsResponse;
+
+export type PostClientsJsonData = {
+  apiKey: string;
+  requestBody: ClientRequest;
+};
+
+export type PostClientsJsonResponse = ClientResponse;
+
+export type GetClientsByClientIdJsonData = {
+  apiKey: string;
+  /**
+   * The ID of the client you want to get.
+   */
+  clientId: number;
+};
+
+export type GetClientsByClientIdJsonResponse = ClientResponse;
+
+export type PutClientsByClientIdJsonData = {
+  apiKey: string;
+  /**
+   * The ID of the client to be updated.
+   */
+  clientId: number;
+  requestBody: ClientRequest;
+};
+
+export type PutClientsByClientIdJsonResponse = unknown;
+
+export type GetClientsFindByNameJsonData = {
+  apiKey: string;
+  clientName: string;
+};
+
+export type GetClientsFindByNameJsonResponse = ClientResponse;
+
+export type GetClientsFindByCodeJsonData = {
+  apiKey: string;
+  /**
+   * The client code you want to search.
+   */
+  clientCode: string;
+};
+
+export type GetClientsFindByCodeJsonResponse = ClientResponse;
+
+export type PostClientsByClientIdInvoicesJsonData = {
+  apiKey: string;
+  /**
+   * Filter invoices for this client.
+   */
+  clientId: number;
+  /**
+   * You can ask for a specific page of invoices. Defaults to 1.
+   */
+  page?: number;
+  /**
+   * You can specify how many results you want to fetch. Defaults to 10 or value defined in account settings (10, 20 or 30).
+   */
+  perPage?: number;
+  requestBody: {
+    filter?: {
+      status?: Array<string>;
+      by_type?: Array<string>;
+      archived?: Array<string>;
+    };
+  };
+};
+
+export type PostClientsByClientIdInvoicesJsonResponse = InvoicesResponse;
+
+export type GetApiExportSaftJsonData = {
+  apiKey: string;
+  month: string;
+  year: string;
+};
+
+export type GetApiExportSaftJsonResponse =
+  | {
+      url?: string;
+    }
+  | {
+      message?: string;
+    };

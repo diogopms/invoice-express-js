@@ -2,32 +2,62 @@
 
 import type { CancelablePromise } from "./core/CancelablePromise";
 import type { BaseHttpRequest } from "./core/BaseHttpRequest";
-import type { $OpenApiTs } from "./types.gen";
+import type {
+  PutInvoiceReceiptsByDocumentIdEmailDocumentJsonData,
+  PutInvoiceReceiptsByDocumentIdEmailDocumentJsonResponse,
+  PutInvoiceReceiptsByDocumentIdChangeStateJsonData,
+  PutInvoiceReceiptsByDocumentIdChangeStateJsonResponse,
+  GetInvoiceReceiptsByDocumentIdJsonData,
+  GetInvoiceReceiptsByDocumentIdJsonResponse,
+  GetApiPdfByDocumentIdJsonData,
+  GetApiPdfByDocumentIdJsonResponse,
+  PostInvoiceReceiptsJsonData,
+  PostInvoiceReceiptsJsonResponse,
+  GetInvoicesJsonData,
+  GetInvoicesJsonResponse,
+  GetClientsJsonData,
+  GetClientsJsonResponse,
+  PostClientsJsonData,
+  PostClientsJsonResponse,
+  GetClientsByClientIdJsonData,
+  GetClientsByClientIdJsonResponse,
+  PutClientsByClientIdJsonData,
+  PutClientsByClientIdJsonResponse,
+  GetClientsFindByNameJsonData,
+  GetClientsFindByNameJsonResponse,
+  GetClientsFindByCodeJsonData,
+  GetClientsFindByCodeJsonResponse,
+  PostClientsByClientIdInvoicesJsonData,
+  PostClientsByClientIdInvoicesJsonResponse,
+  GetApiExportSaftJsonData,
+  GetApiExportSaftJsonResponse,
+} from "./types.gen";
 
 export class InvoicesReceiptsService {
   constructor(public readonly httpRequest: BaseHttpRequest) {}
 
   /**
    * Send document by email
+   * @param data The data for the request.
+   * @param data.apiKey
+   * @param data.documentId
+   * @param data.requestBody
    * @returns unknown The email was sent successfully.
    * @throws ApiError
    */
   public putInvoiceReceiptsByDocumentIdEmailDocumentJson(
-    data: $OpenApiTs["/invoice_receipts/{document-id}/email-document.json"]["put"]["req"],
-  ): CancelablePromise<
-    $OpenApiTs["/invoice_receipts/{document-id}/email-document.json"]["put"]["res"][200]
-  > {
-    const { apiKey, documentId, requestBody } = data;
+    data: PutInvoiceReceiptsByDocumentIdEmailDocumentJsonData,
+  ): CancelablePromise<PutInvoiceReceiptsByDocumentIdEmailDocumentJsonResponse> {
     return this.httpRequest.request({
       method: "PUT",
       url: "/invoice_receipts/{document-id}/email-document.json",
       path: {
-        "document-id": documentId,
+        "document-id": data.documentId,
       },
       query: {
-        api_key: apiKey,
+        api_key: data.apiKey,
       },
-      body: requestBody,
+      body: data.requestBody,
       mediaType: "application/json",
       errors: {
         401: "Access denied. The API Key parameter is missing or is incorrectly entered.",
@@ -40,25 +70,26 @@ export class InvoicesReceiptsService {
   /**
    * Change the state of a document
    * Changes the state of an invoice, simplified_invoice, invoice_receipt, credit_note, or debit_note.
+   * @param data The data for the request.
+   * @param data.documentId The unique identifier of the document.
+   * @param data.apiKey Your API key.
+   * @param data.requestBody
    * @returns unknown Successfully changed the document state.
    * @throws ApiError
    */
   public putInvoiceReceiptsByDocumentIdChangeStateJson(
-    data: $OpenApiTs["/invoice_receipts/{document-id}/change-state.json"]["put"]["req"],
-  ): CancelablePromise<
-    $OpenApiTs["/invoice_receipts/{document-id}/change-state.json"]["put"]["res"][200]
-  > {
-    const { documentId, apiKey, requestBody } = data;
+    data: PutInvoiceReceiptsByDocumentIdChangeStateJsonData,
+  ): CancelablePromise<PutInvoiceReceiptsByDocumentIdChangeStateJsonResponse> {
     return this.httpRequest.request({
       method: "PUT",
       url: "/invoice_receipts/{document-id}/change-state.json",
       path: {
-        "document-id": documentId,
+        "document-id": data.documentId,
       },
       query: {
-        api_key: apiKey,
+        api_key: data.apiKey,
       },
-      body: requestBody,
+      body: data.requestBody,
       mediaType: "application/json",
       errors: {
         400: "Invalid request.",
@@ -68,23 +99,23 @@ export class InvoicesReceiptsService {
 
   /**
    * Get Invoice
+   * @param data The data for the request.
+   * @param data.apiKey
+   * @param data.documentId
    * @returns Invoice The invoice was returned successfully.
    * @throws ApiError
    */
   public getInvoiceReceiptsByDocumentIdJson(
-    data: $OpenApiTs["/invoice_receipts/{document-id}.json"]["get"]["req"],
-  ): CancelablePromise<
-    $OpenApiTs["/invoice_receipts/{document-id}.json"]["get"]["res"][200]
-  > {
-    const { apiKey, documentId } = data;
+    data: GetInvoiceReceiptsByDocumentIdJsonData,
+  ): CancelablePromise<GetInvoiceReceiptsByDocumentIdJsonResponse> {
     return this.httpRequest.request({
       method: "GET",
       url: "/invoice_receipts/{document-id}.json",
       path: {
-        "document-id": documentId,
+        "document-id": data.documentId,
       },
       query: {
-        api_key: apiKey,
+        api_key: data.apiKey,
       },
       errors: {
         401: "Access denied. The API Key parameter is missing or is incorrectly entered.",
@@ -95,24 +126,26 @@ export class InvoicesReceiptsService {
 
   /**
    * Generate PDF
+   * @param data The data for the request.
+   * @param data.apiKey
+   * @param data.documentId
+   * @param data.secondCopy
    * @returns unknown The request has been successfully processed.
+   * @returns unknown The request will be processed. You need to keep requesting until you get a response with HTTP status code 200.
    * @throws ApiError
    */
   public getApiPdfByDocumentIdJson(
-    data: $OpenApiTs["/api/pdf/{document-id}.json"]["get"]["req"],
-  ): CancelablePromise<
-    $OpenApiTs["/api/pdf/{document-id}.json"]["get"]["res"][200]
-  > {
-    const { apiKey, documentId, secondCopy } = data;
+    data: GetApiPdfByDocumentIdJsonData,
+  ): CancelablePromise<GetApiPdfByDocumentIdJsonResponse> {
     return this.httpRequest.request({
       method: "GET",
       url: "/api/pdf/{document-id}.json",
       path: {
-        "document-id": documentId,
+        "document-id": data.documentId,
       },
       query: {
-        api_key: apiKey,
-        second_copy: secondCopy,
+        api_key: data.apiKey,
+        second_copy: data.secondCopy,
       },
       errors: {
         401: "Access denied. The API Key parameter is missing or is incorrectly entered.",
@@ -124,22 +157,22 @@ export class InvoicesReceiptsService {
 
   /**
    * Create an invoice_receipts
+   * @param data The data for the request.
+   * @param data.apiKey
+   * @param data.requestBody
    * @returns unknown Invoice was created successfully.
    * @throws ApiError
    */
   public postInvoiceReceiptsJson(
-    data: $OpenApiTs["/invoice_receipts.json"]["post"]["req"],
-  ): CancelablePromise<
-    $OpenApiTs["/invoice_receipts.json"]["post"]["res"][201]
-  > {
-    const { apiKey, requestBody } = data;
+    data: PostInvoiceReceiptsJsonData,
+  ): CancelablePromise<PostInvoiceReceiptsJsonResponse> {
     return this.httpRequest.request({
       method: "POST",
       url: "/invoice_receipts.json",
       query: {
-        api_key: apiKey,
+        api_key: data.apiKey,
       },
-      body: requestBody,
+      body: data.requestBody,
       mediaType: "application/json",
       errors: {
         401: "Access denied. The API Key parameter is missing or is incorrectly entered.",
@@ -155,48 +188,47 @@ export class InvoicesService {
 
   /**
    * List all Invoices eceipts
+   * @param data The data for the request.
+   * @param data.apiKey
+   * @param data.typeArray
+   * @param data.statusArray
+   * @param data.nonArchived
+   * @param data.page Page number to retrieve.
+   * @param data.perPage Per_page number to retrieve.
+   * @param data.text
+   * @param data.dateFrom
+   * @param data.dateTo
+   * @param data.dueDateFrom
+   * @param data.dueDateTo
+   * @param data.totalBeforeTaxesFrom
+   * @param data.totalBeforeTaxesTo
+   * @param data.archived
+   * @param data.reference
    * @returns unknown Invoices were returned successfully.
    * @throws ApiError
    */
   public getInvoicesJson(
-    data: $OpenApiTs["/invoices.json"]["get"]["req"],
-  ): CancelablePromise<$OpenApiTs["/invoices.json"]["get"]["res"][200]> {
-    const {
-      apiKey,
-      typeArray,
-      statusArray,
-      nonArchived,
-      page,
-      perPage,
-      text,
-      dateFrom,
-      dateTo,
-      dueDateFrom,
-      dueDateTo,
-      totalBeforeTaxesFrom,
-      totalBeforeTaxesTo,
-      archived,
-      reference,
-    } = data;
+    data: GetInvoicesJsonData,
+  ): CancelablePromise<GetInvoicesJsonResponse> {
     return this.httpRequest.request({
       method: "GET",
       url: "/invoices.json",
       query: {
-        api_key: apiKey,
-        text,
-        "type[]": typeArray,
-        "status[]": statusArray,
-        "date[from]": dateFrom,
-        "date[to]": dateTo,
-        "due_date[from]": dueDateFrom,
-        "due_date[to]": dueDateTo,
-        "total_before_taxes[from]": totalBeforeTaxesFrom,
-        "total_before_taxes[to]": totalBeforeTaxesTo,
-        non_archived: nonArchived,
-        archived,
-        page,
-        per_page: perPage,
-        reference,
+        api_key: data.apiKey,
+        text: data.text,
+        "type[]": data.typeArray,
+        "status[]": data.statusArray,
+        "date[from]": data.dateFrom,
+        "date[to]": data.dateTo,
+        "due_date[from]": data.dueDateFrom,
+        "due_date[to]": data.dueDateTo,
+        "total_before_taxes[from]": data.totalBeforeTaxesFrom,
+        "total_before_taxes[to]": data.totalBeforeTaxesTo,
+        non_archived: data.nonArchived,
+        archived: data.archived,
+        page: data.page,
+        per_page: data.perPage,
+        reference: data.reference,
       },
       errors: {
         401: "Access denied. The API Key parameter is missing or is incorrectly entered.",
@@ -211,20 +243,23 @@ export class ClientsService {
   /**
    * List all clients
    * Retrieves a list of clients.
+   * @param data The data for the request.
+   * @param data.apiKey
+   * @param data.page Page number to retrieve.
+   * @param data.perPage Number of clients per page.
    * @returns ClientsResponse Clients List all
    * @throws ApiError
    */
   public getClientsJson(
-    data: $OpenApiTs["/clients.json"]["get"]["req"],
-  ): CancelablePromise<$OpenApiTs["/clients.json"]["get"]["res"][200]> {
-    const { apiKey, page, perPage } = data;
+    data: GetClientsJsonData,
+  ): CancelablePromise<GetClientsJsonResponse> {
     return this.httpRequest.request({
       method: "GET",
       url: "/clients.json",
       query: {
-        api_key: apiKey,
-        page,
-        per_page: perPage,
+        api_key: data.apiKey,
+        page: data.page,
+        per_page: data.perPage,
       },
       errors: {
         401: "ACCESS DENIED",
@@ -235,20 +270,22 @@ export class ClientsService {
   /**
    * Create a new client
    * Creates a new client.
+   * @param data The data for the request.
+   * @param data.apiKey
+   * @param data.requestBody
    * @returns ClientResponse SUCCESS
    * @throws ApiError
    */
   public postClientsJson(
-    data: $OpenApiTs["/clients.json"]["post"]["req"],
-  ): CancelablePromise<$OpenApiTs["/clients.json"]["post"]["res"][201]> {
-    const { apiKey, requestBody } = data;
+    data: PostClientsJsonData,
+  ): CancelablePromise<PostClientsJsonResponse> {
     return this.httpRequest.request({
       method: "POST",
       url: "/clients.json",
       query: {
-        api_key: apiKey,
+        api_key: data.apiKey,
       },
-      body: requestBody,
+      body: data.requestBody,
       mediaType: "application/json",
       errors: {
         401: "ACCESS DENIED",
@@ -260,23 +297,23 @@ export class ClientsService {
   /**
    * Get a client by ID
    * Retrieves a client by their ID.
+   * @param data The data for the request.
+   * @param data.apiKey
+   * @param data.clientId The ID of the client you want to get.
    * @returns ClientResponse Clients Get
    * @throws ApiError
    */
   public getClientsByClientIdJson(
-    data: $OpenApiTs["/clients/{client-id}.json"]["get"]["req"],
-  ): CancelablePromise<
-    $OpenApiTs["/clients/{client-id}.json"]["get"]["res"][200]
-  > {
-    const { apiKey, clientId } = data;
+    data: GetClientsByClientIdJsonData,
+  ): CancelablePromise<GetClientsByClientIdJsonResponse> {
     return this.httpRequest.request({
       method: "GET",
       url: "/clients/{client-id}.json",
       path: {
-        "client-id": clientId,
+        "client-id": data.clientId,
       },
       query: {
-        api_key: apiKey,
+        api_key: data.apiKey,
       },
       errors: {
         401: "ACCESS DENIED",
@@ -288,25 +325,26 @@ export class ClientsService {
   /**
    * Update a client by ID
    * Updates a client's information by their ID.
+   * @param data The data for the request.
+   * @param data.apiKey
+   * @param data.clientId The ID of the client to be updated.
+   * @param data.requestBody
    * @returns unknown SUCCESS
    * @throws ApiError
    */
   public putClientsByClientIdJson(
-    data: $OpenApiTs["/clients/{client-id}.json"]["put"]["req"],
-  ): CancelablePromise<
-    $OpenApiTs["/clients/{client-id}.json"]["put"]["res"][200]
-  > {
-    const { apiKey, clientId, requestBody } = data;
+    data: PutClientsByClientIdJsonData,
+  ): CancelablePromise<PutClientsByClientIdJsonResponse> {
     return this.httpRequest.request({
       method: "PUT",
       url: "/clients/{client-id}.json",
       path: {
-        "client-id": clientId,
+        "client-id": data.clientId,
       },
       query: {
-        api_key: apiKey,
+        api_key: data.apiKey,
       },
-      body: requestBody,
+      body: data.requestBody,
       mediaType: "application/json",
       errors: {
         401: "ACCESS DENIED",
@@ -319,21 +357,21 @@ export class ClientsService {
   /**
    * Find client by name
    * Retrieves a client by their name.
+   * @param data The data for the request.
+   * @param data.apiKey
+   * @param data.clientName
    * @returns ClientResponse Client Get
    * @throws ApiError
    */
   public getClientsFindByNameJson(
-    data: $OpenApiTs["/clients/find-by-name.json"]["get"]["req"],
-  ): CancelablePromise<
-    $OpenApiTs["/clients/find-by-name.json"]["get"]["res"][200]
-  > {
-    const { apiKey, clientName } = data;
+    data: GetClientsFindByNameJsonData,
+  ): CancelablePromise<GetClientsFindByNameJsonResponse> {
     return this.httpRequest.request({
       method: "GET",
       url: "/clients/find-by-name.json",
       query: {
-        api_key: apiKey,
-        client_name: clientName,
+        api_key: data.apiKey,
+        client_name: data.clientName,
       },
       errors: {
         401: "ACCESS DENIED",
@@ -345,21 +383,21 @@ export class ClientsService {
   /**
    * Find client by code
    * Retrieves a client by their code.
+   * @param data The data for the request.
+   * @param data.apiKey
+   * @param data.clientCode The client code you want to search.
    * @returns ClientResponse Client Get
    * @throws ApiError
    */
   public getClientsFindByCodeJson(
-    data: $OpenApiTs["/clients/find-by-code.json"]["get"]["req"],
-  ): CancelablePromise<
-    $OpenApiTs["/clients/find-by-code.json"]["get"]["res"][200]
-  > {
-    const { apiKey, clientCode } = data;
+    data: GetClientsFindByCodeJsonData,
+  ): CancelablePromise<GetClientsFindByCodeJsonResponse> {
     return this.httpRequest.request({
       method: "GET",
       url: "/clients/find-by-code.json",
       query: {
-        api_key: apiKey,
-        client_code: clientCode,
+        api_key: data.apiKey,
+        client_code: data.clientCode,
       },
       errors: {
         401: "ACCESS DENIED",
@@ -371,27 +409,30 @@ export class ClientsService {
   /**
    * List invoices for a client
    * Retrieves a list of invoices for a specific client.
+   * @param data The data for the request.
+   * @param data.apiKey
+   * @param data.clientId Filter invoices for this client.
+   * @param data.requestBody
+   * @param data.page You can ask for a specific page of invoices. Defaults to 1.
+   * @param data.perPage You can specify how many results you want to fetch. Defaults to 10 or value defined in account settings (10, 20 or 30).
    * @returns InvoicesResponse The client’s invoices
    * @throws ApiError
    */
   public postClientsByClientIdInvoicesJson(
-    data: $OpenApiTs["/clients/{client-id}/invoices.json"]["post"]["req"],
-  ): CancelablePromise<
-    $OpenApiTs["/clients/{client-id}/invoices.json"]["post"]["res"][200]
-  > {
-    const { apiKey, clientId, requestBody, page, perPage } = data;
+    data: PostClientsByClientIdInvoicesJsonData,
+  ): CancelablePromise<PostClientsByClientIdInvoicesJsonResponse> {
     return this.httpRequest.request({
       method: "POST",
       url: "/clients/{client-id}/invoices.json",
       path: {
-        "client-id": clientId,
+        "client-id": data.clientId,
       },
       query: {
-        api_key: apiKey,
-        page,
-        per_page: perPage,
+        api_key: data.apiKey,
+        page: data.page,
+        per_page: data.perPage,
       },
-      body: requestBody,
+      body: data.requestBody,
       mediaType: "application/json",
       errors: {
         401: "ACCESS DENIED",
@@ -407,20 +448,24 @@ export class SaftService {
   /**
    * Export SAF-T
    * Generates the SAF-T file for a specific date (month and year). The first response given will have a HTTP 202 code, meaning the generation was started. You need to keep requesting until you get a response with HTTP status code 200, and the URL to download the file in the message body.
+   * @param data The data for the request.
+   * @param data.apiKey
+   * @param data.month
+   * @param data.year
    * @returns unknown The link to download your SAF-T file.
+   * @returns unknown Your SAF-T file is being generated. You need to keep requesting until you get a response with HTTP status code 200.
    * @throws ApiError
    */
   public getApiExportSaftJson(
-    data: $OpenApiTs["/api/export_saft.json"]["get"]["req"],
-  ): CancelablePromise<$OpenApiTs["/api/export_saft.json"]["get"]["res"][200]> {
-    const { apiKey, month, year } = data;
+    data: GetApiExportSaftJsonData,
+  ): CancelablePromise<GetApiExportSaftJsonResponse> {
     return this.httpRequest.request({
       method: "GET",
       url: "/api/export_saft.json",
       query: {
-        api_key: apiKey,
-        month,
-        year,
+        api_key: data.apiKey,
+        month: data.month,
+        year: data.year,
       },
       errors: {
         422: "Some parameters sent in the request were not valid.",
