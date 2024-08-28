@@ -731,7 +731,6 @@ components:
       required:
         - name
         - unit_price
-        - unit
         - quantity
       properties:
         name:
@@ -954,6 +953,8 @@ components:
             status:
               type: string
             sequence_id:
+              type: string
+            tax_exemption:
               type: string
             client:
               type: object

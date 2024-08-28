@@ -4,7 +4,7 @@ export type Item = {
   name: string;
   description?: string;
   unit_price: number;
-  unit: string;
+  unit?: string;
   quantity: number;
   tax?: {
     id?: number;
@@ -102,6 +102,7 @@ export type InvoiceReceiptsRequest = {
     due_date: string;
     status: string;
     sequence_id?: string;
+    tax_exemption?: string;
     client?: {
       [key: string]: unknown;
     };

@@ -2,7 +2,7 @@
 
 export const $Item = {
   type: "object",
-  required: ["name", "unit_price", "unit", "quantity"],
+  required: ["name", "unit_price", "quantity"],
   properties: {
     name: {
       type: "string",
@@ -309,6 +309,9 @@ export const $InvoiceReceiptsRequest = {
           type: "string",
         },
         sequence_id: {
+          type: "string",
+        },
+        tax_exemption: {
           type: "string",
         },
         client: {
