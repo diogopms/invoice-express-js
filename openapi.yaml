@@ -578,7 +578,7 @@ paths:
           in: query
           required: true
           schema:
-            type: string
+            type: integer
           description: The client code you want to search.
       responses:
         "200":
