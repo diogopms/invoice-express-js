@@ -19,7 +19,7 @@ pnpm run generate; pnpm run build
 | API Section      | Operation                  | Status          |
 |------------------|----------------------------|-----------------|
 | **Invoices**     | Send by email              | ✅ |
-|                  | Generate PDF               | Not Implemented |
+|                  | Generate PDF               | ✅ |
 |                  | Get                        | ✅ |
 |                  | List all                   | ✅ |
 |                  | Create                     | ✅ |
