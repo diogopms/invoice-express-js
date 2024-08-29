@@ -112,7 +112,7 @@ paths:
           required: true
           description: The unique identifier of the document.
           schema:
-            type: string
+            type: integer
         - name: api_key
           in: query
           required: true
@@ -862,10 +862,10 @@ components:
         - value
       properties:
         id:
-          type: number
+          type: integer
         name:
           type: string
-        value2:
+        value:
           type: number
         region:
           type: string
@@ -903,7 +903,7 @@ components:
         unit:
           type: string
         quantity:
-          type: number
+          type: integer
         tax:
           type: object
           properties:

@@ -3,7 +3,7 @@
 export type Tax = {
   id?: number;
   name: string;
-  value2?: number;
+  value: number;
   region?: string;
   code?: string;
   default_tax?: number;
@@ -205,7 +205,7 @@ export type PutInvoiceReceiptsByDocumentIdChangeStateJsonData = {
   /**
    * The unique identifier of the document.
    */
-  documentId: string;
+  documentId: number;
   requestBody: {
     invoice_receipt: {
       /**
