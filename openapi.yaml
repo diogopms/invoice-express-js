@@ -154,11 +154,13 @@ paths:
                   status:
                     type: string
                     description: Status of the request.
-                    example: success
+                    examples:
+                      - success
                   message:
                     type: string
                     description: Details about the request outcome.
-                    example: State changed successfully.
+                    examples:
+                      - State changed successfully.
         "400":
           description: Invalid request.
           content:
@@ -700,7 +702,8 @@ paths:
                 properties:
                   url:
                     type: string
-                    example: "https://some.url"
+                    examples:
+                      - "https://some.url"
         "202":
           description: Your SAF-T file is being generated. You need to keep requesting until you get a response with HTTP status code 200.
           content:
@@ -710,7 +713,8 @@ paths:
                 properties:
                   message:
                     type: string
-                    example: "The SAF-T file generation was started. Please keep requesting until you get back the url."
+                    examples:
+                      - "The SAF-T file generation was started. Please keep requesting until you get back the url."
         "422":
           description: Some parameters sent in the request were not valid.
         "500":
@@ -722,10 +726,167 @@ paths:
                 properties:
                   message:
                     type: string
-                    example: "Error generating SAF-T. Please try again."
+                    examples:
+                      - "Error generating SAF-T. Please try again."
+  /taxes.json:
+    get:
+      tags:
+        - Taxes
+      summary: List all taxes
+      description: Retrieves a list of taxes.
+      parameters:
+        - name: api_key
+          in: query
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Taxes List all
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TaxesResponse"
+        "401":
+          description: ACCESS DENIED
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /taxes/{tax-id}.json:
+    get:
+      tags:
+        - Taxes
+      summary: Get a tax by ID
+      description: Retrieves a tax by their ID.
+      parameters:
+        - name: api_key
+          in: query
+          required: true
+          schema:
+            type: string
+        - name: tax-id
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: The ID of the tax you want to get.
+      responses:
+        "200":
+          description: Tax Get
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TaxResponse"
+        "401":
+          description: ACCESS DENIED
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: NOT FOUND
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /items.json:
+    get:
+      tags:
+        - Items
+      summary: List all items
+      description: Retrieves a list of items.
+      parameters:
+        - name: api_key
+          in: query
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Items List all
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ItensResponse"
+        "401":
+          description: ACCESS DENIED
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
 
+  /items/{item-id}.json:
+    get:
+      tags:
+        - Items
+      summary: Get a item by ID
+      description: Retrieves a item by their ID.
+      parameters:
+        - name: api_key
+          in: query
+          required: true
+          schema:
+            type: string
+        - name: item-id
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: The ID of the tax you want to get.
+      responses:
+        "200":
+          description: Tax Get
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ItemResponse"
+        "401":
+          description: ACCESS DENIED
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: NOT FOUND
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
 components:
   schemas:
+    Tax:
+      type: object
+      required:
+        - name
+        - value
+      properties:
+        id:
+          type: number
+        name:
+          type: string
+        value2:
+          type: number
+        region:
+          type: string
+        code:
+          type: string
+        default_tax:
+          type: number
+    TaxResponse:
+      type: object
+      properties:
+        tax:
+          $ref: "#/components/schemas/Tax"
+    TaxesResponse:
+      type: object
+      required:
+        - taxes
+      properties:
+        taxes:
+          type: array
+          items:
+            $ref: "#/components/schemas/Tax"
     Item:
       type: object
       required:
@@ -762,6 +923,20 @@ components:
           type: number
         total:
           type: number
+    ItemResponse:
+      type: object
+      properties:
+        item:
+          $ref: "#/components/schemas/Item"
+    ItensResponse:
+      type: object
+      required:
+        - taxes
+      properties:
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/Item"
     MBReference:
       type: object
       required:
@@ -1014,7 +1189,6 @@ components:
               type: string
             send_options:
               type: string
-
     InvoicesResponse:
       type: object
       required:

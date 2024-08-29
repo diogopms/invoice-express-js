@@ -6,7 +6,9 @@ import { FetchHttpRequest } from "./core/FetchHttpRequest";
 import { ClientsService } from "./services.gen";
 import { InvoicesService } from "./services.gen";
 import { InvoicesReceiptsService } from "./services.gen";
+import { ItemsService } from "./services.gen";
 import { SaftService } from "./services.gen";
+import { TaxesService } from "./services.gen";
 
 type HttpRequestConstructor = new (config: OpenAPIConfig) => BaseHttpRequest;
 
@@ -14,7 +16,9 @@ export class InvoiceExpressClient {
   public readonly clients: ClientsService;
   public readonly invoices: InvoicesService;
   public readonly invoicesReceipts: InvoicesReceiptsService;
+  public readonly items: ItemsService;
   public readonly saft: SaftService;
+  public readonly taxes: TaxesService;
 
   public readonly request: BaseHttpRequest;
 
@@ -41,6 +45,8 @@ export class InvoiceExpressClient {
     this.clients = new ClientsService(this.request);
     this.invoices = new InvoicesService(this.request);
     this.invoicesReceipts = new InvoicesReceiptsService(this.request);
+    this.items = new ItemsService(this.request);
     this.saft = new SaftService(this.request);
+    this.taxes = new TaxesService(this.request);
   }
 }
