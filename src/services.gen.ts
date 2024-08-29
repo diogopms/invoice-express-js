@@ -31,6 +31,14 @@ import type {
   PostClientsByClientIdInvoicesJsonResponse,
   GetApiExportSaftJsonData,
   GetApiExportSaftJsonResponse,
+  GetTaxesJsonData,
+  GetTaxesJsonResponse,
+  GetTaxesByTaxIdJsonData,
+  GetTaxesByTaxIdJsonResponse,
+  GetItemsJsonData,
+  GetItemsJsonResponse,
+  GetItemsByItemIdJsonData,
+  GetItemsByItemIdJsonResponse,
 } from "./types.gen";
 
 export class InvoicesReceiptsService {
@@ -470,6 +478,116 @@ export class SaftService {
       errors: {
         422: "Some parameters sent in the request were not valid.",
         500: "The SAF-T file generation failed.",
+      },
+    });
+  }
+}
+
+export class TaxesService {
+  constructor(public readonly httpRequest: BaseHttpRequest) {}
+
+  /**
+   * List all taxes
+   * Retrieves a list of taxes.
+   * @param data The data for the request.
+   * @param data.apiKey
+   * @returns TaxesResponse Taxes List all
+   * @throws ApiError
+   */
+  public getTaxesJson(
+    data: GetTaxesJsonData,
+  ): CancelablePromise<GetTaxesJsonResponse> {
+    return this.httpRequest.request({
+      method: "GET",
+      url: "/taxes.json",
+      query: {
+        api_key: data.apiKey,
+      },
+      errors: {
+        401: "ACCESS DENIED",
+      },
+    });
+  }
+
+  /**
+   * Get a tax by ID
+   * Retrieves a tax by their ID.
+   * @param data The data for the request.
+   * @param data.apiKey
+   * @param data.taxId The ID of the tax you want to get.
+   * @returns TaxResponse Tax Get
+   * @throws ApiError
+   */
+  public getTaxesByTaxIdJson(
+    data: GetTaxesByTaxIdJsonData,
+  ): CancelablePromise<GetTaxesByTaxIdJsonResponse> {
+    return this.httpRequest.request({
+      method: "GET",
+      url: "/taxes/{tax-id}.json",
+      path: {
+        "tax-id": data.taxId,
+      },
+      query: {
+        api_key: data.apiKey,
+      },
+      errors: {
+        401: "ACCESS DENIED",
+        404: "NOT FOUND",
+      },
+    });
+  }
+}
+
+export class ItemsService {
+  constructor(public readonly httpRequest: BaseHttpRequest) {}
+
+  /**
+   * List all items
+   * Retrieves a list of items.
+   * @param data The data for the request.
+   * @param data.apiKey
+   * @returns ItensResponse Items List all
+   * @throws ApiError
+   */
+  public getItemsJson(
+    data: GetItemsJsonData,
+  ): CancelablePromise<GetItemsJsonResponse> {
+    return this.httpRequest.request({
+      method: "GET",
+      url: "/items.json",
+      query: {
+        api_key: data.apiKey,
+      },
+      errors: {
+        401: "ACCESS DENIED",
+      },
+    });
+  }
+
+  /**
+   * Get a item by ID
+   * Retrieves a item by their ID.
+   * @param data The data for the request.
+   * @param data.apiKey
+   * @param data.itemId The ID of the tax you want to get.
+   * @returns ItemResponse Tax Get
+   * @throws ApiError
+   */
+  public getItemsByItemIdJson(
+    data: GetItemsByItemIdJsonData,
+  ): CancelablePromise<GetItemsByItemIdJsonResponse> {
+    return this.httpRequest.request({
+      method: "GET",
+      url: "/items/{item-id}.json",
+      path: {
+        "item-id": data.itemId,
+      },
+      query: {
+        api_key: data.apiKey,
+      },
+      errors: {
+        401: "ACCESS DENIED",
+        404: "NOT FOUND",
       },
     });
   }
