@@ -5,12 +5,12 @@ export const $Tax = {
   required: ["name", "value"],
   properties: {
     id: {
-      type: "number",
+      type: "integer",
     },
     name: {
       type: "string",
     },
-    value2: {
+    value: {
       type: "number",
     },
     region: {
@@ -64,7 +64,7 @@ export const $Item = {
       type: "string",
     },
     quantity: {
-      type: "number",
+      type: "integer",
     },
     tax: {
       type: "object",
