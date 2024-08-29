@@ -6,6 +6,13 @@
 pnpm run generate; pnpm run build
 ```
 
+## TODO
+
+- [ ] Add tests
+- [ ] Create a example folder
+- [ ] Update README.md
+- [ ] Add more operations
+
 ## Operations implemented
 
 | API Section      | Operation                  | Status          |
