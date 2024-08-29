@@ -12,6 +12,7 @@ pnpm run generate; pnpm run build
 - [ ] Create a example folder
 - [ ] Update README.md
 - [ ] Add more operations
+- [ ] Add request.config.interceptors.request.use
 
 ## Operations implemented
 

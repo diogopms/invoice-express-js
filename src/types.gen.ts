@@ -346,7 +346,7 @@ export type GetClientsFindByCodeJsonData = {
   /**
    * The client code you want to search.
    */
-  clientCode: string;
+  clientCode: number;
 };
 
 export type GetClientsFindByCodeJsonResponse = ClientResponse;
