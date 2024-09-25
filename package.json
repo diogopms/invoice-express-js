@@ -1,6 +1,6 @@
 {
   "name": "@diogopms/invoice-express-js",
-  "version": "1.0.8",
+  "version": "1.0.10",
   "description": "JavaScript client for the Invoice Express API",
   "main": "dist/index.js",
   "type": "commonjs",
@@ -11,7 +11,7 @@
   "keywords": [
     "invoice-express-js",
     "typescript",
-    "JavaScript"
+    "javascript"
   ],
   "repository": "https://github.com/diogopms/invoice-express-js",
   "author": "",
@@ -23,7 +23,7 @@
     "yaml": "^2.5.1"
   },
   "engines": {
-    "node": "22.x"
+    "node": "20.x"
   },
   "packageManager": "pnpm@9.11.0+sha512.0a203ffaed5a3f63242cd064c8fb5892366c103e328079318f78062f24ea8c9d50bc6a47aa3567cabefd824d170e78fa2745ed1f16b132e16436146b7688f19b"
 }
