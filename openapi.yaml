@@ -673,7 +673,7 @@ paths:
       tags:
         - SAFT
       summary: Export SAF-T
-      description: Generates the SAF-T file for a specific date (month and year). The first response given will have a HTTP 202 code, meaning the generation was started. You need to keep requesting until you get a response with HTTP status code 200, and the URL to download the file in the message body.
+      description: Generates the SAF-T file for a specific date (month and years). The first response given will have a HTTP 202 code, meaning the generation was started. You need to keep requesting until you get a response with HTTP status code 200, and the URL to download the file in the message body.
       parameters:
         - name: api_key
           in: query
@@ -686,7 +686,7 @@ paths:
           schema:
             type: string
           example: "10"
-        - name: year
+        - name: years
           in: query
           required: true
           schema:
