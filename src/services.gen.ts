@@ -455,11 +455,11 @@ export class SaftService {
 
   /**
    * Export SAF-T
-   * Generates the SAF-T file for a specific date (month and year). The first response given will have a HTTP 202 code, meaning the generation was started. You need to keep requesting until you get a response with HTTP status code 200, and the URL to download the file in the message body.
+   * Generates the SAF-T file for a specific date (month and years). The first response given will have a HTTP 202 code, meaning the generation was started. You need to keep requesting until you get a response with HTTP status code 200, and the URL to download the file in the message body.
    * @param data The data for the request.
    * @param data.apiKey
    * @param data.month
-   * @param data.year
+   * @param data.years
    * @returns unknown The link to download your SAF-T file.
    * @returns unknown Your SAF-T file is being generated. You need to keep requesting until you get a response with HTTP status code 200.
    * @throws ApiError
@@ -473,7 +473,7 @@ export class SaftService {
       query: {
         api_key: data.apiKey,
         month: data.month,
-        year: data.year,
+        years: data.years,
       },
       errors: {
         422: "Some parameters sent in the request were not valid.",

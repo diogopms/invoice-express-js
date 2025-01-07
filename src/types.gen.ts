@@ -379,7 +379,7 @@ export type PostClientsByClientIdInvoicesJsonResponse = InvoicesResponse;
 export type GetApiExportSaftJsonData = {
   apiKey: string;
   month: string;
-  year: string;
+  years: string;
 };
 
 export type GetApiExportSaftJsonResponse =
