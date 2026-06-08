@@ -328,11 +328,24 @@ The client is generated from [`openapi.yaml`](./openapi.yaml). To regenerate the
 
 ```bash
 pnpm install
-pnpm run generate   # regenerate ./src from openapi.yaml
-pnpm run build      # compile TypeScript to ./dist
+pnpm run generate        # regenerate ./src from openapi.yaml
+pnpm run build           # compile TypeScript to ./dist
 ```
 
 To add or change operations, edit `openapi.yaml` and re-run `pnpm run generate`. Do not hand-edit the generated `*.gen.ts` files or the `src/core/` directory — your changes will be overwritten.
+
+The full set of scripts:
+
+| Script                  | Purpose                                                                 |
+| ----------------------- | ---------------------------------------------------------------------- |
+| `pnpm run generate`     | Regenerate `./src` from `openapi.yaml`.                                 |
+| `pnpm run generate:check` | Regenerate and fail if the committed client drifts from the spec (CI). |
+| `pnpm run build`        | Compile TypeScript to `./dist`.                                         |
+| `pnpm run typecheck`    | Type-check without emitting.                                            |
+| `pnpm run lint`         | Check formatting with Prettier.                                         |
+| `pnpm run format`       | Apply Prettier formatting.                                              |
+
+CI runs `lint`, `generate:check`, `typecheck` and `build` on every pull request, so a spec edit that isn't accompanied by a regenerated client will fail the build.
 
 ## Roadmap
 
