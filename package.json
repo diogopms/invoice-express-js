@@ -3,19 +3,40 @@
   "version": "1.0.13",
   "description": "JavaScript client for the Invoice Express API",
   "main": "dist/index.js",
+  "types": "dist/index.d.ts",
   "type": "commonjs",
+  "files": [
+    "dist"
+  ],
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    }
+  },
   "scripts": {
     "generate": "node generate.mjs;",
-    "build": "tsc"
+    "build": "tsc",
+    "typecheck": "tsc --noEmit",
+    "prepublishOnly": "pnpm run build"
   },
   "keywords": [
     "invoice-express-js",
+    "invoicexpress",
     "typescript",
     "javascript"
   ],
-  "repository": "https://github.com/diogopms/invoice-express-js",
-  "author": "",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/diogopms/invoice-express-js.git"
+  },
+  "homepage": "https://github.com/diogopms/invoice-express-js#readme",
+  "bugs": "https://github.com/diogopms/invoice-express-js/issues",
+  "author": "Diogo Serrano",
   "license": "ISC",
+  "publishConfig": {
+    "registry": "https://npm.pkg.github.com"
+  },
   "devDependencies": {
     "@hey-api/openapi-ts": "^0.52.11",
     "prettier": "^3.5.3",
@@ -23,7 +44,7 @@
     "yaml": "^2.7.1"
   },
   "engines": {
-    "node": "20.x"
+    "node": ">=20"
   },
   "packageManager": "pnpm@9.11.0+sha512.0a203ffaed5a3f63242cd064c8fb5892366c103e328079318f78062f24ea8c9d50bc6a47aa3567cabefd824d170e78fa2745ed1f16b132e16436146b7688f19b"
 }
