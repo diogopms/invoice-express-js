@@ -2,7 +2,10 @@ openapi: 3.1.0
 info:
   version: 1.0.0
   title: InvoiceExpress API
-  description: API documentation for InvoiceExpress clients endpoint
+  description: |
+    Typed client for the InvoiceXpress API. Covers invoices, invoice receipts,
+    clients, items, taxes and SAF-T export.
+    See https://invoicexpress.com/api-v2/documentation/getting-started
 servers:
   - url: https://{account_name}.app.invoicexpress.com
     variables:
@@ -270,7 +273,7 @@ paths:
     get:
       tags:
         - Invoices
-      summary: List all Invoices eceipts
+      summary: List all invoices
       parameters:
         - name: api_key
           in: query
@@ -371,6 +374,226 @@ paths:
                 $ref: "#/components/schemas/InvoicesResponse"
         "401":
           description: Access denied. The API Key parameter is missing or is incorrectly entered.
+    post:
+      tags:
+        - Invoices
+      summary: Create an invoice
+      description: Creates an invoice. Use the matching document-type endpoint for other documents (e.g. simplified_invoices, credit_notes, debit_notes).
+      parameters:
+        - name: api_key
+          in: query
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/InvoiceRequest"
+      responses:
+        "201":
+          description: Invoice was created successfully.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InvoiceResponse"
+        "401":
+          description: Access denied. The API Key parameter is missing or is incorrectly entered.
+        "409":
+          description: Conflict. There’s an ongoing document creation with the provided UID.
+        "422":
+          description: Unprocessable Entity. Some parameters were incorrect.
+
+  /invoices/{document-id}.json:
+    get:
+      tags:
+        - Invoices
+      summary: Get an invoice
+      parameters:
+        - name: api_key
+          in: query
+          required: true
+          schema:
+            type: string
+        - name: document-id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: The invoice was returned successfully.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InvoiceResponse"
+        "401":
+          description: Access denied. The API Key parameter is missing or is incorrectly entered.
+        "404":
+          description: Not found. No invoice matches the supplied document-id.
+    put:
+      tags:
+        - Invoices
+      summary: Update an invoice
+      description: Updates a draft invoice. Only invoices in the draft state can be updated.
+      parameters:
+        - name: api_key
+          in: query
+          required: true
+          schema:
+            type: string
+        - name: document-id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/InvoiceRequest"
+      responses:
+        "200":
+          description: Invoice was updated successfully.
+        "401":
+          description: Access denied. The API Key parameter is missing or is incorrectly entered.
+        "404":
+          description: Not found. No invoice matches the supplied document-id.
+        "422":
+          description: Unprocessable Entity. Some parameters were incorrect.
+
+  /invoices/{document-id}/change-state.json:
+    put:
+      tags:
+        - Invoices
+      summary: Change the state of an invoice
+      description: Changes the state of an invoice (finalized, deleted, canceled, settled).
+      parameters:
+        - name: document-id
+          in: path
+          required: true
+          description: The unique identifier of the document.
+          schema:
+            type: integer
+        - name: api_key
+          in: query
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - invoice
+              properties:
+                invoice:
+                  type: object
+                  properties:
+                    state:
+                      type: string
+                      enum:
+                        - finalized
+                        - deleted
+                        - canceled
+                        - settled
+                      description: The new state of the document.
+                    message:
+                      type: string
+                      description: The reason for changing the state (required for cancellation).
+      responses:
+        "200":
+          description: Successfully changed the document state.
+        "401":
+          description: Access denied. The API Key parameter is missing or is incorrectly entered.
+        "404":
+          description: Not found. The supplied document-id doesn’t match any existing document.
+        "422":
+          description: Unprocessable Entity. Some parameters sent were incorrect.
+
+  /document/{document-id}/related_documents.json:
+    get:
+      tags:
+        - Invoices
+      summary: List related documents
+      description: Returns the documents (receipts, credit notes, debit notes) related to the given document.
+      parameters:
+        - name: api_key
+          in: query
+          required: true
+          schema:
+            type: string
+        - name: document-id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: The related documents.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InvoicesResponse"
+        "401":
+          description: Access denied. The API Key parameter is missing or is incorrectly entered.
+        "404":
+          description: Not found. No document matches the supplied document-id.
+
+  /documents/{document-id}/partial_payments.json:
+    post:
+      tags:
+        - Invoices
+      summary: Generate a payment (receipt)
+      description: Generates a receipt for a (partial) payment of an invoice or simplified invoice.
+      parameters:
+        - name: api_key
+          in: query
+          required: true
+          schema:
+            type: string
+        - name: document-id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - partial_payment
+              properties:
+                partial_payment:
+                  type: object
+                  properties:
+                    payment_mechanism:
+                      type: string
+                      description: Payment method code (e.g. TB, MB, NU, CC).
+                    note:
+                      type: string
+                    serie:
+                      type: string
+                    amount:
+                      type: number
+                    payment_date:
+                      type: string
+                      description: Payment date in dd/mm/yyyy format.
+      responses:
+        "201":
+          description: The receipt was created successfully.
+        "401":
+          description: Access denied. The API Key parameter is missing or is incorrectly entered.
+        "404":
+          description: Not found. No document matches the supplied document-id.
+        "422":
+          description: Unprocessable Entity. Some parameters sent were incorrect.
 
   /clients.json:
     get:
@@ -753,6 +976,42 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
+    post:
+      tags:
+        - Taxes
+      summary: Create a new tax
+      description: Creates a new tax.
+      parameters:
+        - name: api_key
+          in: query
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/TaxRequest"
+      responses:
+        "201":
+          description: SUCCESS
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TaxResponse"
+        "401":
+          description: ACCESS DENIED
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "422":
+          description: UNPROCESSABLE ENTITY
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
   /taxes/{tax-id}.json:
     get:
       tags:
@@ -790,6 +1049,86 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
+    put:
+      tags:
+        - Taxes
+      summary: Update a tax by ID
+      description: Updates a tax's information by its ID.
+      parameters:
+        - name: api_key
+          in: query
+          required: true
+          schema:
+            type: string
+        - name: tax-id
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: The ID of the tax to be updated.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/TaxRequest"
+      responses:
+        "200":
+          description: SUCCESS
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TaxResponse"
+        "401":
+          description: ACCESS DENIED
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: NOT FOUND
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "422":
+          description: UNPROCESSABLE ENTITY
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+    delete:
+      tags:
+        - Taxes
+      summary: Delete a tax by ID
+      description: Deletes a tax by its ID.
+      parameters:
+        - name: api_key
+          in: query
+          required: true
+          schema:
+            type: string
+        - name: tax-id
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: The ID of the tax to be deleted.
+      responses:
+        "200":
+          description: SUCCESS
+        "401":
+          description: ACCESS DENIED
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: NOT FOUND
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
   /items.json:
     get:
       tags:
@@ -808,9 +1147,45 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ItensResponse"
+                $ref: "#/components/schemas/ItemsResponse"
         "401":
           description: ACCESS DENIED
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+    post:
+      tags:
+        - Items
+      summary: Create a new item
+      description: Creates a new item.
+      parameters:
+        - name: api_key
+          in: query
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ItemRequest"
+      responses:
+        "201":
+          description: SUCCESS
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ItemResponse"
+        "401":
+          description: ACCESS DENIED
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "422":
+          description: UNPROCESSABLE ENTITY
           content:
             application/json:
               schema:
@@ -833,14 +1208,94 @@ paths:
           required: true
           schema:
             type: integer
-          description: The ID of the tax you want to get.
+          description: The ID of the item you want to get.
       responses:
         "200":
-          description: Tax Get
+          description: Item Get
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/ItemResponse"
+        "401":
+          description: ACCESS DENIED
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: NOT FOUND
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+    put:
+      tags:
+        - Items
+      summary: Update an item by ID
+      description: Updates an item's information by its ID.
+      parameters:
+        - name: api_key
+          in: query
+          required: true
+          schema:
+            type: string
+        - name: item-id
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: The ID of the item to be updated.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ItemRequest"
+      responses:
+        "200":
+          description: SUCCESS
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ItemResponse"
+        "401":
+          description: ACCESS DENIED
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: NOT FOUND
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "422":
+          description: UNPROCESSABLE ENTITY
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+    delete:
+      tags:
+        - Items
+      summary: Delete an item by ID
+      description: Deletes an item by its ID.
+      parameters:
+        - name: api_key
+          in: query
+          required: true
+          schema:
+            type: string
+        - name: item-id
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: The ID of the item to be deleted.
+      responses:
+        "200":
+          description: SUCCESS
         "401":
           description: ACCESS DENIED
           content:
@@ -928,10 +1383,10 @@ components:
       properties:
         item:
           $ref: "#/components/schemas/Item"
-    ItensResponse:
+    ItemsResponse:
       type: object
       required:
-        - taxes
+        - items
       properties:
         items:
           type: array
@@ -1135,7 +1590,7 @@ components:
               type: object
               required:
                 - name
-              projects:
+              properties:
                 name:
                   type: string
             items:
@@ -1222,6 +1677,135 @@ components:
       properties:
         invoice:
           $ref: "#/components/schemas/Invoice"
+    InvoiceRequest:
+      type: object
+      required:
+        - invoice
+      properties:
+        invoice:
+          type: object
+          required:
+            - date
+            - due_date
+            - client
+            - items
+          properties:
+            date:
+              type: string
+              description: Document date in dd/mm/yyyy format.
+            due_date:
+              type: string
+              description: Due date in dd/mm/yyyy format.
+            reference:
+              type: string
+            observations:
+              type: string
+            retention:
+              type: number
+              description: Retention percentage (0–99.99).
+            tax_exemption:
+              type: string
+              description: Tax exemption code (required when an item has no tax).
+            tax_exemption_reason:
+              type: string
+            sequence_id:
+              type: string
+            manual_sequence_number:
+              type: string
+            currency_code:
+              type: string
+            rate:
+              type: string
+              description: Exchange rate, required when currency_code differs from the account currency.
+            mb_reference:
+              type: boolean
+              description: Whether to generate a Multibanco reference for the document.
+            owner_invoice_id:
+              type: integer
+              description: Source document id (e.g. when issuing a credit note).
+            client:
+              type: object
+              required:
+                - name
+              properties:
+                name:
+                  type: string
+                code:
+                  type: string
+                email:
+                  type: string
+                address:
+                  type: string
+                city:
+                  type: string
+                postal_code:
+                  type: string
+                country:
+                  type: string
+                fiscal_id:
+                  type: string
+                website:
+                  type: string
+                phone:
+                  type: string
+                fax:
+                  type: string
+                observations:
+                  type: string
+            items:
+              type: array
+              items:
+                $ref: "#/components/schemas/Item"
+            global_discount:
+              $ref: "#/components/schemas/GlobalDiscount"
+        proprietary_uid:
+          type: string
+          description: Idempotency key to prevent duplicate document creation.
+    ItemRequest:
+      type: object
+      required:
+        - item
+      properties:
+        item:
+          type: object
+          required:
+            - name
+            - unit_price
+          properties:
+            name:
+              type: string
+            description:
+              type: string
+            unit_price:
+              type: number
+            unit:
+              type: string
+            tax:
+              type: object
+              properties:
+                name:
+                  type: string
+    TaxRequest:
+      type: object
+      required:
+        - tax
+      properties:
+        tax:
+          type: object
+          required:
+            - name
+            - value
+          properties:
+            name:
+              type: string
+            value:
+              type: number
+            region:
+              type: string
+            code:
+              type: string
+            default_tax:
+              type: boolean
     ErrorResponse:
       type: object
 
