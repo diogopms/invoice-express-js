@@ -265,10 +265,10 @@ import type { Client, Invoice, ClientRequest, InvoicesResponse } from "@diogopms
 |                  | Get                        | ✅ |
 |                  | List all                   | ✅ |
 |                  | Create                     | ✅ |
-|                  | Update                     | Not Implemented |
+|                  | Update                     | ✅ |
 |                  | Change-state               | ✅ |
-|                  | Related documents          | Not Implemented |
-|                  | Generate payment           | Not Implemented |
+|                  | Related documents          | ✅ |
+|                  | Generate payment           | ✅ |
 |                  | Cancel payment             | Not Implemented |
 |                  | Get QR Code                | Not Implemented |
 | **Estimates**    | Send by email              | Not Implemented |
@@ -295,9 +295,9 @@ import type { Client, Invoice, ClientRequest, InvoicesResponse } from "@diogopms
 |                  | List invoices              | ✅ |
 | **Items**        | List all                   | ✅ |
 |                  | Get                        | ✅ |
-|                  | Update                     | Not Implemented |
-|                  | Create                     | Not Implemented |
-|                  | Delete                     | Not Implemented |
+|                  | Update                     | ✅ |
+|                  | Create                     | ✅ |
+|                  | Delete                     | ✅ |
 | **Sequences**    | Register                   | Not Implemented |
 |                  | List all                   | Not Implemented |
 |                  | Get                        | Not Implemented |
@@ -305,9 +305,9 @@ import type { Client, Invoice, ClientRequest, InvoicesResponse } from "@diogopms
 |                  | Create                     | Not Implemented |
 | **Taxes**        | List all                   | ✅ |
 |                  | Get                        | ✅ |
-|                  | Update                     | Not Implemented |
-|                  | Create                     | Not Implemented |
-|                  | Delete                     | Not Implemented |
+|                  | Update                     | ✅ |
+|                  | Create                     | ✅ |
+|                  | Delete                     | ✅ |
 | **Accounts**     | Get                        | Not Implemented |
 |                  | Update                     | Not Implemented |
 |                  | Create                     | Not Implemented |

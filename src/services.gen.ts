@@ -15,6 +15,18 @@ import type {
   PostInvoiceReceiptsJsonResponse,
   GetInvoicesJsonData,
   GetInvoicesJsonResponse,
+  PostInvoicesJsonData,
+  PostInvoicesJsonResponse,
+  GetInvoicesByDocumentIdJsonData,
+  GetInvoicesByDocumentIdJsonResponse,
+  PutInvoicesByDocumentIdJsonData,
+  PutInvoicesByDocumentIdJsonResponse,
+  PutInvoicesByDocumentIdChangeStateJsonData,
+  PutInvoicesByDocumentIdChangeStateJsonResponse,
+  GetDocumentByDocumentIdRelatedDocumentsJsonData,
+  GetDocumentByDocumentIdRelatedDocumentsJsonResponse,
+  PostDocumentsByDocumentIdPartialPaymentsJsonData,
+  PostDocumentsByDocumentIdPartialPaymentsJsonResponse,
   GetClientsJsonData,
   GetClientsJsonResponse,
   PostClientsJsonData,
@@ -33,12 +45,24 @@ import type {
   GetApiExportSaftJsonResponse,
   GetTaxesJsonData,
   GetTaxesJsonResponse,
+  PostTaxesJsonData,
+  PostTaxesJsonResponse,
   GetTaxesByTaxIdJsonData,
   GetTaxesByTaxIdJsonResponse,
+  PutTaxesByTaxIdJsonData,
+  PutTaxesByTaxIdJsonResponse,
+  DeleteTaxesByTaxIdJsonData,
+  DeleteTaxesByTaxIdJsonResponse,
   GetItemsJsonData,
   GetItemsJsonResponse,
+  PostItemsJsonData,
+  PostItemsJsonResponse,
   GetItemsByItemIdJsonData,
   GetItemsByItemIdJsonResponse,
+  PutItemsByItemIdJsonData,
+  PutItemsByItemIdJsonResponse,
+  DeleteItemsByItemIdJsonData,
+  DeleteItemsByItemIdJsonResponse,
 } from "./types.gen";
 
 export class InvoicesReceiptsService {
@@ -195,7 +219,7 @@ export class InvoicesService {
   constructor(public readonly httpRequest: BaseHttpRequest) {}
 
   /**
-   * List all Invoices eceipts
+   * List all invoices
    * @param data The data for the request.
    * @param data.apiKey
    * @param data.typeArray
@@ -240,6 +264,185 @@ export class InvoicesService {
       },
       errors: {
         401: "Access denied. The API Key parameter is missing or is incorrectly entered.",
+      },
+    });
+  }
+
+  /**
+   * Create an invoice
+   * Creates an invoice. Use the matching document-type endpoint for other documents (e.g. simplified_invoices, credit_notes, debit_notes).
+   * @param data The data for the request.
+   * @param data.apiKey
+   * @param data.requestBody
+   * @returns InvoiceResponse Invoice was created successfully.
+   * @throws ApiError
+   */
+  public postInvoicesJson(
+    data: PostInvoicesJsonData,
+  ): CancelablePromise<PostInvoicesJsonResponse> {
+    return this.httpRequest.request({
+      method: "POST",
+      url: "/invoices.json",
+      query: {
+        api_key: data.apiKey,
+      },
+      body: data.requestBody,
+      mediaType: "application/json",
+      errors: {
+        401: "Access denied. The API Key parameter is missing or is incorrectly entered.",
+        409: "Conflict. There’s an ongoing document creation with the provided UID.",
+        422: "Unprocessable Entity. Some parameters were incorrect.",
+      },
+    });
+  }
+
+  /**
+   * Get an invoice
+   * @param data The data for the request.
+   * @param data.apiKey
+   * @param data.documentId
+   * @returns InvoiceResponse The invoice was returned successfully.
+   * @throws ApiError
+   */
+  public getInvoicesByDocumentIdJson(
+    data: GetInvoicesByDocumentIdJsonData,
+  ): CancelablePromise<GetInvoicesByDocumentIdJsonResponse> {
+    return this.httpRequest.request({
+      method: "GET",
+      url: "/invoices/{document-id}.json",
+      path: {
+        "document-id": data.documentId,
+      },
+      query: {
+        api_key: data.apiKey,
+      },
+      errors: {
+        401: "Access denied. The API Key parameter is missing or is incorrectly entered.",
+        404: "Not found. No invoice matches the supplied document-id.",
+      },
+    });
+  }
+
+  /**
+   * Update an invoice
+   * Updates a draft invoice. Only invoices in the draft state can be updated.
+   * @param data The data for the request.
+   * @param data.apiKey
+   * @param data.documentId
+   * @param data.requestBody
+   * @returns unknown Invoice was updated successfully.
+   * @throws ApiError
+   */
+  public putInvoicesByDocumentIdJson(
+    data: PutInvoicesByDocumentIdJsonData,
+  ): CancelablePromise<PutInvoicesByDocumentIdJsonResponse> {
+    return this.httpRequest.request({
+      method: "PUT",
+      url: "/invoices/{document-id}.json",
+      path: {
+        "document-id": data.documentId,
+      },
+      query: {
+        api_key: data.apiKey,
+      },
+      body: data.requestBody,
+      mediaType: "application/json",
+      errors: {
+        401: "Access denied. The API Key parameter is missing or is incorrectly entered.",
+        404: "Not found. No invoice matches the supplied document-id.",
+        422: "Unprocessable Entity. Some parameters were incorrect.",
+      },
+    });
+  }
+
+  /**
+   * Change the state of an invoice
+   * Changes the state of an invoice (finalized, deleted, canceled, settled).
+   * @param data The data for the request.
+   * @param data.documentId The unique identifier of the document.
+   * @param data.apiKey
+   * @param data.requestBody
+   * @returns unknown Successfully changed the document state.
+   * @throws ApiError
+   */
+  public putInvoicesByDocumentIdChangeStateJson(
+    data: PutInvoicesByDocumentIdChangeStateJsonData,
+  ): CancelablePromise<PutInvoicesByDocumentIdChangeStateJsonResponse> {
+    return this.httpRequest.request({
+      method: "PUT",
+      url: "/invoices/{document-id}/change-state.json",
+      path: {
+        "document-id": data.documentId,
+      },
+      query: {
+        api_key: data.apiKey,
+      },
+      body: data.requestBody,
+      mediaType: "application/json",
+      errors: {
+        401: "Access denied. The API Key parameter is missing or is incorrectly entered.",
+        404: "Not found. The supplied document-id doesn’t match any existing document.",
+        422: "Unprocessable Entity. Some parameters sent were incorrect.",
+      },
+    });
+  }
+
+  /**
+   * List related documents
+   * Returns the documents (receipts, credit notes, debit notes) related to the given document.
+   * @param data The data for the request.
+   * @param data.apiKey
+   * @param data.documentId
+   * @returns InvoicesResponse The related documents.
+   * @throws ApiError
+   */
+  public getDocumentByDocumentIdRelatedDocumentsJson(
+    data: GetDocumentByDocumentIdRelatedDocumentsJsonData,
+  ): CancelablePromise<GetDocumentByDocumentIdRelatedDocumentsJsonResponse> {
+    return this.httpRequest.request({
+      method: "GET",
+      url: "/document/{document-id}/related_documents.json",
+      path: {
+        "document-id": data.documentId,
+      },
+      query: {
+        api_key: data.apiKey,
+      },
+      errors: {
+        401: "Access denied. The API Key parameter is missing or is incorrectly entered.",
+        404: "Not found. No document matches the supplied document-id.",
+      },
+    });
+  }
+
+  /**
+   * Generate a payment (receipt)
+   * Generates a receipt for a (partial) payment of an invoice or simplified invoice.
+   * @param data The data for the request.
+   * @param data.apiKey
+   * @param data.documentId
+   * @param data.requestBody
+   * @returns unknown The receipt was created successfully.
+   * @throws ApiError
+   */
+  public postDocumentsByDocumentIdPartialPaymentsJson(
+    data: PostDocumentsByDocumentIdPartialPaymentsJsonData,
+  ): CancelablePromise<PostDocumentsByDocumentIdPartialPaymentsJsonResponse> {
+    return this.httpRequest.request({
+      method: "POST",
+      url: "/documents/{document-id}/partial_payments.json",
+      path: {
+        "document-id": data.documentId,
+      },
+      query: {
+        api_key: data.apiKey,
+      },
+      body: data.requestBody,
+      mediaType: "application/json",
+      errors: {
+        401: "Access denied. The API Key parameter is missing or is incorrectly entered.",
+        404: "Not found. No document matches the supplied document-id.",
+        422: "Unprocessable Entity. Some parameters sent were incorrect.",
       },
     });
   }
@@ -510,6 +713,33 @@ export class TaxesService {
   }
 
   /**
+   * Create a new tax
+   * Creates a new tax.
+   * @param data The data for the request.
+   * @param data.apiKey
+   * @param data.requestBody
+   * @returns TaxResponse SUCCESS
+   * @throws ApiError
+   */
+  public postTaxesJson(
+    data: PostTaxesJsonData,
+  ): CancelablePromise<PostTaxesJsonResponse> {
+    return this.httpRequest.request({
+      method: "POST",
+      url: "/taxes.json",
+      query: {
+        api_key: data.apiKey,
+      },
+      body: data.requestBody,
+      mediaType: "application/json",
+      errors: {
+        401: "ACCESS DENIED",
+        422: "UNPROCESSABLE ENTITY",
+      },
+    });
+  }
+
+  /**
    * Get a tax by ID
    * Retrieves a tax by their ID.
    * @param data The data for the request.
@@ -536,6 +766,66 @@ export class TaxesService {
       },
     });
   }
+
+  /**
+   * Update a tax by ID
+   * Updates a tax's information by its ID.
+   * @param data The data for the request.
+   * @param data.apiKey
+   * @param data.taxId The ID of the tax to be updated.
+   * @param data.requestBody
+   * @returns TaxResponse SUCCESS
+   * @throws ApiError
+   */
+  public putTaxesByTaxIdJson(
+    data: PutTaxesByTaxIdJsonData,
+  ): CancelablePromise<PutTaxesByTaxIdJsonResponse> {
+    return this.httpRequest.request({
+      method: "PUT",
+      url: "/taxes/{tax-id}.json",
+      path: {
+        "tax-id": data.taxId,
+      },
+      query: {
+        api_key: data.apiKey,
+      },
+      body: data.requestBody,
+      mediaType: "application/json",
+      errors: {
+        401: "ACCESS DENIED",
+        404: "NOT FOUND",
+        422: "UNPROCESSABLE ENTITY",
+      },
+    });
+  }
+
+  /**
+   * Delete a tax by ID
+   * Deletes a tax by its ID.
+   * @param data The data for the request.
+   * @param data.apiKey
+   * @param data.taxId The ID of the tax to be deleted.
+   * @returns unknown SUCCESS
+   * @throws ApiError
+   */
+  public deleteTaxesByTaxIdJson(
+    data: DeleteTaxesByTaxIdJsonData,
+  ): CancelablePromise<DeleteTaxesByTaxIdJsonResponse> {
+    return this.httpRequest.request({
+      method: "DELETE",
+      url: "/taxes/{tax-id}.json",
+      path: {
+        "tax-id": data.taxId,
+      },
+      query: {
+        api_key: data.apiKey,
+      },
+      errors: {
+        401: "ACCESS DENIED",
+        404: "NOT FOUND",
+      },
+    });
+  }
 }
 
 export class ItemsService {
@@ -546,7 +836,7 @@ export class ItemsService {
    * Retrieves a list of items.
    * @param data The data for the request.
    * @param data.apiKey
-   * @returns ItensResponse Items List all
+   * @returns ItemsResponse Items List all
    * @throws ApiError
    */
   public getItemsJson(
@@ -565,12 +855,39 @@ export class ItemsService {
   }
 
   /**
+   * Create a new item
+   * Creates a new item.
+   * @param data The data for the request.
+   * @param data.apiKey
+   * @param data.requestBody
+   * @returns ItemResponse SUCCESS
+   * @throws ApiError
+   */
+  public postItemsJson(
+    data: PostItemsJsonData,
+  ): CancelablePromise<PostItemsJsonResponse> {
+    return this.httpRequest.request({
+      method: "POST",
+      url: "/items.json",
+      query: {
+        api_key: data.apiKey,
+      },
+      body: data.requestBody,
+      mediaType: "application/json",
+      errors: {
+        401: "ACCESS DENIED",
+        422: "UNPROCESSABLE ENTITY",
+      },
+    });
+  }
+
+  /**
    * Get a item by ID
    * Retrieves a item by their ID.
    * @param data The data for the request.
    * @param data.apiKey
-   * @param data.itemId The ID of the tax you want to get.
-   * @returns ItemResponse Tax Get
+   * @param data.itemId The ID of the item you want to get.
+   * @returns ItemResponse Item Get
    * @throws ApiError
    */
   public getItemsByItemIdJson(
@@ -578,6 +895,66 @@ export class ItemsService {
   ): CancelablePromise<GetItemsByItemIdJsonResponse> {
     return this.httpRequest.request({
       method: "GET",
+      url: "/items/{item-id}.json",
+      path: {
+        "item-id": data.itemId,
+      },
+      query: {
+        api_key: data.apiKey,
+      },
+      errors: {
+        401: "ACCESS DENIED",
+        404: "NOT FOUND",
+      },
+    });
+  }
+
+  /**
+   * Update an item by ID
+   * Updates an item's information by its ID.
+   * @param data The data for the request.
+   * @param data.apiKey
+   * @param data.itemId The ID of the item to be updated.
+   * @param data.requestBody
+   * @returns ItemResponse SUCCESS
+   * @throws ApiError
+   */
+  public putItemsByItemIdJson(
+    data: PutItemsByItemIdJsonData,
+  ): CancelablePromise<PutItemsByItemIdJsonResponse> {
+    return this.httpRequest.request({
+      method: "PUT",
+      url: "/items/{item-id}.json",
+      path: {
+        "item-id": data.itemId,
+      },
+      query: {
+        api_key: data.apiKey,
+      },
+      body: data.requestBody,
+      mediaType: "application/json",
+      errors: {
+        401: "ACCESS DENIED",
+        404: "NOT FOUND",
+        422: "UNPROCESSABLE ENTITY",
+      },
+    });
+  }
+
+  /**
+   * Delete an item by ID
+   * Deletes an item by its ID.
+   * @param data The data for the request.
+   * @param data.apiKey
+   * @param data.itemId The ID of the item to be deleted.
+   * @returns unknown SUCCESS
+   * @throws ApiError
+   */
+  public deleteItemsByItemIdJson(
+    data: DeleteItemsByItemIdJsonData,
+  ): CancelablePromise<DeleteItemsByItemIdJsonResponse> {
+    return this.httpRequest.request({
+      method: "DELETE",
       url: "/items/{item-id}.json",
       path: {
         "item-id": data.itemId,

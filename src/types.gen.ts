@@ -39,8 +39,8 @@ export type ItemResponse = {
   item?: Item;
 };
 
-export type ItensResponse = {
-  items?: Array<Item>;
+export type ItemsResponse = {
+  items: Array<Item>;
 };
 
 export type MBReference = {
@@ -129,7 +129,7 @@ export type InvoiceReceiptsRequest = {
     sequence_id?: string;
     tax_exemption?: string;
     client?: {
-      [key: string]: unknown;
+      name: string;
     };
     items?: Array<Item>;
   };
@@ -171,6 +171,87 @@ export type InvoicesResponse = {
 
 export type InvoiceResponse = {
   invoice: Invoice;
+};
+
+export type InvoiceRequest = {
+  invoice: {
+    /**
+     * Document date in dd/mm/yyyy format.
+     */
+    date: string;
+    /**
+     * Due date in dd/mm/yyyy format.
+     */
+    due_date: string;
+    reference?: string;
+    observations?: string;
+    /**
+     * Retention percentage (0–99.99).
+     */
+    retention?: number;
+    /**
+     * Tax exemption code (required when an item has no tax).
+     */
+    tax_exemption?: string;
+    tax_exemption_reason?: string;
+    sequence_id?: string;
+    manual_sequence_number?: string;
+    currency_code?: string;
+    /**
+     * Exchange rate, required when currency_code differs from the account currency.
+     */
+    rate?: string;
+    /**
+     * Whether to generate a Multibanco reference for the document.
+     */
+    mb_reference?: boolean;
+    /**
+     * Source document id (e.g. when issuing a credit note).
+     */
+    owner_invoice_id?: number;
+    client: {
+      name: string;
+      code?: string;
+      email?: string;
+      address?: string;
+      city?: string;
+      postal_code?: string;
+      country?: string;
+      fiscal_id?: string;
+      website?: string;
+      phone?: string;
+      fax?: string;
+      observations?: string;
+    };
+    items: Array<Item>;
+    global_discount?: GlobalDiscount;
+  };
+  /**
+   * Idempotency key to prevent duplicate document creation.
+   */
+  proprietary_uid?: string;
+};
+
+export type ItemRequest = {
+  item: {
+    name: string;
+    description?: string;
+    unit_price: number;
+    unit?: string;
+    tax?: {
+      name?: string;
+    };
+  };
+};
+
+export type TaxRequest = {
+  tax: {
+    name: string;
+    value: number;
+    region?: string;
+    code?: string;
+    default_tax?: boolean;
+  };
 };
 
 export type ErrorResponse = {
@@ -292,6 +373,80 @@ export type GetInvoicesJsonData = {
 
 export type GetInvoicesJsonResponse = InvoicesResponse;
 
+export type PostInvoicesJsonData = {
+  apiKey: string;
+  requestBody: InvoiceRequest;
+};
+
+export type PostInvoicesJsonResponse = InvoiceResponse;
+
+export type GetInvoicesByDocumentIdJsonData = {
+  apiKey: string;
+  documentId: number;
+};
+
+export type GetInvoicesByDocumentIdJsonResponse = InvoiceResponse;
+
+export type PutInvoicesByDocumentIdJsonData = {
+  apiKey: string;
+  documentId: number;
+  requestBody: InvoiceRequest;
+};
+
+export type PutInvoicesByDocumentIdJsonResponse = unknown;
+
+export type PutInvoicesByDocumentIdChangeStateJsonData = {
+  apiKey: string;
+  /**
+   * The unique identifier of the document.
+   */
+  documentId: number;
+  requestBody: {
+    invoice: {
+      /**
+       * The new state of the document.
+       */
+      state?: "finalized" | "deleted" | "canceled" | "settled";
+      /**
+       * The reason for changing the state (required for cancellation).
+       */
+      message?: string;
+    };
+  };
+};
+
+export type PutInvoicesByDocumentIdChangeStateJsonResponse = unknown;
+
+export type GetDocumentByDocumentIdRelatedDocumentsJsonData = {
+  apiKey: string;
+  documentId: number;
+};
+
+export type GetDocumentByDocumentIdRelatedDocumentsJsonResponse =
+  InvoicesResponse;
+
+export type PostDocumentsByDocumentIdPartialPaymentsJsonData = {
+  apiKey: string;
+  documentId: number;
+  requestBody: {
+    partial_payment: {
+      /**
+       * Payment method code (e.g. TB, MB, NU, CC).
+       */
+      payment_mechanism?: string;
+      note?: string;
+      serie?: string;
+      amount?: number;
+      /**
+       * Payment date in dd/mm/yyyy format.
+       */
+      payment_date?: string;
+    };
+  };
+};
+
+export type PostDocumentsByDocumentIdPartialPaymentsJsonResponse = unknown;
+
 export type GetClientsJsonData = {
   apiKey: string;
   /**
@@ -396,6 +551,13 @@ export type GetTaxesJsonData = {
 
 export type GetTaxesJsonResponse = TaxesResponse;
 
+export type PostTaxesJsonData = {
+  apiKey: string;
+  requestBody: TaxRequest;
+};
+
+export type PostTaxesJsonResponse = TaxResponse;
+
 export type GetTaxesByTaxIdJsonData = {
   apiKey: string;
   /**
@@ -406,18 +568,67 @@ export type GetTaxesByTaxIdJsonData = {
 
 export type GetTaxesByTaxIdJsonResponse = TaxResponse;
 
+export type PutTaxesByTaxIdJsonData = {
+  apiKey: string;
+  requestBody: TaxRequest;
+  /**
+   * The ID of the tax to be updated.
+   */
+  taxId: number;
+};
+
+export type PutTaxesByTaxIdJsonResponse = TaxResponse;
+
+export type DeleteTaxesByTaxIdJsonData = {
+  apiKey: string;
+  /**
+   * The ID of the tax to be deleted.
+   */
+  taxId: number;
+};
+
+export type DeleteTaxesByTaxIdJsonResponse = unknown;
+
 export type GetItemsJsonData = {
   apiKey: string;
 };
 
-export type GetItemsJsonResponse = ItensResponse;
+export type GetItemsJsonResponse = ItemsResponse;
+
+export type PostItemsJsonData = {
+  apiKey: string;
+  requestBody: ItemRequest;
+};
+
+export type PostItemsJsonResponse = ItemResponse;
 
 export type GetItemsByItemIdJsonData = {
   apiKey: string;
   /**
-   * The ID of the tax you want to get.
+   * The ID of the item you want to get.
    */
   itemId: number;
 };
 
 export type GetItemsByItemIdJsonResponse = ItemResponse;
+
+export type PutItemsByItemIdJsonData = {
+  apiKey: string;
+  /**
+   * The ID of the item to be updated.
+   */
+  itemId: number;
+  requestBody: ItemRequest;
+};
+
+export type PutItemsByItemIdJsonResponse = ItemResponse;
+
+export type DeleteItemsByItemIdJsonData = {
+  apiKey: string;
+  /**
+   * The ID of the item to be deleted.
+   */
+  itemId: number;
+};
+
+export type DeleteItemsByItemIdJsonResponse = unknown;
