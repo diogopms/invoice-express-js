@@ -107,9 +107,9 @@ export const $ItemResponse = {
   },
 } as const;
 
-export const $ItensResponse = {
+export const $ItemsResponse = {
   type: "object",
-  required: ["taxes"],
+  required: ["items"],
   properties: {
     items: {
       type: "array",
@@ -386,7 +386,7 @@ export const $InvoiceReceiptsRequest = {
         client: {
           type: "object",
           required: ["name"],
-          projects: {
+          properties: {
             name: {
               type: "string",
             },
@@ -509,6 +509,183 @@ export const $InvoiceResponse = {
   properties: {
     invoice: {
       $ref: "#/components/schemas/Invoice",
+    },
+  },
+} as const;
+
+export const $InvoiceRequest = {
+  type: "object",
+  required: ["invoice"],
+  properties: {
+    invoice: {
+      type: "object",
+      required: ["date", "due_date", "client", "items"],
+      properties: {
+        date: {
+          type: "string",
+          description: "Document date in dd/mm/yyyy format.",
+        },
+        due_date: {
+          type: "string",
+          description: "Due date in dd/mm/yyyy format.",
+        },
+        reference: {
+          type: "string",
+        },
+        observations: {
+          type: "string",
+        },
+        retention: {
+          type: "number",
+          description: "Retention percentage (0–99.99).",
+        },
+        tax_exemption: {
+          type: "string",
+          description: "Tax exemption code (required when an item has no tax).",
+        },
+        tax_exemption_reason: {
+          type: "string",
+        },
+        sequence_id: {
+          type: "string",
+        },
+        manual_sequence_number: {
+          type: "string",
+        },
+        currency_code: {
+          type: "string",
+        },
+        rate: {
+          type: "string",
+          description:
+            "Exchange rate, required when currency_code differs from the account currency.",
+        },
+        mb_reference: {
+          type: "boolean",
+          description:
+            "Whether to generate a Multibanco reference for the document.",
+        },
+        owner_invoice_id: {
+          type: "integer",
+          description: "Source document id (e.g. when issuing a credit note).",
+        },
+        client: {
+          type: "object",
+          required: ["name"],
+          properties: {
+            name: {
+              type: "string",
+            },
+            code: {
+              type: "string",
+            },
+            email: {
+              type: "string",
+            },
+            address: {
+              type: "string",
+            },
+            city: {
+              type: "string",
+            },
+            postal_code: {
+              type: "string",
+            },
+            country: {
+              type: "string",
+            },
+            fiscal_id: {
+              type: "string",
+            },
+            website: {
+              type: "string",
+            },
+            phone: {
+              type: "string",
+            },
+            fax: {
+              type: "string",
+            },
+            observations: {
+              type: "string",
+            },
+          },
+        },
+        items: {
+          type: "array",
+          items: {
+            $ref: "#/components/schemas/Item",
+          },
+        },
+        global_discount: {
+          $ref: "#/components/schemas/GlobalDiscount",
+        },
+      },
+    },
+    proprietary_uid: {
+      type: "string",
+      description: "Idempotency key to prevent duplicate document creation.",
+    },
+  },
+} as const;
+
+export const $ItemRequest = {
+  type: "object",
+  required: ["item"],
+  properties: {
+    item: {
+      type: "object",
+      required: ["name", "unit_price"],
+      properties: {
+        name: {
+          type: "string",
+        },
+        description: {
+          type: "string",
+        },
+        unit_price: {
+          type: "number",
+        },
+        unit: {
+          type: "string",
+        },
+        tax: {
+          type: "object",
+          properties: {
+            name: {
+              type: "string",
+            },
+          },
+        },
+      },
+    },
+  },
+} as const;
+
+export const $TaxRequest = {
+  type: "object",
+  required: ["tax"],
+  properties: {
+    tax: {
+      type: "object",
+      required: ["name", "value"],
+      properties: {
+        name: {
+          type: "string",
+        },
+        value: {
+          type: "number",
+        },
+        region: {
+          type: "string",
+        },
+        code: {
+          type: "string",
+        },
+        default_tax: {
+          type: "boolean",
+        },
+      },
     },
   },
 } as const;
