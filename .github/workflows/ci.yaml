@@ -28,6 +28,12 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
+      - name: Check formatting
+        run: pnpm run lint
+
+      - name: Verify generated client matches the spec
+        run: pnpm run generate:check
+
       - name: Typecheck
         run: pnpm run typecheck
 
