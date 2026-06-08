@@ -37,8 +37,14 @@ import type {
   GetTaxesByTaxIdJsonResponse,
   GetItemsJsonData,
   GetItemsJsonResponse,
+  PostItemsJsonData,
+  PostItemsJsonResponse,
   GetItemsByItemIdJsonData,
   GetItemsByItemIdJsonResponse,
+  PutItemsByItemIdJsonData,
+  PutItemsByItemIdJsonResponse,
+  DeleteItemsByItemIdJsonData,
+  DeleteItemsByItemIdJsonResponse,
 } from "./types.gen";
 
 export class InvoicesReceiptsService {
@@ -565,6 +571,33 @@ export class ItemsService {
   }
 
   /**
+   * Create a new item
+   * Creates a new item.
+   * @param data The data for the request.
+   * @param data.apiKey
+   * @param data.requestBody
+   * @returns ItemResponse SUCCESS
+   * @throws ApiError
+   */
+  public postItemsJson(
+    data: PostItemsJsonData,
+  ): CancelablePromise<PostItemsJsonResponse> {
+    return this.httpRequest.request({
+      method: "POST",
+      url: "/items.json",
+      query: {
+        api_key: data.apiKey,
+      },
+      body: data.requestBody,
+      mediaType: "application/json",
+      errors: {
+        401: "ACCESS DENIED",
+        422: "UNPROCESSABLE ENTITY",
+      },
+    });
+  }
+
+  /**
    * Get a item by ID
    * Retrieves a item by their ID.
    * @param data The data for the request.
@@ -578,6 +611,66 @@ export class ItemsService {
   ): CancelablePromise<GetItemsByItemIdJsonResponse> {
     return this.httpRequest.request({
       method: "GET",
+      url: "/items/{item-id}.json",
+      path: {
+        "item-id": data.itemId,
+      },
+      query: {
+        api_key: data.apiKey,
+      },
+      errors: {
+        401: "ACCESS DENIED",
+        404: "NOT FOUND",
+      },
+    });
+  }
+
+  /**
+   * Update a item by ID
+   * Updates an item's information by their ID.
+   * @param data The data for the request.
+   * @param data.apiKey
+   * @param data.itemId The ID of the item to be updated.
+   * @param data.requestBody
+   * @returns unknown SUCCESS
+   * @throws ApiError
+   */
+  public putItemsByItemIdJson(
+    data: PutItemsByItemIdJsonData,
+  ): CancelablePromise<PutItemsByItemIdJsonResponse> {
+    return this.httpRequest.request({
+      method: "PUT",
+      url: "/items/{item-id}.json",
+      path: {
+        "item-id": data.itemId,
+      },
+      query: {
+        api_key: data.apiKey,
+      },
+      body: data.requestBody,
+      mediaType: "application/json",
+      errors: {
+        401: "ACCESS DENIED",
+        404: "NOT FOUND",
+        422: "UNPROCESSABLE ENTITY",
+      },
+    });
+  }
+
+  /**
+   * Delete a item by ID
+   * Deletes an item by their ID.
+   * @param data The data for the request.
+   * @param data.apiKey
+   * @param data.itemId The ID of the item to be deleted.
+   * @returns unknown SUCCESS
+   * @throws ApiError
+   */
+  public deleteItemsByItemIdJson(
+    data: DeleteItemsByItemIdJsonData,
+  ): CancelablePromise<DeleteItemsByItemIdJsonResponse> {
+    return this.httpRequest.request({
+      method: "DELETE",
       url: "/items/{item-id}.json",
       path: {
         "item-id": data.itemId,

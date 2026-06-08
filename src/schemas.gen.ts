@@ -120,6 +120,16 @@ export const $ItensResponse = {
   },
 } as const;
 
+export const $ItemRequest = {
+  type: "object",
+  required: ["item"],
+  properties: {
+    item: {
+      $ref: "#/components/schemas/Item",
+    },
+  },
+} as const;
+
 export const $MBReference = {
   type: "object",
   required: ["entity", "value", "reference"],

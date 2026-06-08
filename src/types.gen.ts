@@ -43,6 +43,10 @@ export type ItensResponse = {
   items?: Array<Item>;
 };
 
+export type ItemRequest = {
+  item: Item;
+};
+
 export type MBReference = {
   entity: string;
   value: number;
@@ -412,6 +416,13 @@ export type GetItemsJsonData = {
 
 export type GetItemsJsonResponse = ItensResponse;
 
+export type PostItemsJsonData = {
+  apiKey: string;
+  requestBody: ItemRequest;
+};
+
+export type PostItemsJsonResponse = ItemResponse;
+
 export type GetItemsByItemIdJsonData = {
   apiKey: string;
   /**
@@ -421,3 +432,24 @@ export type GetItemsByItemIdJsonData = {
 };
 
 export type GetItemsByItemIdJsonResponse = ItemResponse;
+
+export type PutItemsByItemIdJsonData = {
+  apiKey: string;
+  /**
+   * The ID of the item to be updated.
+   */
+  itemId: number;
+  requestBody: ItemRequest;
+};
+
+export type PutItemsByItemIdJsonResponse = unknown;
+
+export type DeleteItemsByItemIdJsonData = {
+  apiKey: string;
+  /**
+   * The ID of the item to be deleted.
+   */
+  itemId: number;
+};
+
+export type DeleteItemsByItemIdJsonResponse = unknown;

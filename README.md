@@ -188,6 +188,29 @@ await client.invoicesReceipts.getApiPdfByDocumentIdJson({ apiKey, documentId });
 await client.items.getItemsJson({ apiKey });
 await client.items.getItemsByItemIdJson({ apiKey, itemId: 999 });
 
+// Create an item
+const item = await client.items.postItemsJson({
+  apiKey,
+  requestBody: {
+    item: {
+      name: "Consulting",
+      unit_price: 100,
+      quantity: 1,
+      tax: { name: "IVA23" },
+    },
+  },
+});
+
+// Update an item
+await client.items.putItemsByItemIdJson({
+  apiKey,
+  itemId: 999,
+  requestBody: { item: { name: "Consulting (senior)", unit_price: 150, quantity: 1 } },
+});
+
+// Delete an item
+await client.items.deleteItemsByItemIdJson({ apiKey, itemId: 999 });
+
 await client.taxes.getTaxesJson({ apiKey });
 await client.taxes.getTaxesByTaxIdJson({ apiKey, taxId: 42 });
 ```
@@ -295,9 +318,9 @@ import type { Client, Invoice, ClientRequest, InvoicesResponse } from "@diogopms
 |                  | List invoices              | ✅ |
 | **Items**        | List all                   | ✅ |
 |                  | Get                        | ✅ |
-|                  | Update                     | Not Implemented |
-|                  | Create                     | Not Implemented |
-|                  | Delete                     | Not Implemented |
+|                  | Update                     | ✅ |
+|                  | Create                     | ✅ |
+|                  | Delete                     | ✅ |
 | **Sequences**    | Register                   | Not Implemented |
 |                  | List all                   | Not Implemented |
 |                  | Get                        | Not Implemented |
