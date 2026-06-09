@@ -670,16 +670,20 @@ export const $TaxRequest = {
   properties: {
     tax: {
       type: "object",
-      required: ["name", "value"],
+      required: ["name", "value", "region"],
       properties: {
         name: {
           type: "string",
         },
         value: {
-          type: "number",
+          type: "string",
+          description:
+            'Tax rate, sent as a string (e.g. "23.0"). A numeric value is rejected by the /taxes.json endpoint with a 500.',
         },
         region: {
           type: "string",
+          description:
+            'Required (e.g. "PT"); the API returns "region is empty" otherwise.',
         },
         code: {
           type: "string",
@@ -1794,15 +1798,21 @@ export const $TreasuryMovementResponse = {
 
 export const $InitialBalanceRequest = {
   type: "object",
-  required: ["value"],
+  required: ["initial_balance"],
   properties: {
-    value: {
-      type: "number",
-      description: "The client's initial balance amount.",
-    },
-    date: {
-      type: "string",
-      description: "Balance date in YYYY-MM-DD format.",
+    initial_balance: {
+      type: "object",
+      required: ["value"],
+      properties: {
+        value: {
+          type: "number",
+          description: "The client's initial balance amount.",
+        },
+        date: {
+          type: "string",
+          description: "Balance date in YYYY-MM-DD format.",
+        },
+      },
     },
   },
 } as const;
