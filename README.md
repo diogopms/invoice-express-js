@@ -4,7 +4,7 @@ A typed JavaScript / TypeScript client for the [InvoiceXpress](https://invoicexp
 
 The client is generated from an OpenAPI specification with [`@hey-api/openapi-ts`](https://heyapi.dev/) and ships with full TypeScript types for every request and response.
 
-- 📦 Single client class exposing every resource (`clients`, `invoices`, `invoicesReceipts`, `guides`, `items`, `taxes`, `saft`)
+- 📦 Single client class exposing every resource (`clients`, `invoices`, `invoicesReceipts`, `estimates`, `guides`, `items`, `taxes`, `saft`)
 - 🟦 First-class TypeScript types for request payloads and responses
 - 🔁 Request / response interceptors
 - ⏹️ Cancelable requests
@@ -182,6 +182,59 @@ await client.invoicesReceipts.putInvoiceReceiptsByDocumentIdEmailDocumentJson({
 await client.invoicesReceipts.getApiPdfByDocumentIdJson({ apiKey, documentId });
 ```
 
+### Estimates
+
+Estimates cover quotes, proformas and fees notes. The `estimatesType` path
+segment selects the document type, and the request/response body is wrapped under
+the matching singular key (`quote`, `proforma` or `fees_note`).
+
+```ts
+// Create a quote
+const created = await client.estimates.postByEstimatesTypeJson({
+  apiKey,
+  estimatesType: "quotes",
+  requestBody: {
+    quote: {
+      date: "09/06/2026",
+      due_date: "23/06/2026",
+      client: { name: "Acme, Lda", code: "ACME" },
+      items: [{ name: "Consulting", unit_price: 100, quantity: 2 }],
+    },
+  },
+});
+
+const documentId = created.quote!.id;
+
+// Get / update
+await client.estimates.getByEstimatesTypeByDocumentIdJson({ apiKey, estimatesType: "quotes", documentId });
+await client.estimates.putByEstimatesTypeByDocumentIdJson({
+  apiKey,
+  estimatesType: "quotes",
+  documentId,
+  requestBody: { quote: { date: "09/06/2026", due_date: "30/06/2026", client: { name: "Acme, Lda" }, items: [] } },
+});
+
+// Finalize, then email
+await client.estimates.putByEstimatesTypeByDocumentIdChangeStateJson({
+  apiKey,
+  estimatesType: "quotes",
+  documentId,
+  requestBody: { quote: { state: "finalized" } },
+});
+await client.estimates.putByEstimatesTypeByDocumentIdEmailDocumentJson({
+  apiKey,
+  estimatesType: "quotes",
+  documentId,
+  requestBody: { message: { subject: "Your quote", body: "Thank you!" } },
+});
+
+// List all estimates (paginated)
+await client.estimates.getEstimatesJson({ apiKey, page: 1, perPage: 20 });
+
+// Generate the PDF (shared endpoint — poll until it resolves to a 200)
+await client.invoicesReceipts.getApiPdfByDocumentIdJson({ apiKey, documentId });
+```
+
 ### Guides
 
 Guides cover shippings, transports and devolutions (transport documents). The
@@ -323,13 +376,13 @@ import type { Client, Invoice, ClientRequest, InvoicesResponse } from "@diogopms
 |                  | Generate payment           | ✅ |
 |                  | Cancel payment             | Not Implemented |
 |                  | Get QR Code                | Not Implemented |
-| **Estimates**    | Send by email              | Not Implemented |
-|                  | Generate PDF               | Not Implemented |
-|                  | Get                        | Not Implemented |
-|                  | List all                   | Not Implemented |
-|                  | Create                     | Not Implemented |
-|                  | Update                     | Not Implemented |
-|                  | Change-state               | Not Implemented |
+| **Estimates**    | Send by email              | ✅ |
+|                  | Generate PDF               | ✅ |
+|                  | Get                        | ✅ |
+|                  | List all                   | ✅ |
+|                  | Create                     | ✅ |
+|                  | Update                     | ✅ |
+|                  | Change-state               | ✅ |
 | **Guides**       | Send by email              | ✅ |
 |                  | Generate PDF               | ✅ |
 |                  | Get                        | ✅ |
