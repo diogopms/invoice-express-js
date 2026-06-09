@@ -815,6 +815,28 @@ export type PostDocumentsByDocumentIdPartialPaymentsJsonData = {
 
 export type PostDocumentsByDocumentIdPartialPaymentsJsonResponse = unknown;
 
+export type PutReceiptsByReceiptIdChangeStateJsonData = {
+  apiKey: string;
+  /**
+   * The ID of the receipt to cancel.
+   */
+  receiptId: number;
+  requestBody: {
+    receipt: {
+      /**
+       * The new state of the receipt.
+       */
+      state: "canceled";
+      /**
+       * The reason for the cancellation.
+       */
+      message?: string;
+    };
+  };
+};
+
+export type PutReceiptsByReceiptIdChangeStateJsonResponse = unknown;
+
 export type GetClientsJsonData = {
   apiKey: string;
   /**
