@@ -144,3 +144,84 @@ test("request interceptors can mutate the outgoing request", async () => {
       : headers["X-Trace-Id"];
   assert.equal(traceId, "trace-123");
 });
+
+test("response interceptors observe the response", async () => {
+  respondJson({ taxes: [] });
+
+  let observedStatus;
+  const client = newClient();
+  client.request.config.interceptors.response.use((res) => {
+    observedStatus = res.status;
+    return res;
+  });
+
+  await client.taxes.getTaxesJson({ apiKey: API_KEY });
+  assert.equal(observedStatus, 200);
+});
+
+test("array query params are serialized into the URL", async () => {
+  respondJson({
+    invoices: [],
+    pagination: {
+      total_entries: 0,
+      current_page: 1,
+      total_pages: 0,
+      per_page: 10,
+    },
+  });
+
+  await newClient().invoices.getInvoicesJson({
+    apiKey: API_KEY,
+    page: 1,
+    perPage: 10,
+    nonArchived: true,
+    typeArray: ["Invoice", "CreditNote"],
+    statusArray: ["draft"],
+  });
+
+  const { url } = calls[0];
+  assert.match(url, /type/);
+  assert.ok(url.includes("Invoice"), `expected Invoice in ${url}`);
+  assert.ok(url.includes("CreditNote"), `expected CreditNote in ${url}`);
+  assert.ok(url.includes("draft"), `expected draft in ${url}`);
+});
+
+test("422 errors surface the status and the response body", async () => {
+  const body = { errors: [{ error: "Name is required" }] };
+  respondJson(body, { status: 422, statusText: "Unprocessable Entity" });
+
+  await assert.rejects(
+    () =>
+      newClient().clients.postClientsJson({
+        apiKey: API_KEY,
+        requestBody: { client: { name: "" } },
+      }),
+    (err) => {
+      assert.ok(err instanceof ApiError);
+      assert.equal(err.status, 422);
+      assert.deepEqual(err.body, body);
+      return true;
+    },
+  );
+});
+
+test("an empty 200 response resolves to undefined (e.g. change-state)", async () => {
+  responder = () => new Response(null, { status: 200, statusText: "OK" });
+
+  const res = await newClient().invoices.putInvoicesByDocumentIdChangeStateJson(
+    {
+      apiKey: API_KEY,
+      documentId: 1,
+      requestBody: { invoice: { state: "finalized" } },
+    },
+  );
+  assert.equal(res, undefined);
+});
+
+test("a canceled request rejects", async () => {
+  globalThis.fetch = () => new Promise(() => {}); // never resolves
+
+  const promise = newClient().taxes.getTaxesJson({ apiKey: API_KEY });
+  promise.cancel();
+  await assert.rejects(promise);
+});
