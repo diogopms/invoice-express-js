@@ -644,7 +644,9 @@ export const $ItemRequest = {
           type: "string",
         },
         unit_price: {
-          type: "number",
+          type: "string",
+          description:
+            'Unit price, sent as a string (e.g. "50.0"). The /items.json endpoint rejects a numeric unit_price with a 422 "unit price is not valid" error.',
         },
         unit: {
           type: "string",
