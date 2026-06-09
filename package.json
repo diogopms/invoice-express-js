@@ -22,8 +22,10 @@
     "typecheck:examples": "tsc -p tsconfig.examples.json",
     "pretest": "pnpm run build",
     "test": "node --test",
-    "format": "prettier --write \"src/**/*.ts\" \"test/**/*.js\" \"examples/**/*.ts\" \"generate.mjs\" \"*.{json,yaml}\"",
-    "lint": "prettier --check \"src/**/*.ts\" \"test/**/*.js\" \"examples/**/*.ts\" \"generate.mjs\" \"*.{json,yaml}\"",
+    "pretest:live": "pnpm run build",
+    "test:live": "node scripts/live-check.cjs",
+    "format": "prettier --write \"src/**/*.ts\" \"test/**/*.js\" \"examples/**/*.ts\" \"scripts/**/*.cjs\" \"generate.mjs\" \"*.{json,yaml}\"",
+    "lint": "prettier --check \"src/**/*.ts\" \"test/**/*.js\" \"examples/**/*.ts\" \"scripts/**/*.cjs\" \"generate.mjs\" \"*.{json,yaml}\"",
     "prepublishOnly": "pnpm run build"
   },
   "keywords": [
