@@ -1647,7 +1647,8 @@ paths:
             type: array
             items:
               type: string
-              enum: [draft, final, accepted, refused, canceled, settled, expired]
+              enum:
+                [draft, final, accepted, refused, canceled, settled, expired]
         - name: date[from]
           in: query
           schema:
