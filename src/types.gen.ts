@@ -561,6 +561,67 @@ export type EstimatesResponse = {
   };
 };
 
+export type Sequence = {
+  id: number;
+  /**
+   * The series identifier (e.g. "2026").
+   */
+  serie: string;
+  /**
+   * Whether this is the account's current/default sequence.
+   */
+  default_sequence?: boolean;
+  /**
+   * Whether the sequence has been registered with the Tax Authority.
+   */
+  registered?: boolean;
+  current_invoice_number?: number;
+  current_invoice_receipt_number?: number;
+  current_simplified_invoice_number?: number;
+  current_credit_note_number?: number;
+  current_debit_note_number?: number;
+  current_receipt_number?: number;
+  current_money_receipt_number?: number;
+  current_quote_number?: number;
+  current_proforma_number?: number;
+  current_fees_note_number?: number;
+  current_shipping_number?: number;
+  current_transport_number?: number;
+  current_devolution_number?: number;
+};
+
+export type SequenceBody = {
+  /**
+   * The series identifier (e.g. "2026").
+   */
+  serie: string;
+  /**
+   * Set to "1" to make this the account's current/default sequence.
+   */
+  default_sequence?: "0" | "1";
+  current_invoice_number?: number;
+  current_credit_note_number?: number;
+  current_debit_note_number?: number;
+  current_receipt_number?: number;
+};
+
+/**
+ * Set to "1" to make this the account's current/default sequence.
+ */
+export type default_sequence = "0" | "1";
+
+export type SequenceRequest = {
+  sequence: SequenceBody;
+};
+
+export type SequenceResponse = {
+  sequence: Sequence;
+};
+
+export type SequencesResponse = {
+  sequences: Array<Sequence>;
+};
+
 export type ErrorResponse = {
   error?: string;
 };
@@ -1136,3 +1197,45 @@ export type PutByEstimatesTypeByDocumentIdEmailDocumentJsonData = {
 };
 
 export type PutByEstimatesTypeByDocumentIdEmailDocumentJsonResponse = unknown;
+
+export type GetSequencesJsonData = {
+  apiKey: string;
+};
+
+export type GetSequencesJsonResponse = SequencesResponse;
+
+export type PostSequencesJsonData = {
+  apiKey: string;
+  requestBody: SequenceRequest;
+};
+
+export type PostSequencesJsonResponse = SequenceResponse;
+
+export type GetSequencesBySequenceIdJsonData = {
+  apiKey: string;
+  sequenceId: number;
+};
+
+export type GetSequencesBySequenceIdJsonResponse = SequenceResponse;
+
+export type PutSequencesBySequenceIdJsonData = {
+  apiKey: string;
+  requestBody: SequenceRequest;
+  sequenceId: number;
+};
+
+export type PutSequencesBySequenceIdJsonResponse = unknown;
+
+export type PutSequencesBySequenceIdRegisterJsonData = {
+  apiKey: string;
+  sequenceId: number;
+};
+
+export type PutSequencesBySequenceIdRegisterJsonResponse = unknown;
+
+export type PutSequencesBySequenceIdSetCurrentJsonData = {
+  apiKey: string;
+  sequenceId: number;
+};
+
+export type PutSequencesBySequenceIdSetCurrentJsonResponse = unknown;
