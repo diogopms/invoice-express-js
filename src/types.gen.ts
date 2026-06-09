@@ -3,9 +3,12 @@
 export type Tax = {
   id?: number;
   name: string;
-  value: number;
+  /**
+   * Tax rate as returned by the API (a string, e.g. "23.0").
+   */
+  value: string;
   region?: string;
-  code?: string;
+  code?: string | null;
   default_tax?: number;
 };
 

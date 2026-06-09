@@ -11,13 +11,15 @@ export const $Tax = {
       type: "string",
     },
     value: {
-      type: "number",
+      type: "string",
+      description: 'Tax rate as returned by the API (a string, e.g. "23.0").',
     },
     region: {
       type: "string",
     },
     code: {
       type: "string",
+      nullable: true,
     },
     default_tax: {
       type: "number",
