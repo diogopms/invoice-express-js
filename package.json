@@ -19,8 +19,10 @@
     "generate:check": "pnpm run generate && git diff --exit-code -- src",
     "build": "tsc",
     "typecheck": "tsc --noEmit",
-    "format": "prettier --write \"src/**/*.ts\" \"generate.mjs\" \"*.{json,yaml}\"",
-    "lint": "prettier --check \"src/**/*.ts\" \"generate.mjs\" \"*.{json,yaml}\"",
+    "pretest": "pnpm run build",
+    "test": "node --test",
+    "format": "prettier --write \"src/**/*.ts\" \"test/**/*.js\" \"generate.mjs\" \"*.{json,yaml}\"",
+    "lint": "prettier --check \"src/**/*.ts\" \"test/**/*.js\" \"generate.mjs\" \"*.{json,yaml}\"",
     "prepublishOnly": "pnpm run build"
   },
   "keywords": [
