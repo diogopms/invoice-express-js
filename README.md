@@ -181,7 +181,7 @@ const receipt = await client.invoicesReceipts.postInvoiceReceiptsJson({
   },
 });
 
-const documentId = receipt.invoice_receipts!.id;
+const documentId = receipt.invoice_receipt!.id;
 
 // Get a document
 await client.invoicesReceipts.getInvoiceReceiptsByDocumentIdJson({

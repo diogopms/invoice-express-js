@@ -863,7 +863,7 @@ export type PostInvoiceReceiptsJsonData = {
 };
 
 export type PostInvoiceReceiptsJsonResponse = {
-  invoice_receipts?: Invoice;
+  invoice_receipt?: Invoice;
 };
 
 export type GetInvoicesJsonData = {
