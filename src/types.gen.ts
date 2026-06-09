@@ -622,6 +622,76 @@ export type SequencesResponse = {
   sequences: Array<Sequence>;
 };
 
+export type Account = {
+  id: number;
+  organization_name?: string;
+  first_name?: string;
+  last_name?: string;
+  email?: string;
+  phone?: string;
+  fiscal_id?: string;
+  tax_country?: string;
+  language?: string;
+  /**
+   * The account's InvoiceXpress URL (subdomain).
+   */
+  url?: string;
+};
+
+export type AccountBody = {
+  first_name?: string;
+  last_name?: string;
+  organization_name: string;
+  email: string;
+  /**
+   * Required when creating an account for a new user (not for create_already_user).
+   */
+  password?: string;
+  phone?: string;
+  fiscal_id?: string;
+  /**
+   * ISO country code (e.g. "PT").
+   */
+  tax_country?: string;
+  /**
+   * Language code (e.g. "pt").
+   */
+  language?: string;
+  /**
+   * Whether the terms of service were accepted.
+   */
+  terms?: "0" | "1";
+  marketing?: "0" | "1";
+};
+
+/**
+ * Whether the terms of service were accepted.
+ */
+export type terms = "0" | "1";
+
+export type marketing = "0" | "1";
+
+export type AccountRequest = {
+  account: AccountBody;
+};
+
+export type AccountResponse = {
+  account: Account;
+};
+
+export type AtCommunicationRequest = {
+  at_communication: {
+    /**
+     * The account's AT (Tax Authority) login.
+     */
+    login?: string;
+    /**
+     * The account's AT (Tax Authority) password.
+     */
+    password?: string;
+  };
+};
+
 export type ErrorResponse = {
   error?: string;
 };
@@ -1239,3 +1309,39 @@ export type PutSequencesBySequenceIdSetCurrentJsonData = {
 };
 
 export type PutSequencesBySequenceIdSetCurrentJsonResponse = unknown;
+
+export type PostApiAccountsCreateJsonData = {
+  apiKey: string;
+  requestBody: AccountRequest;
+};
+
+export type PostApiAccountsCreateJsonResponse = AccountResponse;
+
+export type PostApiAccountsCreateAlreadyUserJsonData = {
+  apiKey: string;
+  requestBody: AccountRequest;
+};
+
+export type PostApiAccountsCreateAlreadyUserJsonResponse = AccountResponse;
+
+export type GetApiAccountsByAccountIdGetJsonData = {
+  accountId: number;
+  apiKey: string;
+};
+
+export type GetApiAccountsByAccountIdGetJsonResponse = AccountResponse;
+
+export type PutApiAccountsByAccountIdUpdateJsonData = {
+  accountId: number;
+  apiKey: string;
+  requestBody: AccountRequest;
+};
+
+export type PutApiAccountsByAccountIdUpdateJsonResponse = unknown;
+
+export type PostApiV3AccountsAtCommunicationJsonData = {
+  apiKey: string;
+  requestBody: AtCommunicationRequest;
+};
+
+export type PostApiV3AccountsAtCommunicationJsonResponse = unknown;

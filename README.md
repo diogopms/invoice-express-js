@@ -4,7 +4,7 @@ A typed JavaScript / TypeScript client for the [InvoiceXpress](https://invoicexp
 
 The client is generated from an OpenAPI specification with [`@hey-api/openapi-ts`](https://heyapi.dev/) and ships with full TypeScript types for every request and response.
 
-- 📦 Single client class exposing every resource (`clients`, `invoices`, `invoicesReceipts`, `estimates`, `guides`, `sequences`, `items`, `taxes`, `saft`)
+- 📦 Single client class exposing every resource (`clients`, `invoices`, `invoicesReceipts`, `estimates`, `guides`, `sequences`, `accounts`, `items`, `taxes`, `saft`)
 - 🟦 First-class TypeScript types for request payloads and responses
 - 🔁 Request / response interceptors
 - ⏹️ Cancelable requests
@@ -370,6 +370,51 @@ await client.taxes.getTaxesJson({ apiKey });
 await client.taxes.getTaxesByTaxIdJson({ apiKey, taxId: 42 });
 ```
 
+### Accounts
+
+Partner/reseller operations for managing accounts. Create an account (with a new
+or existing user), fetch and update it, and submit the AT communication.
+
+```ts
+// Create an account
+const created = await client.accounts.postApiAccountsCreateJson({
+  apiKey,
+  requestBody: {
+    account: {
+      organization_name: "Acme, Lda",
+      first_name: "Ada",
+      last_name: "Lovelace",
+      email: "ada@acme.example",
+      password: "s3cret!",
+      fiscal_id: "500000000",
+      tax_country: "PT",
+      language: "pt",
+      terms: "1",
+    },
+  },
+});
+
+const accountId = created.account!.id;
+
+// Get / update
+await client.accounts.getApiAccountsByAccountIdGetJson({ apiKey, accountId });
+await client.accounts.putApiAccountsByAccountIdUpdateJson({
+  apiKey,
+  accountId,
+  requestBody: {
+    account: { organization_name: "Acme II, Lda", email: "ada@acme.example" },
+  },
+});
+
+// Submit the AT (Tax Authority) communication
+await client.accounts.postApiV3AccountsAtCommunicationJson({
+  apiKey,
+  requestBody: {
+    at_communication: { login: "at-login", password: "at-password" },
+  },
+});
+```
+
 ### SAF-T export
 
 ```ts
@@ -503,11 +548,11 @@ import type {
 |               | Update                   | ✅              |
 |               | Create                   | ✅              |
 |               | Delete                   | ✅              |
-| **Accounts**  | Get                      | Not Implemented |
-|               | Update                   | Not Implemented |
-|               | Create                   | Not Implemented |
-|               | Create for existing user | Not Implemented |
-|               | At Communication         | Not Implemented |
+| **Accounts**  | Get                      | ✅              |
+|               | Update                   | ✅              |
+|               | Create                   | ✅              |
+|               | Create for existing user | ✅              |
+|               | At Communication         | ✅              |
 | **SAF-T**     | Export SAF-T             | ✅              |
 | **Treasury**  | Get client balance       | Not Implemented |
 |               | Update initial balance   | Not Implemented |
@@ -555,7 +600,7 @@ dependencies). Run it with `pnpm run test`.
 
 - [x] Add tests
 - [ ] Add an `examples/` folder
-- [ ] Implement more operations (Accounts, Treasury)
+- [ ] Implement more operations (Treasury)
 
 ## License
 

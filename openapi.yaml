@@ -2063,6 +2063,152 @@ paths:
           description: Access denied. The API Key parameter is missing or is incorrectly entered.
         "404":
           description: Not found. No sequence matches the supplied sequence-id.
+  /api/accounts/create.json:
+    post:
+      tags:
+        - Accounts
+      summary: Create an account
+      description: Creates a new account together with its owner user. Used by partners/resellers.
+      parameters:
+        - name: api_key
+          in: query
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AccountRequest"
+      responses:
+        "201":
+          description: Account was created successfully.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AccountResponse"
+        "401":
+          description: Access denied. The API Key parameter is missing or is incorrectly entered.
+        "422":
+          description: Unprocessable Entity. Some parameters were incorrect.
+
+  /api/accounts/create_already_user.json:
+    post:
+      tags:
+        - Accounts
+      summary: Create an account for an existing user
+      description: Creates a new account and associates it with an already-existing user.
+      parameters:
+        - name: api_key
+          in: query
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AccountRequest"
+      responses:
+        "201":
+          description: Account was created successfully.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AccountResponse"
+        "401":
+          description: Access denied. The API Key parameter is missing or is incorrectly entered.
+        "422":
+          description: Unprocessable Entity. Some parameters were incorrect.
+
+  /api/accounts/{account-id}/get.json:
+    get:
+      tags:
+        - Accounts
+      summary: Get an account
+      parameters:
+        - name: api_key
+          in: query
+          required: true
+          schema:
+            type: string
+        - name: account-id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: The account was returned successfully.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AccountResponse"
+        "401":
+          description: Access denied. The API Key parameter is missing or is incorrectly entered.
+        "404":
+          description: Not found. No account matches the supplied account-id.
+
+  /api/accounts/{account-id}/update.json:
+    put:
+      tags:
+        - Accounts
+      summary: Update an account
+      description: Updates an existing account.
+      parameters:
+        - name: api_key
+          in: query
+          required: true
+          schema:
+            type: string
+        - name: account-id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AccountRequest"
+      responses:
+        "200":
+          description: Account was updated successfully.
+        "401":
+          description: Access denied. The API Key parameter is missing or is incorrectly entered.
+        "404":
+          description: Not found. No account matches the supplied account-id.
+        "422":
+          description: Unprocessable Entity. Some parameters were incorrect.
+
+  /api/v3/accounts/at_communication.json:
+    post:
+      tags:
+        - Accounts
+      summary: Submit AT communication
+      description: Communicates the account's series to the Portuguese Tax Authority (AT).
+      parameters:
+        - name: api_key
+          in: query
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AtCommunicationRequest"
+      responses:
+        "200":
+          description: The AT communication was submitted successfully.
+        "401":
+          description: Access denied. The API Key parameter is missing or is incorrectly entered.
+        "422":
+          description: Unprocessable Entity. Some parameters were incorrect.
 components:
   schemas:
     Tax:
@@ -3143,6 +3289,94 @@ components:
           type: array
           items:
             $ref: "#/components/schemas/Sequence"
+    Account:
+      type: object
+      required:
+        - id
+      properties:
+        id:
+          type: integer
+        organization_name:
+          type: string
+        first_name:
+          type: string
+        last_name:
+          type: string
+        email:
+          type: string
+        phone:
+          type: string
+        fiscal_id:
+          type: string
+        tax_country:
+          type: string
+        language:
+          type: string
+        url:
+          type: string
+          description: The account's InvoiceXpress URL (subdomain).
+    AccountBody:
+      type: object
+      required:
+        - organization_name
+        - email
+      properties:
+        first_name:
+          type: string
+        last_name:
+          type: string
+        organization_name:
+          type: string
+        email:
+          type: string
+        password:
+          type: string
+          description: Required when creating an account for a new user (not for create_already_user).
+        phone:
+          type: string
+        fiscal_id:
+          type: string
+        tax_country:
+          type: string
+          description: ISO country code (e.g. "PT").
+        language:
+          type: string
+          description: Language code (e.g. "pt").
+        terms:
+          type: string
+          enum: ["0", "1"]
+          description: Whether the terms of service were accepted.
+        marketing:
+          type: string
+          enum: ["0", "1"]
+    AccountRequest:
+      type: object
+      required:
+        - account
+      properties:
+        account:
+          $ref: "#/components/schemas/AccountBody"
+    AccountResponse:
+      type: object
+      required:
+        - account
+      properties:
+        account:
+          $ref: "#/components/schemas/Account"
+    AtCommunicationRequest:
+      type: object
+      required:
+        - at_communication
+      properties:
+        at_communication:
+          type: object
+          properties:
+            login:
+              type: string
+              description: The account's AT (Tax Authority) login.
+            password:
+              type: string
+              description: The account's AT (Tax Authority) password.
     ErrorResponse:
       type: object
 

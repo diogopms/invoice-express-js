@@ -3,6 +3,7 @@ import type { OpenAPIConfig } from "./core/OpenAPI";
 import { Interceptors } from "./core/OpenAPI";
 import { FetchHttpRequest } from "./core/FetchHttpRequest";
 
+import { AccountsService } from "./services.gen";
 import { ClientsService } from "./services.gen";
 import { EstimatesService } from "./services.gen";
 import { GuidesService } from "./services.gen";
@@ -16,6 +17,7 @@ import { TaxesService } from "./services.gen";
 type HttpRequestConstructor = new (config: OpenAPIConfig) => BaseHttpRequest;
 
 export class InvoiceExpressClient {
+  public readonly accounts: AccountsService;
   public readonly clients: ClientsService;
   public readonly estimates: EstimatesService;
   public readonly guides: GuidesService;
@@ -48,6 +50,7 @@ export class InvoiceExpressClient {
       },
     });
 
+    this.accounts = new AccountsService(this.request);
     this.clients = new ClientsService(this.request);
     this.estimates = new EstimatesService(this.request);
     this.guides = new GuidesService(this.request);
