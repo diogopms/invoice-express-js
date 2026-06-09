@@ -2030,37 +2030,6 @@ paths:
           description: Access denied. The API Key parameter is missing or is incorrectly entered.
         "404":
           description: Not found. No sequence matches the supplied sequence-id.
-    put:
-      tags:
-        - Sequences
-      summary: Update a sequence
-      description: Updates an existing document sequence.
-      parameters:
-        - name: api_key
-          in: query
-          required: true
-          schema:
-            type: string
-        - name: sequence-id
-          in: path
-          required: true
-          schema:
-            type: integer
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/SequenceRequest"
-      responses:
-        "200":
-          description: Sequence was updated successfully.
-        "401":
-          description: Access denied. The API Key parameter is missing or is incorrectly entered.
-        "404":
-          description: Not found. No sequence matches the supplied sequence-id.
-        "422":
-          description: Unprocessable Entity. Some parameters were incorrect.
 
   /sequences/{sequence-id}/register.json:
     put:
@@ -2964,13 +2933,18 @@ components:
           required:
             - name
             - value
+            - region
           properties:
             name:
               type: string
             value:
-              type: number
+              type: string
+              description: >-
+                Tax rate, sent as a string (e.g. "23.0"). A numeric value is
+                rejected by the /taxes.json endpoint with a 500.
             region:
               type: string
+              description: Required (e.g. "PT"); the API returns "region is empty" otherwise.
             code:
               type: string
             default_tax:
@@ -3773,14 +3747,19 @@ components:
     InitialBalanceRequest:
       type: object
       required:
-        - value
+        - initial_balance
       properties:
-        value:
-          type: number
-          description: The client's initial balance amount.
-        date:
-          type: string
-          description: Balance date in YYYY-MM-DD format.
+        initial_balance:
+          type: object
+          required:
+            - value
+          properties:
+            value:
+              type: number
+              description: The client's initial balance amount.
+            date:
+              type: string
+              description: Balance date in YYYY-MM-DD format.
     BalanceResponse:
       type: object
       properties:
