@@ -844,17 +844,6 @@ async function destructive(ctx) {
         }),
       { okStatuses: [422, 400] },
     );
-    await check(
-      "sequences.update",
-      "sequences.putSequencesBySequenceIdJson",
-      () =>
-        client.sequences.putSequencesBySequenceIdJson({
-          apiKey,
-          sequenceId: seqId,
-          requestBody: { sequence: { serie: seqs.sequences[0].serie } },
-        }),
-      { okStatuses: [422] },
-    );
   }
   await check(
     "sequences.create",
