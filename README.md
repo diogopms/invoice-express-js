@@ -537,14 +537,23 @@ The full set of scripts:
 | `pnpm run generate:check` | Regenerate and fail if the committed client drifts from the spec (CI). |
 | `pnpm run build`          | Compile TypeScript to `./dist`.                                        |
 | `pnpm run typecheck`      | Type-check without emitting.                                           |
+| `pnpm run test`           | Build, then run the smoke tests (`node --test`).                       |
 | `pnpm run lint`           | Check formatting with Prettier.                                        |
 | `pnpm run format`         | Apply Prettier formatting.                                             |
 
-CI runs `lint`, `generate:check`, `typecheck` and `build` on every pull request, so a spec edit that isn't accompanied by a regenerated client will fail the build.
+CI runs `lint`, `generate:check`, `typecheck`, `build` and `test` on every pull request, so a spec edit that isn't accompanied by a regenerated client will fail the build.
+
+### Testing
+
+A lightweight smoke suite under [`test/`](./test) builds the package and asserts
+that the generated client exposes every resource service and a representative
+operation per service — guarding against the generator silently dropping or
+renaming an operation. It uses Node's built-in test runner (no extra
+dependencies). Run it with `pnpm run test`.
 
 ## Roadmap
 
-- [ ] Add tests
+- [x] Add tests
 - [ ] Add an `examples/` folder
 - [ ] Implement more operations (Accounts, Treasury)
 
