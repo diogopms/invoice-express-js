@@ -1503,6 +1503,131 @@ export const $SequencesResponse = {
   },
 } as const;
 
+export const $Account = {
+  type: "object",
+  required: ["id"],
+  properties: {
+    id: {
+      type: "integer",
+    },
+    organization_name: {
+      type: "string",
+    },
+    first_name: {
+      type: "string",
+    },
+    last_name: {
+      type: "string",
+    },
+    email: {
+      type: "string",
+    },
+    phone: {
+      type: "string",
+    },
+    fiscal_id: {
+      type: "string",
+    },
+    tax_country: {
+      type: "string",
+    },
+    language: {
+      type: "string",
+    },
+    url: {
+      type: "string",
+      description: "The account's InvoiceXpress URL (subdomain).",
+    },
+  },
+} as const;
+
+export const $AccountBody = {
+  type: "object",
+  required: ["organization_name", "email"],
+  properties: {
+    first_name: {
+      type: "string",
+    },
+    last_name: {
+      type: "string",
+    },
+    organization_name: {
+      type: "string",
+    },
+    email: {
+      type: "string",
+    },
+    password: {
+      type: "string",
+      description:
+        "Required when creating an account for a new user (not for create_already_user).",
+    },
+    phone: {
+      type: "string",
+    },
+    fiscal_id: {
+      type: "string",
+    },
+    tax_country: {
+      type: "string",
+      description: 'ISO country code (e.g. "PT").',
+    },
+    language: {
+      type: "string",
+      description: 'Language code (e.g. "pt").',
+    },
+    terms: {
+      type: "string",
+      enum: ["0", "1"],
+      description: "Whether the terms of service were accepted.",
+    },
+    marketing: {
+      type: "string",
+      enum: ["0", "1"],
+    },
+  },
+} as const;
+
+export const $AccountRequest = {
+  type: "object",
+  required: ["account"],
+  properties: {
+    account: {
+      $ref: "#/components/schemas/AccountBody",
+    },
+  },
+} as const;
+
+export const $AccountResponse = {
+  type: "object",
+  required: ["account"],
+  properties: {
+    account: {
+      $ref: "#/components/schemas/Account",
+    },
+  },
+} as const;
+
+export const $AtCommunicationRequest = {
+  type: "object",
+  required: ["at_communication"],
+  properties: {
+    at_communication: {
+      type: "object",
+      properties: {
+        login: {
+          type: "string",
+          description: "The account's AT (Tax Authority) login.",
+        },
+        password: {
+          type: "string",
+          description: "The account's AT (Tax Authority) password.",
+        },
+      },
+    },
+  },
+} as const;
+
 export const $ErrorResponse = {
   type: "object",
   properties: {
