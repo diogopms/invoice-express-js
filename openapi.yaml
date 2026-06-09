@@ -1618,6 +1618,290 @@ paths:
           description: Not found. The supplied document-id doesn’t match any existing document.
         "422":
           description: Unprocessable Entity. Some parameters sent were incorrect.
+  /estimates.json:
+    get:
+      tags:
+        - Estimates
+      summary: List all estimates
+      description: Retrieves a list of estimates (quotes, proformas and fees notes).
+      parameters:
+        - name: api_key
+          in: query
+          required: true
+          schema:
+            type: string
+        - name: text
+          in: query
+          schema:
+            type: string
+        - name: type[]
+          in: query
+          schema:
+            type: array
+            items:
+              type: string
+              enum: [Quote, Proforma, FeesNote]
+        - name: status[]
+          in: query
+          schema:
+            type: array
+            items:
+              type: string
+              enum: [draft, final, accepted, refused, canceled, settled, expired]
+        - name: date[from]
+          in: query
+          schema:
+            type: string
+            format: date
+        - name: date[to]
+          in: query
+          schema:
+            type: string
+            format: date
+        - name: non_archived
+          in: query
+          schema:
+            type: boolean
+        - name: archived
+          in: query
+          schema:
+            type: boolean
+        - name: page
+          in: query
+          required: true
+          schema:
+            type: integer
+          description: Page number to retrieve.
+        - name: per_page
+          in: query
+          required: true
+          schema:
+            type: integer
+          description: Per_page number to retrieve.
+      responses:
+        "200":
+          description: The list of estimates.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EstimatesResponse"
+        "401":
+          description: Access denied. The API Key parameter is missing or is incorrectly entered.
+
+  /{estimates-type}.json:
+    post:
+      tags:
+        - Estimates
+      summary: Create an estimate
+      description: Creates an estimate of the given type (quotes, proformas or fees_notes).
+      parameters:
+        - name: api_key
+          in: query
+          required: true
+          schema:
+            type: string
+        - name: estimates-type
+          in: path
+          required: true
+          description: The type of estimate to create.
+          schema:
+            type: string
+            enum: [quotes, proformas, fees_notes]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/EstimateRequest"
+      responses:
+        "201":
+          description: Estimate was created successfully.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EstimateResponse"
+        "401":
+          description: Access denied. The API Key parameter is missing or is incorrectly entered.
+        "422":
+          description: Unprocessable Entity. Some parameters were incorrect.
+
+  /{estimates-type}/{document-id}.json:
+    get:
+      tags:
+        - Estimates
+      summary: Get an estimate
+      parameters:
+        - name: api_key
+          in: query
+          required: true
+          schema:
+            type: string
+        - name: estimates-type
+          in: path
+          required: true
+          description: The type of estimate.
+          schema:
+            type: string
+            enum: [quotes, proformas, fees_notes]
+        - name: document-id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: The estimate was returned successfully.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EstimateResponse"
+        "401":
+          description: Access denied. The API Key parameter is missing or is incorrectly entered.
+        "404":
+          description: Not found. No estimate matches the supplied document-id.
+    put:
+      tags:
+        - Estimates
+      summary: Update an estimate
+      description: Updates a draft estimate. Only estimates in the draft state can be updated.
+      parameters:
+        - name: api_key
+          in: query
+          required: true
+          schema:
+            type: string
+        - name: estimates-type
+          in: path
+          required: true
+          description: The type of estimate.
+          schema:
+            type: string
+            enum: [quotes, proformas, fees_notes]
+        - name: document-id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/EstimateRequest"
+      responses:
+        "200":
+          description: Estimate was updated successfully.
+        "401":
+          description: Access denied. The API Key parameter is missing or is incorrectly entered.
+        "404":
+          description: Not found. No estimate matches the supplied document-id.
+        "422":
+          description: Unprocessable Entity. Some parameters were incorrect.
+
+  /{estimates-type}/{document-id}/change-state.json:
+    put:
+      tags:
+        - Estimates
+      summary: Change the state of an estimate
+      description: Changes the state of an estimate (finalized, deleted, accepted, refused, canceled).
+      parameters:
+        - name: api_key
+          in: query
+          required: true
+          schema:
+            type: string
+        - name: estimates-type
+          in: path
+          required: true
+          description: The type of estimate.
+          schema:
+            type: string
+            enum: [quotes, proformas, fees_notes]
+        - name: document-id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/EstimateStateRequest"
+      responses:
+        "200":
+          description: Successfully changed the estimate state.
+        "401":
+          description: Access denied. The API Key parameter is missing or is incorrectly entered.
+        "404":
+          description: Not found. The supplied document-id doesn’t match any existing document.
+        "422":
+          description: Unprocessable Entity. Some parameters sent were incorrect.
+
+  /{estimates-type}/{document-id}/email-document.json:
+    put:
+      tags:
+        - Estimates
+      summary: Send estimate by email
+      parameters:
+        - name: api_key
+          in: query
+          required: true
+          schema:
+            type: string
+        - name: estimates-type
+          in: path
+          required: true
+          description: The type of estimate.
+          schema:
+            type: string
+            enum: [quotes, proformas, fees_notes]
+        - name: document-id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                message:
+                  type: object
+                  properties:
+                    client:
+                      type: object
+                      properties:
+                        email:
+                          type: string
+                          format: email
+                        save:
+                          type: string
+                          enum: ["0", "1"]
+                    subject:
+                      type: string
+                    body:
+                      type: string
+                    cc:
+                      type: string
+                      format: email
+                    bcc:
+                      type: string
+                      format: email
+                    logo:
+                      type: string
+                      enum: ["0", "1"]
+      responses:
+        "200":
+          description: The email was sent successfully.
+        "401":
+          description: Access denied. The API Key parameter is missing or is incorrectly entered.
+        "404":
+          description: Not found. The supplied document-id doesn’t match any existing document.
+        "422":
+          description: Unprocessable Entity. Some parameters sent were incorrect.
 components:
   schemas:
     Tax:
@@ -2348,6 +2632,254 @@ components:
           type: array
           items:
             $ref: "#/components/schemas/Guide"
+        pagination:
+          type: object
+          required:
+            - total_entries
+            - current_page
+            - total_pages
+            - per_page
+          properties:
+            total_entries:
+              type: integer
+            current_page:
+              type: integer
+            total_pages:
+              type: integer
+            per_page:
+              type: integer
+    Estimate:
+      type: object
+      required:
+        - id
+        - status
+        - type
+        - date
+        - due_date
+        - total
+        - client
+        - items
+      properties:
+        id:
+          type: integer
+        status:
+          type: string
+        archived:
+          type: boolean
+        type:
+          type: string
+          description: The estimate type (Quote, Proforma or FeesNote).
+        sequence_number:
+          type: string
+        inverted_sequence_number:
+          type: string
+        atcud:
+          type: string
+        tax_exemption:
+          type: string
+        date:
+          type: string
+          format: date
+        due_date:
+          type: string
+          format: date
+        reference:
+          type: string
+        observations:
+          type: string
+        retention:
+          type: string
+        permalink:
+          type: string
+        saft_hash:
+          type: string
+        sum:
+          type: number
+        discount:
+          type: number
+        before_taxes:
+          type: number
+        taxes:
+          type: number
+        total:
+          type: number
+        currency:
+          type: string
+        client:
+          $ref: "#/components/schemas/Client"
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/Item"
+        global_discount:
+          $ref: "#/components/schemas/GlobalDiscount"
+    EstimateBody:
+      type: object
+      required:
+        - date
+        - due_date
+        - client
+        - items
+      properties:
+        date:
+          type: string
+          description: Document date in dd/mm/yyyy format.
+        due_date:
+          type: string
+          description: Expiration date in dd/mm/yyyy format.
+        reference:
+          type: string
+        observations:
+          type: string
+        retention:
+          type: number
+          description: Retention percentage (0–99.99).
+        tax_exemption:
+          type: string
+          description: Tax exemption code (required when an item has no tax).
+        tax_exemption_reason:
+          type: string
+        sequence_id:
+          type: string
+        manual_sequence_number:
+          type: string
+        currency_code:
+          type: string
+        rate:
+          type: string
+          description: Exchange rate, required when currency_code differs from the account currency.
+        client:
+          type: object
+          required:
+            - name
+          properties:
+            name:
+              type: string
+            code:
+              type: string
+            email:
+              type: string
+            address:
+              type: string
+            city:
+              type: string
+            postal_code:
+              type: string
+            country:
+              type: string
+            fiscal_id:
+              type: string
+            website:
+              type: string
+            phone:
+              type: string
+            fax:
+              type: string
+            observations:
+              type: string
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/Item"
+        global_discount:
+          $ref: "#/components/schemas/GlobalDiscount"
+    EstimateRequest:
+      description: |
+        Create/update payload. The root key must match the {estimates-type} path
+        parameter: "quote" for quotes, "proforma" for proformas, "fees_note" for
+        fees_notes.
+      oneOf:
+        - type: object
+          required:
+            - quote
+          properties:
+            quote:
+              $ref: "#/components/schemas/EstimateBody"
+        - type: object
+          required:
+            - proforma
+          properties:
+            proforma:
+              $ref: "#/components/schemas/EstimateBody"
+        - type: object
+          required:
+            - fees_note
+          properties:
+            fees_note:
+              $ref: "#/components/schemas/EstimateBody"
+    EstimateResponse:
+      description: |
+        A single estimate, wrapped under the key matching its type
+        ("quote", "proforma" or "fees_note").
+      oneOf:
+        - type: object
+          required:
+            - quote
+          properties:
+            quote:
+              $ref: "#/components/schemas/Estimate"
+        - type: object
+          required:
+            - proforma
+          properties:
+            proforma:
+              $ref: "#/components/schemas/Estimate"
+        - type: object
+          required:
+            - fees_note
+          properties:
+            fees_note:
+              $ref: "#/components/schemas/Estimate"
+    EstimateStateRequest:
+      description: |
+        Change-state payload. The root key must match the {estimates-type} path
+        parameter ("quote", "proforma" or "fees_note").
+      oneOf:
+        - type: object
+          required:
+            - quote
+          properties:
+            quote:
+              $ref: "#/components/schemas/EstimateStateChange"
+        - type: object
+          required:
+            - proforma
+          properties:
+            proforma:
+              $ref: "#/components/schemas/EstimateStateChange"
+        - type: object
+          required:
+            - fees_note
+          properties:
+            fees_note:
+              $ref: "#/components/schemas/EstimateStateChange"
+    EstimateStateChange:
+      type: object
+      required:
+        - state
+      properties:
+        state:
+          type: string
+          enum:
+            - finalized
+            - deleted
+            - accepted
+            - refused
+            - canceled
+          description: The new state of the estimate.
+        message:
+          type: string
+          description: The reason for changing the state (required for cancellation).
+    EstimatesResponse:
+      type: object
+      required:
+        - estimates
+        - pagination
+      properties:
+        estimates:
+          type: array
+          items:
+            $ref: "#/components/schemas/Estimate"
         pagination:
           type: object
           required:

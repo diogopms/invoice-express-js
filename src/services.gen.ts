@@ -77,6 +77,18 @@ import type {
   PutByGuidesTypeByDocumentIdChangeStateJsonResponse,
   PutByGuidesTypeByDocumentIdEmailDocumentJsonData,
   PutByGuidesTypeByDocumentIdEmailDocumentJsonResponse,
+  GetEstimatesJsonData,
+  GetEstimatesJsonResponse,
+  PostByEstimatesTypeJsonData,
+  PostByEstimatesTypeJsonResponse,
+  GetByEstimatesTypeByDocumentIdJsonData,
+  GetByEstimatesTypeByDocumentIdJsonResponse,
+  PutByEstimatesTypeByDocumentIdJsonData,
+  PutByEstimatesTypeByDocumentIdJsonResponse,
+  PutByEstimatesTypeByDocumentIdChangeStateJsonData,
+  PutByEstimatesTypeByDocumentIdChangeStateJsonResponse,
+  PutByEstimatesTypeByDocumentIdEmailDocumentJsonData,
+  PutByEstimatesTypeByDocumentIdEmailDocumentJsonResponse,
 } from "./types.gen";
 
 export class InvoicesReceiptsService {
@@ -1202,6 +1214,212 @@ export class GuidesService {
       url: "/{guides-type}/{document-id}/email-document.json",
       path: {
         "guides-type": data.guidesType,
+        "document-id": data.documentId,
+      },
+      query: {
+        api_key: data.apiKey,
+      },
+      body: data.requestBody,
+      mediaType: "application/json",
+      errors: {
+        401: "Access denied. The API Key parameter is missing or is incorrectly entered.",
+        404: "Not found. The supplied document-id doesn’t match any existing document.",
+        422: "Unprocessable Entity. Some parameters sent were incorrect.",
+      },
+    });
+  }
+}
+
+export class EstimatesService {
+  constructor(public readonly httpRequest: BaseHttpRequest) {}
+
+  /**
+   * List all estimates
+   * Retrieves a list of estimates (quotes, proformas and fees notes).
+   * @param data The data for the request.
+   * @param data.apiKey
+   * @param data.page Page number to retrieve.
+   * @param data.perPage Per_page number to retrieve.
+   * @param data.text
+   * @param data.typeArray
+   * @param data.statusArray
+   * @param data.dateFrom
+   * @param data.dateTo
+   * @param data.nonArchived
+   * @param data.archived
+   * @returns EstimatesResponse The list of estimates.
+   * @throws ApiError
+   */
+  public getEstimatesJson(
+    data: GetEstimatesJsonData,
+  ): CancelablePromise<GetEstimatesJsonResponse> {
+    return this.httpRequest.request({
+      method: "GET",
+      url: "/estimates.json",
+      query: {
+        api_key: data.apiKey,
+        text: data.text,
+        "type[]": data.typeArray,
+        "status[]": data.statusArray,
+        "date[from]": data.dateFrom,
+        "date[to]": data.dateTo,
+        non_archived: data.nonArchived,
+        archived: data.archived,
+        page: data.page,
+        per_page: data.perPage,
+      },
+      errors: {
+        401: "Access denied. The API Key parameter is missing or is incorrectly entered.",
+      },
+    });
+  }
+
+  /**
+   * Create an estimate
+   * Creates an estimate of the given type (quotes, proformas or fees_notes).
+   * @param data The data for the request.
+   * @param data.apiKey
+   * @param data.estimatesType The type of estimate to create.
+   * @param data.requestBody
+   * @returns EstimateResponse Estimate was created successfully.
+   * @throws ApiError
+   */
+  public postByEstimatesTypeJson(
+    data: PostByEstimatesTypeJsonData,
+  ): CancelablePromise<PostByEstimatesTypeJsonResponse> {
+    return this.httpRequest.request({
+      method: "POST",
+      url: "/{estimates-type}.json",
+      path: {
+        "estimates-type": data.estimatesType,
+      },
+      query: {
+        api_key: data.apiKey,
+      },
+      body: data.requestBody,
+      mediaType: "application/json",
+      errors: {
+        401: "Access denied. The API Key parameter is missing or is incorrectly entered.",
+        422: "Unprocessable Entity. Some parameters were incorrect.",
+      },
+    });
+  }
+
+  /**
+   * Get an estimate
+   * @param data The data for the request.
+   * @param data.apiKey
+   * @param data.estimatesType The type of estimate.
+   * @param data.documentId
+   * @returns EstimateResponse The estimate was returned successfully.
+   * @throws ApiError
+   */
+  public getByEstimatesTypeByDocumentIdJson(
+    data: GetByEstimatesTypeByDocumentIdJsonData,
+  ): CancelablePromise<GetByEstimatesTypeByDocumentIdJsonResponse> {
+    return this.httpRequest.request({
+      method: "GET",
+      url: "/{estimates-type}/{document-id}.json",
+      path: {
+        "estimates-type": data.estimatesType,
+        "document-id": data.documentId,
+      },
+      query: {
+        api_key: data.apiKey,
+      },
+      errors: {
+        401: "Access denied. The API Key parameter is missing or is incorrectly entered.",
+        404: "Not found. No estimate matches the supplied document-id.",
+      },
+    });
+  }
+
+  /**
+   * Update an estimate
+   * Updates a draft estimate. Only estimates in the draft state can be updated.
+   * @param data The data for the request.
+   * @param data.apiKey
+   * @param data.estimatesType The type of estimate.
+   * @param data.documentId
+   * @param data.requestBody
+   * @returns unknown Estimate was updated successfully.
+   * @throws ApiError
+   */
+  public putByEstimatesTypeByDocumentIdJson(
+    data: PutByEstimatesTypeByDocumentIdJsonData,
+  ): CancelablePromise<PutByEstimatesTypeByDocumentIdJsonResponse> {
+    return this.httpRequest.request({
+      method: "PUT",
+      url: "/{estimates-type}/{document-id}.json",
+      path: {
+        "estimates-type": data.estimatesType,
+        "document-id": data.documentId,
+      },
+      query: {
+        api_key: data.apiKey,
+      },
+      body: data.requestBody,
+      mediaType: "application/json",
+      errors: {
+        401: "Access denied. The API Key parameter is missing or is incorrectly entered.",
+        404: "Not found. No estimate matches the supplied document-id.",
+        422: "Unprocessable Entity. Some parameters were incorrect.",
+      },
+    });
+  }
+
+  /**
+   * Change the state of an estimate
+   * Changes the state of an estimate (finalized, deleted, accepted, refused, canceled).
+   * @param data The data for the request.
+   * @param data.apiKey
+   * @param data.estimatesType The type of estimate.
+   * @param data.documentId
+   * @param data.requestBody
+   * @returns unknown Successfully changed the estimate state.
+   * @throws ApiError
+   */
+  public putByEstimatesTypeByDocumentIdChangeStateJson(
+    data: PutByEstimatesTypeByDocumentIdChangeStateJsonData,
+  ): CancelablePromise<PutByEstimatesTypeByDocumentIdChangeStateJsonResponse> {
+    return this.httpRequest.request({
+      method: "PUT",
+      url: "/{estimates-type}/{document-id}/change-state.json",
+      path: {
+        "estimates-type": data.estimatesType,
+        "document-id": data.documentId,
+      },
+      query: {
+        api_key: data.apiKey,
+      },
+      body: data.requestBody,
+      mediaType: "application/json",
+      errors: {
+        401: "Access denied. The API Key parameter is missing or is incorrectly entered.",
+        404: "Not found. The supplied document-id doesn’t match any existing document.",
+        422: "Unprocessable Entity. Some parameters sent were incorrect.",
+      },
+    });
+  }
+
+  /**
+   * Send estimate by email
+   * @param data The data for the request.
+   * @param data.apiKey
+   * @param data.estimatesType The type of estimate.
+   * @param data.documentId
+   * @param data.requestBody
+   * @returns unknown The email was sent successfully.
+   * @throws ApiError
+   */
+  public putByEstimatesTypeByDocumentIdEmailDocumentJson(
+    data: PutByEstimatesTypeByDocumentIdEmailDocumentJsonData,
+  ): CancelablePromise<PutByEstimatesTypeByDocumentIdEmailDocumentJsonResponse> {
+    return this.httpRequest.request({
+      method: "PUT",
+      url: "/{estimates-type}/{document-id}/email-document.json",
+      path: {
+        "estimates-type": data.estimatesType,
         "document-id": data.documentId,
       },
       query: {
