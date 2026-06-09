@@ -63,6 +63,20 @@ import type {
   PutItemsByItemIdJsonResponse,
   DeleteItemsByItemIdJsonData,
   DeleteItemsByItemIdJsonResponse,
+  GetGuidesJsonData,
+  GetGuidesJsonResponse,
+  GetApiQrCodesByDocumentIdJsonData,
+  GetApiQrCodesByDocumentIdJsonResponse,
+  PostByGuidesTypeJsonData,
+  PostByGuidesTypeJsonResponse,
+  GetByGuidesTypeByDocumentIdJsonData,
+  GetByGuidesTypeByDocumentIdJsonResponse,
+  PutByGuidesTypeByDocumentIdJsonData,
+  PutByGuidesTypeByDocumentIdJsonResponse,
+  PutByGuidesTypeByDocumentIdChangeStateJsonData,
+  PutByGuidesTypeByDocumentIdChangeStateJsonResponse,
+  PutByGuidesTypeByDocumentIdEmailDocumentJsonData,
+  PutByGuidesTypeByDocumentIdEmailDocumentJsonResponse,
 } from "./types.gen";
 
 export class InvoicesReceiptsService {
@@ -965,6 +979,240 @@ export class ItemsService {
       errors: {
         401: "ACCESS DENIED",
         404: "NOT FOUND",
+      },
+    });
+  }
+}
+
+export class GuidesService {
+  constructor(public readonly httpRequest: BaseHttpRequest) {}
+
+  /**
+   * List all guides
+   * Retrieves a list of guides (shippings, transports and devolutions).
+   * @param data The data for the request.
+   * @param data.apiKey
+   * @param data.page Page number to retrieve.
+   * @param data.perPage Per_page number to retrieve.
+   * @param data.text
+   * @param data.typeArray
+   * @param data.statusArray
+   * @param data.dateFrom
+   * @param data.dateTo
+   * @param data.nonArchived
+   * @param data.archived
+   * @returns GuidesResponse The list of guides.
+   * @throws ApiError
+   */
+  public getGuidesJson(
+    data: GetGuidesJsonData,
+  ): CancelablePromise<GetGuidesJsonResponse> {
+    return this.httpRequest.request({
+      method: "GET",
+      url: "/guides.json",
+      query: {
+        api_key: data.apiKey,
+        text: data.text,
+        "type[]": data.typeArray,
+        "status[]": data.statusArray,
+        "date[from]": data.dateFrom,
+        "date[to]": data.dateTo,
+        non_archived: data.nonArchived,
+        archived: data.archived,
+        page: data.page,
+        per_page: data.perPage,
+      },
+      errors: {
+        401: "Access denied. The API Key parameter is missing or is incorrectly entered.",
+      },
+    });
+  }
+
+  /**
+   * Get the QR code of a document
+   * Returns the QR code image URL for a finalized document.
+   * @param data The data for the request.
+   * @param data.apiKey
+   * @param data.documentId
+   * @returns unknown The QR code was returned successfully.
+   * @throws ApiError
+   */
+  public getApiQrCodesByDocumentIdJson(
+    data: GetApiQrCodesByDocumentIdJsonData,
+  ): CancelablePromise<GetApiQrCodesByDocumentIdJsonResponse> {
+    return this.httpRequest.request({
+      method: "GET",
+      url: "/api/qr_codes/{document-id}.json",
+      path: {
+        "document-id": data.documentId,
+      },
+      query: {
+        api_key: data.apiKey,
+      },
+      errors: {
+        401: "Access denied. The API Key parameter is missing or is incorrectly entered.",
+        404: "Not found. No document matches the supplied document-id.",
+      },
+    });
+  }
+
+  /**
+   * Create a guide
+   * Creates a guide of the given type (shippings, transports or devolutions).
+   * @param data The data for the request.
+   * @param data.apiKey
+   * @param data.guidesType The type of guide to create.
+   * @param data.requestBody
+   * @returns GuideResponse Guide was created successfully.
+   * @throws ApiError
+   */
+  public postByGuidesTypeJson(
+    data: PostByGuidesTypeJsonData,
+  ): CancelablePromise<PostByGuidesTypeJsonResponse> {
+    return this.httpRequest.request({
+      method: "POST",
+      url: "/{guides-type}.json",
+      path: {
+        "guides-type": data.guidesType,
+      },
+      query: {
+        api_key: data.apiKey,
+      },
+      body: data.requestBody,
+      mediaType: "application/json",
+      errors: {
+        401: "Access denied. The API Key parameter is missing or is incorrectly entered.",
+        422: "Unprocessable Entity. Some parameters were incorrect.",
+      },
+    });
+  }
+
+  /**
+   * Get a guide
+   * @param data The data for the request.
+   * @param data.apiKey
+   * @param data.guidesType The type of guide.
+   * @param data.documentId
+   * @returns GuideResponse The guide was returned successfully.
+   * @throws ApiError
+   */
+  public getByGuidesTypeByDocumentIdJson(
+    data: GetByGuidesTypeByDocumentIdJsonData,
+  ): CancelablePromise<GetByGuidesTypeByDocumentIdJsonResponse> {
+    return this.httpRequest.request({
+      method: "GET",
+      url: "/{guides-type}/{document-id}.json",
+      path: {
+        "guides-type": data.guidesType,
+        "document-id": data.documentId,
+      },
+      query: {
+        api_key: data.apiKey,
+      },
+      errors: {
+        401: "Access denied. The API Key parameter is missing or is incorrectly entered.",
+        404: "Not found. No guide matches the supplied document-id.",
+      },
+    });
+  }
+
+  /**
+   * Update a guide
+   * Updates a draft guide. Only guides in the draft state can be updated.
+   * @param data The data for the request.
+   * @param data.apiKey
+   * @param data.guidesType The type of guide.
+   * @param data.documentId
+   * @param data.requestBody
+   * @returns unknown Guide was updated successfully.
+   * @throws ApiError
+   */
+  public putByGuidesTypeByDocumentIdJson(
+    data: PutByGuidesTypeByDocumentIdJsonData,
+  ): CancelablePromise<PutByGuidesTypeByDocumentIdJsonResponse> {
+    return this.httpRequest.request({
+      method: "PUT",
+      url: "/{guides-type}/{document-id}.json",
+      path: {
+        "guides-type": data.guidesType,
+        "document-id": data.documentId,
+      },
+      query: {
+        api_key: data.apiKey,
+      },
+      body: data.requestBody,
+      mediaType: "application/json",
+      errors: {
+        401: "Access denied. The API Key parameter is missing or is incorrectly entered.",
+        404: "Not found. No guide matches the supplied document-id.",
+        422: "Unprocessable Entity. Some parameters were incorrect.",
+      },
+    });
+  }
+
+  /**
+   * Change the state of a guide
+   * Changes the state of a guide (finalized, deleted, canceled).
+   * @param data The data for the request.
+   * @param data.apiKey
+   * @param data.guidesType The type of guide.
+   * @param data.documentId
+   * @param data.requestBody
+   * @returns unknown Successfully changed the guide state.
+   * @throws ApiError
+   */
+  public putByGuidesTypeByDocumentIdChangeStateJson(
+    data: PutByGuidesTypeByDocumentIdChangeStateJsonData,
+  ): CancelablePromise<PutByGuidesTypeByDocumentIdChangeStateJsonResponse> {
+    return this.httpRequest.request({
+      method: "PUT",
+      url: "/{guides-type}/{document-id}/change-state.json",
+      path: {
+        "guides-type": data.guidesType,
+        "document-id": data.documentId,
+      },
+      query: {
+        api_key: data.apiKey,
+      },
+      body: data.requestBody,
+      mediaType: "application/json",
+      errors: {
+        401: "Access denied. The API Key parameter is missing or is incorrectly entered.",
+        404: "Not found. The supplied document-id doesn’t match any existing document.",
+        422: "Unprocessable Entity. Some parameters sent were incorrect.",
+      },
+    });
+  }
+
+  /**
+   * Send guide by email
+   * @param data The data for the request.
+   * @param data.apiKey
+   * @param data.guidesType The type of guide.
+   * @param data.documentId
+   * @param data.requestBody
+   * @returns unknown The email was sent successfully.
+   * @throws ApiError
+   */
+  public putByGuidesTypeByDocumentIdEmailDocumentJson(
+    data: PutByGuidesTypeByDocumentIdEmailDocumentJsonData,
+  ): CancelablePromise<PutByGuidesTypeByDocumentIdEmailDocumentJsonResponse> {
+    return this.httpRequest.request({
+      method: "PUT",
+      url: "/{guides-type}/{document-id}/email-document.json",
+      path: {
+        "guides-type": data.guidesType,
+        "document-id": data.documentId,
+      },
+      query: {
+        api_key: data.apiKey,
+      },
+      body: data.requestBody,
+      mediaType: "application/json",
+      errors: {
+        401: "Access denied. The API Key parameter is missing or is incorrectly entered.",
+        404: "Not found. The supplied document-id doesn’t match any existing document.",
+        422: "Unprocessable Entity. Some parameters sent were incorrect.",
       },
     });
   }
