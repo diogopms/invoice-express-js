@@ -1308,6 +1308,316 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
+
+  /guides.json:
+    get:
+      tags:
+        - Guides
+      summary: List all guides
+      description: Retrieves a list of guides (shippings, transports and devolutions).
+      parameters:
+        - name: api_key
+          in: query
+          required: true
+          schema:
+            type: string
+        - name: text
+          in: query
+          schema:
+            type: string
+        - name: type[]
+          in: query
+          schema:
+            type: array
+            items:
+              type: string
+              enum: [Shipping, Transport, Devolution]
+        - name: status[]
+          in: query
+          schema:
+            type: array
+            items:
+              type: string
+              enum: [draft, final, canceled, second_copy]
+        - name: date[from]
+          in: query
+          schema:
+            type: string
+            format: date
+        - name: date[to]
+          in: query
+          schema:
+            type: string
+            format: date
+        - name: non_archived
+          in: query
+          schema:
+            type: boolean
+        - name: archived
+          in: query
+          schema:
+            type: boolean
+        - name: page
+          in: query
+          required: true
+          schema:
+            type: integer
+          description: Page number to retrieve.
+        - name: per_page
+          in: query
+          required: true
+          schema:
+            type: integer
+          description: Per_page number to retrieve.
+      responses:
+        "200":
+          description: The list of guides.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GuidesResponse"
+        "401":
+          description: Access denied. The API Key parameter is missing or is incorrectly entered.
+
+  /api/qr_codes/{document-id}.json:
+    get:
+      tags:
+        - Guides
+      summary: Get the QR code of a document
+      description: Returns the QR code image URL for a finalized document.
+      parameters:
+        - name: api_key
+          in: query
+          required: true
+          schema:
+            type: string
+        - name: document-id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: The QR code was returned successfully.
+        "401":
+          description: Access denied. The API Key parameter is missing or is incorrectly entered.
+        "404":
+          description: Not found. No document matches the supplied document-id.
+
+  /{guides-type}.json:
+    post:
+      tags:
+        - Guides
+      summary: Create a guide
+      description: Creates a guide of the given type (shippings, transports or devolutions).
+      parameters:
+        - name: api_key
+          in: query
+          required: true
+          schema:
+            type: string
+        - name: guides-type
+          in: path
+          required: true
+          description: The type of guide to create.
+          schema:
+            type: string
+            enum: [shippings, transports, devolutions]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/GuideRequest"
+      responses:
+        "201":
+          description: Guide was created successfully.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GuideResponse"
+        "401":
+          description: Access denied. The API Key parameter is missing or is incorrectly entered.
+        "422":
+          description: Unprocessable Entity. Some parameters were incorrect.
+
+  /{guides-type}/{document-id}.json:
+    get:
+      tags:
+        - Guides
+      summary: Get a guide
+      parameters:
+        - name: api_key
+          in: query
+          required: true
+          schema:
+            type: string
+        - name: guides-type
+          in: path
+          required: true
+          description: The type of guide.
+          schema:
+            type: string
+            enum: [shippings, transports, devolutions]
+        - name: document-id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: The guide was returned successfully.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GuideResponse"
+        "401":
+          description: Access denied. The API Key parameter is missing or is incorrectly entered.
+        "404":
+          description: Not found. No guide matches the supplied document-id.
+    put:
+      tags:
+        - Guides
+      summary: Update a guide
+      description: Updates a draft guide. Only guides in the draft state can be updated.
+      parameters:
+        - name: api_key
+          in: query
+          required: true
+          schema:
+            type: string
+        - name: guides-type
+          in: path
+          required: true
+          description: The type of guide.
+          schema:
+            type: string
+            enum: [shippings, transports, devolutions]
+        - name: document-id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/GuideRequest"
+      responses:
+        "200":
+          description: Guide was updated successfully.
+        "401":
+          description: Access denied. The API Key parameter is missing or is incorrectly entered.
+        "404":
+          description: Not found. No guide matches the supplied document-id.
+        "422":
+          description: Unprocessable Entity. Some parameters were incorrect.
+
+  /{guides-type}/{document-id}/change-state.json:
+    put:
+      tags:
+        - Guides
+      summary: Change the state of a guide
+      description: Changes the state of a guide (finalized, deleted, canceled).
+      parameters:
+        - name: api_key
+          in: query
+          required: true
+          schema:
+            type: string
+        - name: guides-type
+          in: path
+          required: true
+          description: The type of guide.
+          schema:
+            type: string
+            enum: [shippings, transports, devolutions]
+        - name: document-id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/GuideStateRequest"
+      responses:
+        "200":
+          description: Successfully changed the guide state.
+        "401":
+          description: Access denied. The API Key parameter is missing or is incorrectly entered.
+        "404":
+          description: Not found. The supplied document-id doesn’t match any existing document.
+        "422":
+          description: Unprocessable Entity. Some parameters sent were incorrect.
+
+  /{guides-type}/{document-id}/email-document.json:
+    put:
+      tags:
+        - Guides
+      summary: Send guide by email
+      parameters:
+        - name: api_key
+          in: query
+          required: true
+          schema:
+            type: string
+        - name: guides-type
+          in: path
+          required: true
+          description: The type of guide.
+          schema:
+            type: string
+            enum: [shippings, transports, devolutions]
+        - name: document-id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                message:
+                  type: object
+                  properties:
+                    client:
+                      type: object
+                      properties:
+                        email:
+                          type: string
+                          format: email
+                        save:
+                          type: string
+                          enum: ["0", "1"]
+                    subject:
+                      type: string
+                    body:
+                      type: string
+                    cc:
+                      type: string
+                      format: email
+                    bcc:
+                      type: string
+                      format: email
+                    logo:
+                      type: string
+                      enum: ["0", "1"]
+      responses:
+        "200":
+          description: The email was sent successfully.
+        "401":
+          description: Access denied. The API Key parameter is missing or is incorrectly entered.
+        "404":
+          description: Not found. The supplied document-id doesn’t match any existing document.
+        "422":
+          description: Unprocessable Entity. Some parameters sent were incorrect.
 components:
   schemas:
     Tax:
@@ -1806,6 +2116,254 @@ components:
               type: string
             default_tax:
               type: boolean
+    Address:
+      type: object
+      properties:
+        detail:
+          type: string
+        city:
+          type: string
+        postal_code:
+          type: string
+        country:
+          type: string
+    Guide:
+      type: object
+      required:
+        - id
+        - status
+        - type
+        - date
+        - client
+        - items
+      properties:
+        id:
+          type: integer
+        status:
+          type: string
+        archived:
+          type: boolean
+        type:
+          type: string
+          description: The guide type (Shipping, Transport or Devolution).
+        sequence_number:
+          type: string
+        inverted_sequence_number:
+          type: string
+        atcud:
+          type: string
+        tax_exemption:
+          type: string
+        date:
+          type: string
+          format: date
+        loaded_at:
+          type: string
+          description: Loading date and time (dd/mm/yyyy HH:MM:SS).
+        reference:
+          type: string
+        observations:
+          type: string
+        permalink:
+          type: string
+        saft_hash:
+          type: string
+        sum:
+          type: number
+        discount:
+          type: number
+        before_taxes:
+          type: number
+        taxes:
+          type: number
+        total:
+          type: number
+        currency:
+          type: string
+        address_from:
+          $ref: "#/components/schemas/Address"
+        address_to:
+          $ref: "#/components/schemas/Address"
+        client:
+          $ref: "#/components/schemas/Client"
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/Item"
+    GuideBody:
+      type: object
+      required:
+        - date
+        - client
+        - items
+      properties:
+        date:
+          type: string
+          description: Document date in dd/mm/yyyy format.
+        loaded_at:
+          type: string
+          description: Loading date and time in dd/mm/yyyy HH:MM:SS format.
+        reference:
+          type: string
+        observations:
+          type: string
+        tax_exemption:
+          type: string
+          description: Tax exemption code (required when an item has no tax).
+        tax_exemption_reason:
+          type: string
+        sequence_id:
+          type: string
+        manual_sequence_number:
+          type: string
+        address_from:
+          $ref: "#/components/schemas/Address"
+        address_to:
+          $ref: "#/components/schemas/Address"
+        client:
+          type: object
+          required:
+            - name
+          properties:
+            name:
+              type: string
+            code:
+              type: string
+            email:
+              type: string
+            address:
+              type: string
+            city:
+              type: string
+            postal_code:
+              type: string
+            country:
+              type: string
+            fiscal_id:
+              type: string
+            website:
+              type: string
+            phone:
+              type: string
+            fax:
+              type: string
+            observations:
+              type: string
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/Item"
+    GuideRequest:
+      description: |
+        Create/update payload. The root key must match the {guides-type} path
+        parameter: "shipping" for shippings, "transport" for transports,
+        "devolution" for devolutions.
+      oneOf:
+        - type: object
+          required:
+            - shipping
+          properties:
+            shipping:
+              $ref: "#/components/schemas/GuideBody"
+        - type: object
+          required:
+            - transport
+          properties:
+            transport:
+              $ref: "#/components/schemas/GuideBody"
+        - type: object
+          required:
+            - devolution
+          properties:
+            devolution:
+              $ref: "#/components/schemas/GuideBody"
+    GuideResponse:
+      description: |
+        A single guide, wrapped under the key matching its type
+        ("shipping", "transport" or "devolution").
+      oneOf:
+        - type: object
+          required:
+            - shipping
+          properties:
+            shipping:
+              $ref: "#/components/schemas/Guide"
+        - type: object
+          required:
+            - transport
+          properties:
+            transport:
+              $ref: "#/components/schemas/Guide"
+        - type: object
+          required:
+            - devolution
+          properties:
+            devolution:
+              $ref: "#/components/schemas/Guide"
+    GuideStateRequest:
+      description: |
+        Change-state payload. The root key must match the {guides-type} path
+        parameter ("shipping", "transport" or "devolution").
+      oneOf:
+        - type: object
+          required:
+            - shipping
+          properties:
+            shipping:
+              $ref: "#/components/schemas/GuideStateChange"
+        - type: object
+          required:
+            - transport
+          properties:
+            transport:
+              $ref: "#/components/schemas/GuideStateChange"
+        - type: object
+          required:
+            - devolution
+          properties:
+            devolution:
+              $ref: "#/components/schemas/GuideStateChange"
+    GuideStateChange:
+      type: object
+      required:
+        - state
+      properties:
+        state:
+          type: string
+          enum:
+            - finalized
+            - deleted
+            - canceled
+          description: The new state of the guide.
+        message:
+          type: string
+          description: The reason for changing the state (required for cancellation).
+    GuidesResponse:
+      type: object
+      required:
+        - guides
+        - pagination
+      properties:
+        guides:
+          type: array
+          items:
+            $ref: "#/components/schemas/Guide"
+        pagination:
+          type: object
+          required:
+            - total_entries
+            - current_page
+            - total_pages
+            - per_page
+          properties:
+            total_entries:
+              type: integer
+            current_page:
+              type: integer
+            total_pages:
+              type: integer
+            per_page:
+              type: integer
     ErrorResponse:
       type: object
 

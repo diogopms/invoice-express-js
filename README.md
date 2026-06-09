@@ -4,7 +4,7 @@ A typed JavaScript / TypeScript client for the [InvoiceXpress](https://invoicexp
 
 The client is generated from an OpenAPI specification with [`@hey-api/openapi-ts`](https://heyapi.dev/) and ships with full TypeScript types for every request and response.
 
-- 📦 Single client class exposing every resource (`clients`, `invoices`, `invoicesReceipts`, `items`, `taxes`, `saft`)
+- 📦 Single client class exposing every resource (`clients`, `invoices`, `invoicesReceipts`, `guides`, `items`, `taxes`, `saft`)
 - 🟦 First-class TypeScript types for request payloads and responses
 - 🔁 Request / response interceptors
 - ⏹️ Cancelable requests
@@ -182,6 +182,58 @@ await client.invoicesReceipts.putInvoiceReceiptsByDocumentIdEmailDocumentJson({
 await client.invoicesReceipts.getApiPdfByDocumentIdJson({ apiKey, documentId });
 ```
 
+### Guides
+
+Guides cover shippings, transports and devolutions (transport documents). The
+`guidesType` path segment selects the document type, and the request/response
+body is wrapped under the matching singular key (`shipping`, `transport` or
+`devolution`).
+
+```ts
+// Create a transport guide
+const created = await client.guides.postByGuidesTypeJson({
+  apiKey,
+  guidesType: "transports",
+  requestBody: {
+    transport: {
+      date: "09/06/2026",
+      loaded_at: "09/06/2026 19:00:00",
+      tax_exemption: "M10",
+      address_from: { detail: "Rua A, 1", city: "Lisboa", postal_code: "1000-001", country: "Portugal" },
+      address_to: { detail: "Rua B, 2", city: "Porto", postal_code: "4000-002", country: "Portugal" },
+      client: { name: "Acme, Lda", code: "ACME" },
+      items: [{ name: "Pallet", unit_price: 0, quantity: 3 }],
+    },
+  },
+});
+
+const documentId = created.transport!.id;
+
+// Get / update
+await client.guides.getByGuidesTypeByDocumentIdJson({ apiKey, guidesType: "transports", documentId });
+
+// Finalize, then email
+await client.guides.putByGuidesTypeByDocumentIdChangeStateJson({
+  apiKey,
+  guidesType: "transports",
+  documentId,
+  requestBody: { transport: { state: "finalized" } },
+});
+await client.guides.putByGuidesTypeByDocumentIdEmailDocumentJson({
+  apiKey,
+  guidesType: "transports",
+  documentId,
+  requestBody: { message: { subject: "Your transport guide", body: "In transit." } },
+});
+
+// List all guides (paginated)
+await client.guides.getGuidesJson({ apiKey, page: 1, perPage: 20 });
+
+// QR code and PDF (shared endpoints — poll the PDF until it resolves to a 200)
+await client.guides.getApiQrCodesByDocumentIdJson({ apiKey, documentId });
+await client.invoicesReceipts.getApiPdfByDocumentIdJson({ apiKey, documentId });
+```
+
 ### Items & taxes
 
 ```ts
@@ -278,14 +330,14 @@ import type { Client, Invoice, ClientRequest, InvoicesResponse } from "@diogopms
 |                  | Create                     | Not Implemented |
 |                  | Update                     | Not Implemented |
 |                  | Change-state               | Not Implemented |
-| **Guides**       | Send by email              | Not Implemented |
-|                  | Generate PDF               | Not Implemented |
-|                  | Get                        | Not Implemented |
-|                  | List all                   | Not Implemented |
-|                  | Create                     | Not Implemented |
-|                  | Update                     | Not Implemented |
-|                  | Change-state               | Not Implemented |
-|                  | Get QR Code                | Not Implemented |
+| **Guides**       | Send by email              | ✅ |
+|                  | Generate PDF               | ✅ |
+|                  | Get                        | ✅ |
+|                  | List all                   | ✅ |
+|                  | Create                     | ✅ |
+|                  | Update                     | ✅ |
+|                  | Change-state               | ✅ |
+|                  | Get QR Code                | ✅ |
 | **Clients**      | List all                   | ✅ |
 |                  | Get                        | ✅ |
 |                  | Update                     | ✅ |
@@ -351,7 +403,7 @@ CI runs `lint`, `generate:check`, `typecheck` and `build` on every pull request,
 
 - [ ] Add tests
 - [ ] Add an `examples/` folder
-- [ ] Implement more operations (Estimates, Guides, Sequences, Accounts, Treasury)
+- [ ] Implement more operations (Sequences, Accounts, Treasury)
 
 ## License
 

@@ -254,6 +254,158 @@ export type TaxRequest = {
   };
 };
 
+export type Address = {
+  detail?: string;
+  city?: string;
+  postal_code?: string;
+  country?: string;
+};
+
+export type Guide = {
+  id: number;
+  status: string;
+  archived?: boolean;
+  /**
+   * The guide type (Shipping, Transport or Devolution).
+   */
+  type: string;
+  sequence_number?: string;
+  inverted_sequence_number?: string;
+  atcud?: string;
+  tax_exemption?: string;
+  date: string;
+  /**
+   * Loading date and time (dd/mm/yyyy HH:MM:SS).
+   */
+  loaded_at?: string;
+  reference?: string;
+  observations?: string;
+  permalink?: string;
+  saft_hash?: string;
+  sum?: number;
+  discount?: number;
+  before_taxes?: number;
+  taxes?: number;
+  total?: number;
+  currency?: string;
+  address_from?: Address;
+  address_to?: Address;
+  client: Client;
+  items: Array<Item>;
+};
+
+export type GuideBody = {
+  /**
+   * Document date in dd/mm/yyyy format.
+   */
+  date: string;
+  /**
+   * Loading date and time in dd/mm/yyyy HH:MM:SS format.
+   */
+  loaded_at?: string;
+  reference?: string;
+  observations?: string;
+  /**
+   * Tax exemption code (required when an item has no tax).
+   */
+  tax_exemption?: string;
+  tax_exemption_reason?: string;
+  sequence_id?: string;
+  manual_sequence_number?: string;
+  address_from?: Address;
+  address_to?: Address;
+  client: {
+    name: string;
+    code?: string;
+    email?: string;
+    address?: string;
+    city?: string;
+    postal_code?: string;
+    country?: string;
+    fiscal_id?: string;
+    website?: string;
+    phone?: string;
+    fax?: string;
+    observations?: string;
+  };
+  items: Array<Item>;
+};
+
+/**
+ * Create/update payload. The root key must match the {guides-type} path
+ * parameter: "shipping" for shippings, "transport" for transports,
+ * "devolution" for devolutions.
+ *
+ */
+export type GuideRequest =
+  | {
+      shipping: GuideBody;
+    }
+  | {
+      transport: GuideBody;
+    }
+  | {
+      devolution: GuideBody;
+    };
+
+/**
+ * A single guide, wrapped under the key matching its type
+ * ("shipping", "transport" or "devolution").
+ *
+ */
+export type GuideResponse =
+  | {
+      shipping: Guide;
+    }
+  | {
+      transport: Guide;
+    }
+  | {
+      devolution: Guide;
+    };
+
+/**
+ * Change-state payload. The root key must match the {guides-type} path
+ * parameter ("shipping", "transport" or "devolution").
+ *
+ */
+export type GuideStateRequest =
+  | {
+      shipping: GuideStateChange;
+    }
+  | {
+      transport: GuideStateChange;
+    }
+  | {
+      devolution: GuideStateChange;
+    };
+
+export type GuideStateChange = {
+  /**
+   * The new state of the guide.
+   */
+  state: "finalized" | "deleted" | "canceled";
+  /**
+   * The reason for changing the state (required for cancellation).
+   */
+  message?: string;
+};
+
+/**
+ * The new state of the guide.
+ */
+export type state = "finalized" | "deleted" | "canceled";
+
+export type GuidesResponse = {
+  guides: Array<Guide>;
+  pagination: {
+    total_entries: number;
+    current_page: number;
+    total_pages: number;
+    per_page: number;
+  };
+};
+
 export type ErrorResponse = {
   error?: string;
 };
@@ -632,3 +784,101 @@ export type DeleteItemsByItemIdJsonData = {
 };
 
 export type DeleteItemsByItemIdJsonResponse = unknown;
+
+export type GetGuidesJsonData = {
+  apiKey: string;
+  archived?: boolean;
+  dateFrom?: string;
+  dateTo?: string;
+  nonArchived?: boolean;
+  /**
+   * Page number to retrieve.
+   */
+  page: number;
+  /**
+   * Per_page number to retrieve.
+   */
+  perPage: number;
+  statusArray?: Array<"draft" | "final" | "canceled" | "second_copy">;
+  text?: string;
+  typeArray?: Array<"Shipping" | "Transport" | "Devolution">;
+};
+
+export type GetGuidesJsonResponse = GuidesResponse;
+
+export type GetApiQrCodesByDocumentIdJsonData = {
+  apiKey: string;
+  documentId: number;
+};
+
+export type GetApiQrCodesByDocumentIdJsonResponse = unknown;
+
+export type PostByGuidesTypeJsonData = {
+  apiKey: string;
+  /**
+   * The type of guide to create.
+   */
+  guidesType: "shippings" | "transports" | "devolutions";
+  requestBody: GuideRequest;
+};
+
+export type PostByGuidesTypeJsonResponse = GuideResponse;
+
+export type GetByGuidesTypeByDocumentIdJsonData = {
+  apiKey: string;
+  documentId: number;
+  /**
+   * The type of guide.
+   */
+  guidesType: "shippings" | "transports" | "devolutions";
+};
+
+export type GetByGuidesTypeByDocumentIdJsonResponse = GuideResponse;
+
+export type PutByGuidesTypeByDocumentIdJsonData = {
+  apiKey: string;
+  documentId: number;
+  /**
+   * The type of guide.
+   */
+  guidesType: "shippings" | "transports" | "devolutions";
+  requestBody: GuideRequest;
+};
+
+export type PutByGuidesTypeByDocumentIdJsonResponse = unknown;
+
+export type PutByGuidesTypeByDocumentIdChangeStateJsonData = {
+  apiKey: string;
+  documentId: number;
+  /**
+   * The type of guide.
+   */
+  guidesType: "shippings" | "transports" | "devolutions";
+  requestBody: GuideStateRequest;
+};
+
+export type PutByGuidesTypeByDocumentIdChangeStateJsonResponse = unknown;
+
+export type PutByGuidesTypeByDocumentIdEmailDocumentJsonData = {
+  apiKey: string;
+  documentId: number;
+  /**
+   * The type of guide.
+   */
+  guidesType: "shippings" | "transports" | "devolutions";
+  requestBody: {
+    message?: {
+      client?: {
+        email?: string;
+        save?: "0" | "1";
+      };
+      subject?: string;
+      body?: string;
+      cc?: string;
+      bcc?: string;
+      logo?: "0" | "1";
+    };
+  };
+};
+
+export type PutByGuidesTypeByDocumentIdEmailDocumentJsonResponse = unknown;
