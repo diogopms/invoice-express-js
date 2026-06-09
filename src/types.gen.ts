@@ -236,7 +236,10 @@ export type ItemRequest = {
   item: {
     name: string;
     description?: string;
-    unit_price: number;
+    /**
+     * Unit price, sent as a string (e.g. "50.0"). The /items.json endpoint rejects a numeric unit_price with a 422 "unit price is not valid" error.
+     */
+    unit_price: string;
     unit?: string;
     tax?: {
       name?: string;
