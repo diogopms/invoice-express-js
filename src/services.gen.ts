@@ -27,6 +27,8 @@ import type {
   GetDocumentByDocumentIdRelatedDocumentsJsonResponse,
   PostDocumentsByDocumentIdPartialPaymentsJsonData,
   PostDocumentsByDocumentIdPartialPaymentsJsonResponse,
+  PutReceiptsByReceiptIdChangeStateJsonData,
+  PutReceiptsByReceiptIdChangeStateJsonResponse,
   GetClientsJsonData,
   GetClientsJsonResponse,
   PostClientsJsonData,
@@ -490,6 +492,38 @@ export class InvoicesService {
       errors: {
         401: "Access denied. The API Key parameter is missing or is incorrectly entered.",
         404: "Not found. No document matches the supplied document-id.",
+        422: "Unprocessable Entity. Some parameters sent were incorrect.",
+      },
+    });
+  }
+
+  /**
+   * Cancel a payment (receipt)
+   * Cancels a payment by changing the state of its receipt to canceled.
+   * @param data The data for the request.
+   * @param data.apiKey
+   * @param data.receiptId The ID of the receipt to cancel.
+   * @param data.requestBody
+   * @returns unknown The payment was canceled successfully.
+   * @throws ApiError
+   */
+  public putReceiptsByReceiptIdChangeStateJson(
+    data: PutReceiptsByReceiptIdChangeStateJsonData,
+  ): CancelablePromise<PutReceiptsByReceiptIdChangeStateJsonResponse> {
+    return this.httpRequest.request({
+      method: "PUT",
+      url: "/receipts/{receipt-id}/change-state.json",
+      path: {
+        "receipt-id": data.receiptId,
+      },
+      query: {
+        api_key: data.apiKey,
+      },
+      body: data.requestBody,
+      mediaType: "application/json",
+      errors: {
+        401: "Access denied. The API Key parameter is missing or is incorrectly entered.",
+        404: "Not found. No receipt matches the supplied receipt-id.",
         422: "Unprocessable Entity. Some parameters sent were incorrect.",
       },
     });
