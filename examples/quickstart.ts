@@ -1,34 +1,35 @@
 /**
- * Quickstart: construct the client and read/create clients.
+ * Quickstart: configure the client and read/create clients.
  *
- * Run your own copy after building the package, or use it as a reference.
- * Replace BASE with your account URL and `apiKey` with your API key.
+ * The SDK is a set of standalone functions that return `{ data, error }`
+ * (they do not throw on HTTP errors). Configure the shared `client` once with
+ * your account URL; pass your API key as the `api_key` query parameter.
  */
-import { InvoiceExpressClient, ApiError } from "../src";
+import { client, getClientsJson, postClientsJson } from "../src";
 
-const client = new InvoiceExpressClient({
-  // Your account name is the subdomain of your InvoiceXpress URL:
-  // https://<account-name>.app.invoicexpress.com
-  BASE: "https://your-account.app.invoicexpress.com",
-});
+// Your account name is the subdomain of your InvoiceXpress URL:
+// https://<account-name>.app.invoicexpress.com
+client.setConfig({ baseUrl: "https://your-account.app.invoicexpress.com" });
 
-const apiKey = "your-api-key";
+const api_key = "your-api-key";
 
 async function main(): Promise<void> {
   // List clients (paginated).
-  const { clients, pagination } = await client.clients.getClientsJson({
-    apiKey,
-    page: 1,
-    perPage: 10,
+  const { data, error } = await getClientsJson({
+    query: { api_key, page: 1, per_page: 10 },
   });
-  console.log(`${pagination.total_entries} clients found`);
-  console.log(clients);
+  if (error) {
+    console.error("request failed", error);
+    return;
+  }
+  console.log(`${data.pagination.total_entries} clients found`);
+  console.log(data.clients);
 
   // Create a client. If the fiscal_id / name already exists InvoiceXpress
   // returns the existing record instead of creating a duplicate.
-  const created = await client.clients.postClientsJson({
-    apiKey,
-    requestBody: {
+  const created = await postClientsJson({
+    query: { api_key },
+    body: {
       client: {
         name: "Acme, Lda",
         email: "billing@acme.example",
@@ -36,14 +37,7 @@ async function main(): Promise<void> {
       },
     },
   });
-  console.log("created client", created.client?.id);
+  console.log("created client", created.data?.client?.id);
 }
 
-main().catch((error: unknown) => {
-  // Failed requests throw an ApiError carrying the HTTP status and body.
-  if (error instanceof ApiError) {
-    console.error(error.status, error.statusText, error.body);
-  } else {
-    throw error;
-  }
-});
+main();
