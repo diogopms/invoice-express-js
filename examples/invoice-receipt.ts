@@ -26,7 +26,7 @@ async function main(): Promise<void> {
     },
   });
 
-  const documentId = receipt.invoice_receipts!.id;
+  const documentId = receipt.invoice_receipt!.id;
 
   // Finalize it so it becomes a legal document.
   await client.invoicesReceipts.putInvoiceReceiptsByDocumentIdChangeStateJson({
