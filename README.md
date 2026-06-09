@@ -1,5 +1,9 @@
 # invoice-express-js
 
+[![CI](https://github.com/diogopms/invoice-express-js/actions/workflows/ci.yaml/badge.svg)](https://github.com/diogopms/invoice-express-js/actions/workflows/ci.yaml)
+[![License: ISC](https://img.shields.io/badge/License-ISC-blue.svg)](./LICENSE)
+![runtime deps: 0](https://img.shields.io/badge/runtime%20deps-0-success)
+
 A typed JavaScript / TypeScript client for the [InvoiceXpress](https://invoicexpress.com/) API.
 
 The client is generated from an OpenAPI specification with [`@hey-api/openapi-ts`](https://heyapi.dev/) and ships with full TypeScript types for every request and response.
@@ -11,6 +15,22 @@ The client is generated from an OpenAPI specification with [`@hey-api/openapi-ts
 - 🌐 Built on `fetch` — no runtime dependencies
 
 > **Status:** every documented InvoiceXpress operation is implemented and verified live against the API — see [Operations implemented](#operations-implemented). (One known server-side caveat: guide update; see the note there.)
+
+## Contents
+
+- [Installation](#installation)
+- [Quick start](#quick-start)
+- [Authentication](#authentication)
+- [Configuration](#configuration)
+- [Usage](#usage)
+- [Error handling](#error-handling)
+- [Interceptors](#interceptors)
+- [Cancellation](#cancellation)
+- [TypeScript](#typescript)
+- [Operations implemented](#operations-implemented)
+- [Development](#development)
+- [Roadmap](#roadmap)
+- [License](#license)
 
 ## Installation
 
@@ -64,6 +84,20 @@ await client.taxes.getTaxesJson({ apiKey: "your-api-key" });
 ```
 
 You can find your API key in your InvoiceXpress account under **Account Settings → API**.
+
+The `apiKey` is passed **per call** (it's sent as the `api_key` query parameter).
+If you call the same resource a lot, bind it once with a small helper:
+
+```ts
+const apiKey = "your-api-key";
+const taxes = () => client.taxes.getTaxesJson({ apiKey });
+
+await taxes();
+```
+
+> Note: the API key can't be injected globally via an interceptor — request
+> interceptors receive the `RequestInit` (headers/body/method), not the URL where
+> the query string lives.
 
 ## Configuration
 
