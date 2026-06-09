@@ -591,17 +591,18 @@ To add or change operations, edit `openapi.yaml` and re-run `pnpm run generate`.
 
 The full set of scripts:
 
-| Script                    | Purpose                                                                |
-| ------------------------- | ---------------------------------------------------------------------- |
-| `pnpm run generate`       | Regenerate `./src` from `openapi.yaml`.                                |
-| `pnpm run generate:check` | Regenerate and fail if the committed client drifts from the spec (CI). |
-| `pnpm run build`          | Compile TypeScript to `./dist`.                                        |
-| `pnpm run typecheck`      | Type-check without emitting.                                           |
-| `pnpm run test`           | Build, then run the smoke tests (`node --test`).                       |
-| `pnpm run lint`           | Check formatting with Prettier.                                        |
-| `pnpm run format`         | Apply Prettier formatting.                                             |
+| Script                        | Purpose                                                                |
+| ----------------------------- | ---------------------------------------------------------------------- |
+| `pnpm run generate`           | Regenerate `./src` from `openapi.yaml`.                                |
+| `pnpm run generate:check`     | Regenerate and fail if the committed client drifts from the spec (CI). |
+| `pnpm run build`              | Compile TypeScript to `./dist`.                                        |
+| `pnpm run typecheck`          | Type-check without emitting.                                           |
+| `pnpm run typecheck:examples` | Type-check the `examples/` against the client.                         |
+| `pnpm run test`               | Build, then run the smoke tests (`node --test`).                       |
+| `pnpm run lint`               | Check formatting with Prettier.                                        |
+| `pnpm run format`             | Apply Prettier formatting.                                             |
 
-CI runs `lint`, `generate:check`, `typecheck`, `build` and `test` on every pull request, so a spec edit that isn't accompanied by a regenerated client will fail the build.
+CI runs `lint`, `generate:check`, `typecheck`, `typecheck:examples`, `build` and `test` on every pull request, so a spec edit that isn't accompanied by a regenerated client will fail the build.
 
 ### Testing
 
@@ -611,10 +612,16 @@ operation per service — guarding against the generator silently dropping or
 renaming an operation. It uses Node's built-in test runner (no extra
 dependencies). Run it with `pnpm run test`.
 
+### Examples
+
+Runnable, type-checked usage examples live in [`examples/`](./examples) — see its
+[README](./examples/README.md). They import the client from `../src`, so
+`pnpm run typecheck:examples` validates them against the generated types in CI.
+
 ## Roadmap
 
 - [x] Add tests
-- [ ] Add an `examples/` folder
+- [x] Add an `examples/` folder
 - [ ] Implement more operations (Treasury)
 
 ## License
