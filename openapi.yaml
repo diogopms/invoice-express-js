@@ -4,7 +4,7 @@ info:
   title: InvoiceExpress API
   description: |
     Typed client for the InvoiceXpress API. Covers invoices, invoice receipts,
-    clients, items, taxes and SAF-T export.
+    estimates, guides, clients, sequences, items, taxes and SAF-T export.
     See https://invoicexpress.com/api-v2/documentation/getting-started
 servers:
   - url: https://{account_name}.app.invoicexpress.com
@@ -41,7 +41,7 @@ tags:
       Create, update and get info about your account.
   - name: SAFT
     description: |
-      Create, update and get info about your account.
+      Export the SAF-T (PT) accounting file for a given period.
   - name: Treasury
     description: |
       Section dedicated to treasury movements.
