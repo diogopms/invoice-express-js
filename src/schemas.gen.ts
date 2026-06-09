@@ -1628,6 +1628,199 @@ export const $AtCommunicationRequest = {
   },
 } as const;
 
+export const $Regularization = {
+  type: "object",
+  required: ["id", "value", "date"],
+  properties: {
+    id: {
+      type: "integer",
+    },
+    number: {
+      type: "string",
+    },
+    value: {
+      type: "number",
+    },
+    date: {
+      type: "string",
+      format: "date",
+    },
+    observation: {
+      type: "string",
+      nullable: true,
+    },
+  },
+} as const;
+
+export const $RegularizationBody = {
+  type: "object",
+  required: ["value", "date"],
+  properties: {
+    value: {
+      type: "number",
+      description: "The regularization amount.",
+    },
+    date: {
+      type: "string",
+      description: "Regularization date in YYYY-MM-DD format.",
+    },
+    observation: {
+      type: "string",
+    },
+  },
+} as const;
+
+export const $RegularizationRequest = {
+  type: "object",
+  required: ["regularization"],
+  properties: {
+    regularization: {
+      $ref: "#/components/schemas/RegularizationBody",
+    },
+  },
+} as const;
+
+export const $RegularizationsResponse = {
+  type: "object",
+  required: ["regularization"],
+  properties: {
+    regularization: {
+      type: "array",
+      items: {
+        $ref: "#/components/schemas/Regularization",
+      },
+    },
+    pagination: {
+      type: "object",
+      properties: {
+        total_entries: {
+          type: "integer",
+        },
+        current_page: {
+          type: "integer",
+        },
+        total_pages: {
+          type: "integer",
+        },
+        per_page: {
+          type: "integer",
+        },
+      },
+    },
+  },
+} as const;
+
+export const $TreasuryMovement = {
+  type: "object",
+  required: ["value", "movement_type", "date"],
+  properties: {
+    id: {
+      type: "integer",
+    },
+    value: {
+      type: "number",
+    },
+    movement_type: {
+      type: "string",
+      enum: ["Reimbursement", "Payment"],
+    },
+    payment_method: {
+      type: "string",
+      description: "Payment method code (e.g. MB, TB, CC, CD, CH).",
+    },
+    date: {
+      type: "string",
+      format: "date",
+    },
+    serie: {
+      type: "string",
+    },
+    observation: {
+      type: "string",
+      nullable: true,
+    },
+  },
+} as const;
+
+export const $TreasuryMovementBody = {
+  type: "object",
+  required: ["value", "movement_type", "date"],
+  properties: {
+    value: {
+      type: "number",
+    },
+    movement_type: {
+      type: "string",
+      enum: ["Reimbursement", "Payment"],
+    },
+    payment_method: {
+      type: "string",
+      description: "Payment method code (e.g. MB, TB, CC, CD, CH).",
+    },
+    date: {
+      type: "string",
+      description: "Movement date in YYYY-MM-DD format.",
+    },
+    serie: {
+      type: "string",
+    },
+    observation: {
+      type: "string",
+    },
+  },
+} as const;
+
+export const $TreasuryMovementRequest = {
+  type: "object",
+  required: ["treasury_movement"],
+  properties: {
+    treasury_movement: {
+      $ref: "#/components/schemas/TreasuryMovementBody",
+    },
+  },
+} as const;
+
+export const $TreasuryMovementResponse = {
+  type: "object",
+  required: ["treasury_movement"],
+  properties: {
+    treasury_movement: {
+      $ref: "#/components/schemas/TreasuryMovement",
+    },
+  },
+} as const;
+
+export const $InitialBalanceRequest = {
+  type: "object",
+  required: ["value"],
+  properties: {
+    value: {
+      type: "number",
+      description: "The client's initial balance amount.",
+    },
+    date: {
+      type: "string",
+      description: "Balance date in YYYY-MM-DD format.",
+    },
+  },
+} as const;
+
+export const $BalanceResponse = {
+  type: "object",
+  properties: {
+    balance: {
+      type: "number",
+      description: "The client's current treasury balance.",
+    },
+    initial_balance: {
+      type: "number",
+    },
+    currency: {
+      type: "string",
+    },
+  },
+} as const;
+
 export const $ErrorResponse = {
   type: "object",
   properties: {
