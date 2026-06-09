@@ -575,6 +575,17 @@ import type {
 
 ## Operations implemented
 
+Every operation below is implemented and was verified live against an
+InvoiceXpress account (see [`scripts/live-check.cjs`](./scripts/live-check.cjs)).
+
+> **Known server-side issue:** updating a guide
+> (`PUT /{guides-type}/{document-id}.json`, i.e.
+> `guides.putByGuidesTypeByDocumentIdJson`) returns **HTTP 500** for every guide
+> type (shippings, transports, devolutions) — even with the exact body that
+> `create` accepts. Create / get / change-state all work, so this is an
+> InvoiceXpress-side bug, not a client one. The method is shipped for when the
+> API is fixed.
+
 | API Section   | Operation                | Status |
 | ------------- | ------------------------ | ------ |
 | **Invoices**  | Send by email            | ✅     |
