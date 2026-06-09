@@ -131,7 +131,6 @@ dist
 
 .DS_Store
 tests.ts
-examples/
 
 # Claude Code local settings
 .claude/

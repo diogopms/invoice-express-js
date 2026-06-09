@@ -19,10 +19,11 @@
     "generate:check": "pnpm run generate && git diff --exit-code -- src",
     "build": "tsc",
     "typecheck": "tsc --noEmit",
+    "typecheck:examples": "tsc -p tsconfig.examples.json",
     "pretest": "pnpm run build",
     "test": "node --test",
-    "format": "prettier --write \"src/**/*.ts\" \"test/**/*.js\" \"generate.mjs\" \"*.{json,yaml}\"",
-    "lint": "prettier --check \"src/**/*.ts\" \"test/**/*.js\" \"generate.mjs\" \"*.{json,yaml}\"",
+    "format": "prettier --write \"src/**/*.ts\" \"test/**/*.js\" \"examples/**/*.ts\" \"generate.mjs\" \"*.{json,yaml}\"",
+    "lint": "prettier --check \"src/**/*.ts\" \"test/**/*.js\" \"examples/**/*.ts\" \"generate.mjs\" \"*.{json,yaml}\"",
     "prepublishOnly": "pnpm run build"
   },
   "keywords": [
