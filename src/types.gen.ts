@@ -406,6 +406,161 @@ export type GuidesResponse = {
   };
 };
 
+export type Estimate = {
+  id: number;
+  status: string;
+  archived?: boolean;
+  /**
+   * The estimate type (Quote, Proforma or FeesNote).
+   */
+  type: string;
+  sequence_number?: string;
+  inverted_sequence_number?: string;
+  atcud?: string;
+  tax_exemption?: string;
+  date: string;
+  due_date: string;
+  reference?: string;
+  observations?: string;
+  retention?: string;
+  permalink?: string;
+  saft_hash?: string;
+  sum?: number;
+  discount?: number;
+  before_taxes?: number;
+  taxes?: number;
+  total: number;
+  currency?: string;
+  client: Client;
+  items: Array<Item>;
+  global_discount?: GlobalDiscount;
+};
+
+export type EstimateBody = {
+  /**
+   * Document date in dd/mm/yyyy format.
+   */
+  date: string;
+  /**
+   * Expiration date in dd/mm/yyyy format.
+   */
+  due_date: string;
+  reference?: string;
+  observations?: string;
+  /**
+   * Retention percentage (0–99.99).
+   */
+  retention?: number;
+  /**
+   * Tax exemption code (required when an item has no tax).
+   */
+  tax_exemption?: string;
+  tax_exemption_reason?: string;
+  sequence_id?: string;
+  manual_sequence_number?: string;
+  currency_code?: string;
+  /**
+   * Exchange rate, required when currency_code differs from the account currency.
+   */
+  rate?: string;
+  client: {
+    name: string;
+    code?: string;
+    email?: string;
+    address?: string;
+    city?: string;
+    postal_code?: string;
+    country?: string;
+    fiscal_id?: string;
+    website?: string;
+    phone?: string;
+    fax?: string;
+    observations?: string;
+  };
+  items: Array<Item>;
+  global_discount?: GlobalDiscount;
+};
+
+/**
+ * Create/update payload. The root key must match the {estimates-type} path
+ * parameter: "quote" for quotes, "proforma" for proformas, "fees_note" for
+ * fees_notes.
+ *
+ */
+export type EstimateRequest =
+  | {
+      quote: EstimateBody;
+    }
+  | {
+      proforma: EstimateBody;
+    }
+  | {
+      fees_note: EstimateBody;
+    };
+
+/**
+ * A single estimate, wrapped under the key matching its type
+ * ("quote", "proforma" or "fees_note").
+ *
+ */
+export type EstimateResponse =
+  | {
+      quote: Estimate;
+    }
+  | {
+      proforma: Estimate;
+    }
+  | {
+      fees_note: Estimate;
+    };
+
+/**
+ * Change-state payload. The root key must match the {estimates-type} path
+ * parameter ("quote", "proforma" or "fees_note").
+ *
+ */
+export type EstimateStateRequest =
+  | {
+      quote: EstimateStateChange;
+    }
+  | {
+      proforma: EstimateStateChange;
+    }
+  | {
+      fees_note: EstimateStateChange;
+    };
+
+export type EstimateStateChange = {
+  /**
+   * The new state of the estimate.
+   */
+  state: "finalized" | "deleted" | "accepted" | "refused" | "canceled";
+  /**
+   * The reason for changing the state (required for cancellation).
+   */
+  message?: string;
+};
+
+/**
+ * The new state of the estimate.
+ */
+export type state2 =
+  | "finalized"
+  | "deleted"
+  | "accepted"
+  | "refused"
+  | "canceled";
+
+export type EstimatesResponse = {
+  estimates: Array<Estimate>;
+  pagination: {
+    total_entries: number;
+    current_page: number;
+    total_pages: number;
+    per_page: number;
+  };
+};
+
 export type ErrorResponse = {
   error?: string;
 };
@@ -882,3 +1037,102 @@ export type PutByGuidesTypeByDocumentIdEmailDocumentJsonData = {
 };
 
 export type PutByGuidesTypeByDocumentIdEmailDocumentJsonResponse = unknown;
+
+export type GetEstimatesJsonData = {
+  apiKey: string;
+  archived?: boolean;
+  dateFrom?: string;
+  dateTo?: string;
+  nonArchived?: boolean;
+  /**
+   * Page number to retrieve.
+   */
+  page: number;
+  /**
+   * Per_page number to retrieve.
+   */
+  perPage: number;
+  statusArray?: Array<
+    | "draft"
+    | "final"
+    | "accepted"
+    | "refused"
+    | "canceled"
+    | "settled"
+    | "expired"
+  >;
+  text?: string;
+  typeArray?: Array<"Quote" | "Proforma" | "FeesNote">;
+};
+
+export type GetEstimatesJsonResponse = EstimatesResponse;
+
+export type PostByEstimatesTypeJsonData = {
+  apiKey: string;
+  /**
+   * The type of estimate to create.
+   */
+  estimatesType: "quotes" | "proformas" | "fees_notes";
+  requestBody: EstimateRequest;
+};
+
+export type PostByEstimatesTypeJsonResponse = EstimateResponse;
+
+export type GetByEstimatesTypeByDocumentIdJsonData = {
+  apiKey: string;
+  documentId: number;
+  /**
+   * The type of estimate.
+   */
+  estimatesType: "quotes" | "proformas" | "fees_notes";
+};
+
+export type GetByEstimatesTypeByDocumentIdJsonResponse = EstimateResponse;
+
+export type PutByEstimatesTypeByDocumentIdJsonData = {
+  apiKey: string;
+  documentId: number;
+  /**
+   * The type of estimate.
+   */
+  estimatesType: "quotes" | "proformas" | "fees_notes";
+  requestBody: EstimateRequest;
+};
+
+export type PutByEstimatesTypeByDocumentIdJsonResponse = unknown;
+
+export type PutByEstimatesTypeByDocumentIdChangeStateJsonData = {
+  apiKey: string;
+  documentId: number;
+  /**
+   * The type of estimate.
+   */
+  estimatesType: "quotes" | "proformas" | "fees_notes";
+  requestBody: EstimateStateRequest;
+};
+
+export type PutByEstimatesTypeByDocumentIdChangeStateJsonResponse = unknown;
+
+export type PutByEstimatesTypeByDocumentIdEmailDocumentJsonData = {
+  apiKey: string;
+  documentId: number;
+  /**
+   * The type of estimate.
+   */
+  estimatesType: "quotes" | "proformas" | "fees_notes";
+  requestBody: {
+    message?: {
+      client?: {
+        email?: string;
+        save?: "0" | "1";
+      };
+      subject?: string;
+      body?: string;
+      cc?: string;
+      bcc?: string;
+      logo?: "0" | "1";
+    };
+  };
+};
+
+export type PutByEstimatesTypeByDocumentIdEmailDocumentJsonResponse = unknown;
