@@ -2259,6 +2259,224 @@ paths:
           description: Access denied. The API Key parameter is missing or is incorrectly entered.
         "422":
           description: Unprocessable Entity. Some parameters were incorrect.
+  /api/v3/clients/{client-id}/balance.json:
+    get:
+      tags:
+        - Treasury
+      summary: Get a client's balance
+      description: Returns the treasury balance of a specific client.
+      parameters:
+        - name: api_key
+          in: query
+          required: true
+          schema:
+            type: string
+        - name: client-id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: The client's balance.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BalanceResponse"
+        "401":
+          description: Access denied. The API Key parameter is missing or is incorrectly entered.
+        "404":
+          description: Not found. No client matches the supplied client-id.
+
+  /api/v3/clients/{client-id}/initial_balance.json:
+    put:
+      tags:
+        - Treasury
+      summary: Update a client's initial balance
+      description: Updates the initial treasury balance of a specific client.
+      parameters:
+        - name: api_key
+          in: query
+          required: true
+          schema:
+            type: string
+        - name: client-id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/InitialBalanceRequest"
+      responses:
+        "200":
+          description: The initial balance was updated successfully.
+        "401":
+          description: Access denied. The API Key parameter is missing or is incorrectly entered.
+        "404":
+          description: Not found. No client matches the supplied client-id.
+        "422":
+          description: Unprocessable Entity. Some parameters were incorrect.
+
+  /api/v3/clients/{client-id}/regularization.json:
+    get:
+      tags:
+        - Treasury
+      summary: List a client's regularizations
+      description: Returns the list of a client's treasury regularizations.
+      parameters:
+        - name: api_key
+          in: query
+          required: true
+          schema:
+            type: string
+        - name: client-id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: The client's regularizations.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RegularizationsResponse"
+        "401":
+          description: Access denied. The API Key parameter is missing or is incorrectly entered.
+        "404":
+          description: Not found. No client matches the supplied client-id.
+    post:
+      tags:
+        - Treasury
+      summary: Create a regularization
+      description: Creates a new treasury regularization for a client.
+      parameters:
+        - name: api_key
+          in: query
+          required: true
+          schema:
+            type: string
+        - name: client-id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RegularizationRequest"
+      responses:
+        "201":
+          description: The regularization was created successfully.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RegularizationsResponse"
+        "401":
+          description: Access denied. The API Key parameter is missing or is incorrectly entered.
+        "422":
+          description: Unprocessable Entity. Some parameters were incorrect.
+
+  /api/v3/clients/{client-id}/regularization/{id}.json:
+    delete:
+      tags:
+        - Treasury
+      summary: Delete a regularization
+      description: Deletes a client's treasury regularization.
+      parameters:
+        - name: api_key
+          in: query
+          required: true
+          schema:
+            type: string
+        - name: client-id
+          in: path
+          required: true
+          schema:
+            type: integer
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: The regularization was deleted successfully.
+        "401":
+          description: Access denied. The API Key parameter is missing or is incorrectly entered.
+        "404":
+          description: Not found. No regularization matches the supplied id.
+
+  /api/v3/clients/{client-id}/treasury_movements.json:
+    post:
+      tags:
+        - Treasury
+      summary: Create a treasury movement
+      description: Creates a new treasury movement for a client.
+      parameters:
+        - name: api_key
+          in: query
+          required: true
+          schema:
+            type: string
+        - name: client-id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/TreasuryMovementRequest"
+      responses:
+        "201":
+          description: The treasury movement was created successfully.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TreasuryMovementResponse"
+        "401":
+          description: Access denied. The API Key parameter is missing or is incorrectly entered.
+        "422":
+          description: Unprocessable Entity. Some parameters were incorrect.
+
+  /api/v3/clients/{client-id}/treasury_movements/{id}.json:
+    delete:
+      tags:
+        - Treasury
+      summary: Delete a treasury movement
+      description: Deletes a client's treasury movement.
+      parameters:
+        - name: api_key
+          in: query
+          required: true
+          schema:
+            type: string
+        - name: client-id
+          in: path
+          required: true
+          schema:
+            type: integer
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: The treasury movement was deleted successfully.
+        "401":
+          description: Access denied. The API Key parameter is missing or is incorrectly entered.
+        "404":
+          description: Not found. No treasury movement matches the supplied id.
 components:
   schemas:
     Tax:
@@ -3427,6 +3645,152 @@ components:
             password:
               type: string
               description: The account's AT (Tax Authority) password.
+    Regularization:
+      type: object
+      required:
+        - id
+        - value
+        - date
+      properties:
+        id:
+          type: integer
+        number:
+          type: string
+        value:
+          type: number
+        date:
+          type: string
+          format: date
+        observation:
+          type: string
+          nullable: true
+    RegularizationBody:
+      type: object
+      required:
+        - value
+        - date
+      properties:
+        value:
+          type: number
+          description: The regularization amount.
+        date:
+          type: string
+          description: Regularization date in YYYY-MM-DD format.
+        observation:
+          type: string
+    RegularizationRequest:
+      type: object
+      required:
+        - regularization
+      properties:
+        regularization:
+          $ref: "#/components/schemas/RegularizationBody"
+    RegularizationsResponse:
+      type: object
+      required:
+        - regularization
+      properties:
+        regularization:
+          type: array
+          items:
+            $ref: "#/components/schemas/Regularization"
+        pagination:
+          type: object
+          properties:
+            total_entries:
+              type: integer
+            current_page:
+              type: integer
+            total_pages:
+              type: integer
+            per_page:
+              type: integer
+    TreasuryMovement:
+      type: object
+      required:
+        - value
+        - movement_type
+        - date
+      properties:
+        id:
+          type: integer
+        value:
+          type: number
+        movement_type:
+          type: string
+          enum:
+            - Reimbursement
+            - Payment
+        payment_method:
+          type: string
+          description: Payment method code (e.g. MB, TB, CC, CD, CH).
+        date:
+          type: string
+          format: date
+        serie:
+          type: string
+        observation:
+          type: string
+          nullable: true
+    TreasuryMovementBody:
+      type: object
+      required:
+        - value
+        - movement_type
+        - date
+      properties:
+        value:
+          type: number
+        movement_type:
+          type: string
+          enum:
+            - Reimbursement
+            - Payment
+        payment_method:
+          type: string
+          description: Payment method code (e.g. MB, TB, CC, CD, CH).
+        date:
+          type: string
+          description: Movement date in YYYY-MM-DD format.
+        serie:
+          type: string
+        observation:
+          type: string
+    TreasuryMovementRequest:
+      type: object
+      required:
+        - treasury_movement
+      properties:
+        treasury_movement:
+          $ref: "#/components/schemas/TreasuryMovementBody"
+    TreasuryMovementResponse:
+      type: object
+      required:
+        - treasury_movement
+      properties:
+        treasury_movement:
+          $ref: "#/components/schemas/TreasuryMovement"
+    InitialBalanceRequest:
+      type: object
+      required:
+        - value
+      properties:
+        value:
+          type: number
+          description: The client's initial balance amount.
+        date:
+          type: string
+          description: Balance date in YYYY-MM-DD format.
+    BalanceResponse:
+      type: object
+      properties:
+        balance:
+          type: number
+          description: The client's current treasury balance.
+        initial_balance:
+          type: number
+        currency:
+          type: string
     ErrorResponse:
       type: object
 

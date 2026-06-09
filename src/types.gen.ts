@@ -692,6 +692,98 @@ export type AtCommunicationRequest = {
   };
 };
 
+export type Regularization = {
+  id: number;
+  number?: string;
+  value: number;
+  date: string;
+  observation?: string | null;
+};
+
+export type RegularizationBody = {
+  /**
+   * The regularization amount.
+   */
+  value: number;
+  /**
+   * Regularization date in YYYY-MM-DD format.
+   */
+  date: string;
+  observation?: string;
+};
+
+export type RegularizationRequest = {
+  regularization: RegularizationBody;
+};
+
+export type RegularizationsResponse = {
+  regularization: Array<Regularization>;
+  pagination?: {
+    total_entries?: number;
+    current_page?: number;
+    total_pages?: number;
+    per_page?: number;
+  };
+};
+
+export type TreasuryMovement = {
+  id?: number;
+  value: number;
+  movement_type: "Reimbursement" | "Payment";
+  /**
+   * Payment method code (e.g. MB, TB, CC, CD, CH).
+   */
+  payment_method?: string;
+  date: string;
+  serie?: string;
+  observation?: string | null;
+};
+
+export type movement_type = "Reimbursement" | "Payment";
+
+export type TreasuryMovementBody = {
+  value: number;
+  movement_type: "Reimbursement" | "Payment";
+  /**
+   * Payment method code (e.g. MB, TB, CC, CD, CH).
+   */
+  payment_method?: string;
+  /**
+   * Movement date in YYYY-MM-DD format.
+   */
+  date: string;
+  serie?: string;
+  observation?: string;
+};
+
+export type TreasuryMovementRequest = {
+  treasury_movement: TreasuryMovementBody;
+};
+
+export type TreasuryMovementResponse = {
+  treasury_movement: TreasuryMovement;
+};
+
+export type InitialBalanceRequest = {
+  /**
+   * The client's initial balance amount.
+   */
+  value: number;
+  /**
+   * Balance date in YYYY-MM-DD format.
+   */
+  date?: string;
+};
+
+export type BalanceResponse = {
+  /**
+   * The client's current treasury balance.
+   */
+  balance?: number;
+  initial_balance?: number;
+  currency?: string;
+};
+
 export type ErrorResponse = {
   error?: string;
 };
@@ -1367,3 +1459,62 @@ export type PostApiV3AccountsAtCommunicationJsonData = {
 };
 
 export type PostApiV3AccountsAtCommunicationJsonResponse = unknown;
+
+export type GetApiV3ClientsByClientIdBalanceJsonData = {
+  apiKey: string;
+  clientId: number;
+};
+
+export type GetApiV3ClientsByClientIdBalanceJsonResponse = BalanceResponse;
+
+export type PutApiV3ClientsByClientIdInitialBalanceJsonData = {
+  apiKey: string;
+  clientId: number;
+  requestBody: InitialBalanceRequest;
+};
+
+export type PutApiV3ClientsByClientIdInitialBalanceJsonResponse = unknown;
+
+export type GetApiV3ClientsByClientIdRegularizationJsonData = {
+  apiKey: string;
+  clientId: number;
+};
+
+export type GetApiV3ClientsByClientIdRegularizationJsonResponse =
+  RegularizationsResponse;
+
+export type PostApiV3ClientsByClientIdRegularizationJsonData = {
+  apiKey: string;
+  clientId: number;
+  requestBody: RegularizationRequest;
+};
+
+export type PostApiV3ClientsByClientIdRegularizationJsonResponse =
+  RegularizationsResponse;
+
+export type DeleteApiV3ClientsByClientIdRegularizationByIdJsonData = {
+  apiKey: string;
+  clientId: number;
+  id: number;
+};
+
+export type DeleteApiV3ClientsByClientIdRegularizationByIdJsonResponse =
+  unknown;
+
+export type PostApiV3ClientsByClientIdTreasuryMovementsJsonData = {
+  apiKey: string;
+  clientId: number;
+  requestBody: TreasuryMovementRequest;
+};
+
+export type PostApiV3ClientsByClientIdTreasuryMovementsJsonResponse =
+  TreasuryMovementResponse;
+
+export type DeleteApiV3ClientsByClientIdTreasuryMovementsByIdJsonData = {
+  apiKey: string;
+  clientId: number;
+  id: number;
+};
+
+export type DeleteApiV3ClientsByClientIdTreasuryMovementsByIdJsonResponse =
+  unknown;

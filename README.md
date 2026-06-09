@@ -4,7 +4,7 @@ A typed JavaScript / TypeScript client for the [InvoiceXpress](https://invoicexp
 
 The client is generated from an OpenAPI specification with [`@hey-api/openapi-ts`](https://heyapi.dev/) and ships with full TypeScript types for every request and response.
 
-- 📦 Single client class exposing every resource (`clients`, `invoices`, `invoicesReceipts`, `estimates`, `guides`, `sequences`, `accounts`, `items`, `taxes`, `saft`)
+- 📦 Single client class exposing every resource (`clients`, `invoices`, `invoicesReceipts`, `estimates`, `guides`, `sequences`, `accounts`, `treasury`, `items`, `taxes`, `saft`)
 - 🟦 First-class TypeScript types for request payloads and responses
 - 🔁 Request / response interceptors
 - ⏹️ Cancelable requests
@@ -430,6 +430,61 @@ await client.accounts.postApiV3AccountsAtCommunicationJson({
 });
 ```
 
+### Treasury
+
+Per-client treasury operations: read the balance, set the initial balance, and
+manage regularizations and treasury movements.
+
+```ts
+const clientId = 12345;
+
+// Balance
+await client.treasury.getApiV3ClientsByClientIdBalanceJson({
+  apiKey,
+  clientId,
+});
+await client.treasury.putApiV3ClientsByClientIdInitialBalanceJson({
+  apiKey,
+  clientId,
+  requestBody: { value: 250.0, date: "2026-01-01" },
+});
+
+// Regularizations
+await client.treasury.getApiV3ClientsByClientIdRegularizationJson({
+  apiKey,
+  clientId,
+});
+const reg = await client.treasury.postApiV3ClientsByClientIdRegularizationJson({
+  apiKey,
+  clientId,
+  requestBody: { regularization: { value: 123.45, date: "2026-06-09" } },
+});
+await client.treasury.deleteApiV3ClientsByClientIdRegularizationByIdJson({
+  apiKey,
+  clientId,
+  id: reg.regularization![0].id,
+});
+
+// Treasury movements
+const mov =
+  await client.treasury.postApiV3ClientsByClientIdTreasuryMovementsJson({
+    apiKey,
+    clientId,
+    requestBody: {
+      treasury_movement: {
+        value: 100,
+        movement_type: "Payment",
+        date: "2026-06-09",
+      },
+    },
+  });
+await client.treasury.deleteApiV3ClientsByClientIdTreasuryMovementsByIdJson({
+  apiKey,
+  clientId,
+  id: mov.treasury_movement!.id!,
+});
+```
+
 ### SAF-T export
 
 ```ts
@@ -512,70 +567,70 @@ import type {
 
 ## Operations implemented
 
-| API Section   | Operation                | Status          |
-| ------------- | ------------------------ | --------------- |
-| **Invoices**  | Send by email            | ✅              |
-|               | Generate PDF             | ✅              |
-|               | Get                      | ✅              |
-|               | List all                 | ✅              |
-|               | Create                   | ✅              |
-|               | Update                   | ✅              |
-|               | Change-state             | ✅              |
-|               | Related documents        | ✅              |
-|               | Generate payment         | ✅              |
-|               | Cancel payment           | ✅              |
-|               | Get QR Code              | ✅              |
-| **Estimates** | Send by email            | ✅              |
-|               | Generate PDF             | ✅              |
-|               | Get                      | ✅              |
-|               | List all                 | ✅              |
-|               | Create                   | ✅              |
-|               | Update                   | ✅              |
-|               | Change-state             | ✅              |
-| **Guides**    | Send by email            | ✅              |
-|               | Generate PDF             | ✅              |
-|               | Get                      | ✅              |
-|               | List all                 | ✅              |
-|               | Create                   | ✅              |
-|               | Update                   | ✅              |
-|               | Change-state             | ✅              |
-|               | Get QR Code              | ✅              |
-| **Clients**   | List all                 | ✅              |
-|               | Get                      | ✅              |
-|               | Update                   | ✅              |
-|               | Create                   | ✅              |
-|               | Find by name             | ✅              |
-|               | Find by code             | ✅              |
-|               | List invoices            | ✅              |
-| **Items**     | List all                 | ✅              |
-|               | Get                      | ✅              |
-|               | Update                   | ✅              |
-|               | Create                   | ✅              |
-|               | Delete                   | ✅              |
-| **Sequences** | Register                 | ✅              |
-|               | List all                 | ✅              |
-|               | Get                      | ✅              |
-|               | Update                   | ✅              |
-|               | Create                   | ✅              |
-|               | Set current              | ✅              |
-| **Taxes**     | List all                 | ✅              |
-|               | Get                      | ✅              |
-|               | Update                   | ✅              |
-|               | Create                   | ✅              |
-|               | Delete                   | ✅              |
-| **Accounts**  | Get                      | ✅              |
-|               | Update                   | ✅              |
-|               | Create                   | ✅              |
-|               | Create for existing user | ✅              |
-|               | At Communication         | ✅              |
-| **SAF-T**     | Export SAF-T             | ✅              |
-| **Treasury**  | Get client balance       | Not Implemented |
-|               | Update initial balance   | Not Implemented |
-|               | Get regularization       | Not Implemented |
-|               | Create regularization    | Not Implemented |
-|               | Delete regularization    | Not Implemented |
-|               | Create treasury movement | Not Implemented |
-|               | Delete treasury movement | Not Implemented |
+| API Section   | Operation                | Status |
+| ------------- | ------------------------ | ------ |
+| **Invoices**  | Send by email            | ✅     |
+|               | Generate PDF             | ✅     |
+|               | Get                      | ✅     |
+|               | List all                 | ✅     |
+|               | Create                   | ✅     |
+|               | Update                   | ✅     |
+|               | Change-state             | ✅     |
+|               | Related documents        | ✅     |
+|               | Generate payment         | ✅     |
+|               | Cancel payment           | ✅     |
+|               | Get QR Code              | ✅     |
+| **Estimates** | Send by email            | ✅     |
+|               | Generate PDF             | ✅     |
+|               | Get                      | ✅     |
+|               | List all                 | ✅     |
+|               | Create                   | ✅     |
+|               | Update                   | ✅     |
+|               | Change-state             | ✅     |
+| **Guides**    | Send by email            | ✅     |
+|               | Generate PDF             | ✅     |
+|               | Get                      | ✅     |
+|               | List all                 | ✅     |
+|               | Create                   | ✅     |
+|               | Update                   | ✅     |
+|               | Change-state             | ✅     |
+|               | Get QR Code              | ✅     |
+| **Clients**   | List all                 | ✅     |
+|               | Get                      | ✅     |
+|               | Update                   | ✅     |
+|               | Create                   | ✅     |
+|               | Find by name             | ✅     |
+|               | Find by code             | ✅     |
+|               | List invoices            | ✅     |
+| **Items**     | List all                 | ✅     |
+|               | Get                      | ✅     |
+|               | Update                   | ✅     |
+|               | Create                   | ✅     |
+|               | Delete                   | ✅     |
+| **Sequences** | Register                 | ✅     |
+|               | List all                 | ✅     |
+|               | Get                      | ✅     |
+|               | Update                   | ✅     |
+|               | Create                   | ✅     |
+|               | Set current              | ✅     |
+| **Taxes**     | List all                 | ✅     |
+|               | Get                      | ✅     |
+|               | Update                   | ✅     |
+|               | Create                   | ✅     |
+|               | Delete                   | ✅     |
+| **Accounts**  | Get                      | ✅     |
+|               | Update                   | ✅     |
+|               | Create                   | ✅     |
+|               | Create for existing user | ✅     |
+|               | At Communication         | ✅     |
+| **SAF-T**     | Export SAF-T             | ✅     |
+| **Treasury**  | Get client balance       | ✅     |
+|               | Update initial balance   | ✅     |
+|               | Get regularization       | ✅     |
+|               | Create regularization    | ✅     |
+|               | Delete regularization    | ✅     |
+|               | Create treasury movement | ✅     |
+|               | Delete treasury movement | ✅     |
 
 ## Development
 
@@ -622,7 +677,7 @@ Runnable, type-checked usage examples live in [`examples/`](./examples) — see 
 
 - [x] Add tests
 - [x] Add an `examples/` folder
-- [ ] Implement more operations (Treasury)
+- [x] Implement all documented operations
 
 ## License
 
