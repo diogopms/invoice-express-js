@@ -8,13 +8,15 @@ A typed JavaScript / TypeScript client for the [InvoiceXpress](https://invoicexp
 
 The client is generated from an OpenAPI specification with [`@hey-api/openapi-ts`](https://heyapi.dev/) and ships with full TypeScript types for every request and response.
 
-- 📦 Single client class exposing every resource (`clients`, `invoices`, `invoicesReceipts`, `estimates`, `guides`, `sequences`, `accounts`, `treasury`, `items`, `taxes`, `saft`)
+- 📦 A tree-shakeable **function per operation** for every resource (clients, invoices, invoice receipts, estimates, guides, sequences, accounts, treasury, items, taxes, SAF-T)
 - 🟦 First-class TypeScript types for request payloads and responses
-- 🔁 Request / response interceptors
-- ⏹️ Cancelable requests
+- 🟩 Results returned as `{ data, error }` — no `try/catch` required
+- 🔁 Request / response interceptors and `AbortSignal` cancellation
 - 🌐 Built on `fetch` — no runtime dependencies
 
 > **Status:** every documented InvoiceXpress operation is implemented and verified live against the API — see [Operations implemented](#operations-implemented). (One known server-side caveat: guide update; see the note there.)
+>
+> **v2** moved from a class-based client to a generated **functional SDK** — see [Quick start](#quick-start). For the previous API, pin `^1`.
 
 ## Contents
 
@@ -55,105 +57,93 @@ yarn add @diogopms/invoice-express-js
 ## Quick start
 
 ```ts
-import { InvoiceExpressClient } from "@diogopms/invoice-express-js";
+import { client, getClientsJson } from "@diogopms/invoice-express-js";
 
-// Your account name is the subdomain of your InvoiceXpress URL:
-// https://<account-name>.app.invoicexpress.com
-const client = new InvoiceExpressClient({
-  BASE: "https://your-account.app.invoicexpress.com",
+// Configure the shared client once. Your account name is the subdomain of your
+// InvoiceXpress URL: https://<account-name>.app.invoicexpress.com
+client.setConfig({ baseUrl: "https://your-account.app.invoicexpress.com" });
+
+const api_key = "your-api-key";
+
+const { data, error } = await getClientsJson({
+  query: { api_key, page: 1, per_page: 10 },
 });
 
-const apiKey = "your-api-key";
-
-const { clients, pagination } = await client.clients.getClientsJson({
-  apiKey,
-  page: 1,
-  perPage: 10,
-});
-
-console.log(`${pagination.total_entries} clients found`);
-console.log(clients);
+if (error) throw error;
+console.log(`${data.pagination.total_entries} clients found`);
+console.log(data.clients);
 ```
+
+Every operation is a standalone function that takes a single options object
+(`{ query, path, body }`) and returns `{ data, error, request, response }` — it
+**does not throw** on HTTP errors; check `error` instead.
 
 ## Authentication
 
-InvoiceXpress authenticates every request with an **API key** passed as a query parameter. With this client, you pass your `apiKey` to each method call:
+InvoiceXpress authenticates every request with an **API key** sent as the
+`api_key` query parameter. Pass it in `query` on each call:
 
 ```ts
-await client.taxes.getTaxesJson({ apiKey: "your-api-key" });
+await getTaxesJson({ query: { api_key: "your-api-key" } });
 ```
 
 You can find your API key in your InvoiceXpress account under **Account Settings → API**.
 
-The `apiKey` is passed **per call** (it's sent as the `api_key` query parameter).
-If you call the same resource a lot, bind it once with a small helper:
-
-```ts
-const apiKey = "your-api-key";
-const taxes = () => client.taxes.getTaxesJson({ apiKey });
-
-await taxes();
-```
-
-> Note: the API key can't be injected globally via an interceptor — request
-> interceptors receive the `RequestInit` (headers/body/method), not the URL where
-> the query string lives.
-
 ## Configuration
 
-The constructor accepts a partial configuration object. Only `BASE` is typically required.
+Configure the shared `client` with `client.setConfig(...)` (only `baseUrl` is
+typically required). Anything `fetch` accepts can be set here, plus a custom
+`fetch` implementation.
 
 ```ts
-const client = new InvoiceExpressClient({
-  BASE: "https://your-account.app.invoicexpress.com", // required: your account URL
-  VERSION: "1.0.0",
-  HEADERS: { "X-Custom-Header": "value" },
-  WITH_CREDENTIALS: false,
-  CREDENTIALS: "include", // "include" | "omit" | "same-origin"
-  ENCODE_PATH: encodeURIComponent,
+import { client } from "@diogopms/invoice-express-js";
+
+client.setConfig({
+  baseUrl: "https://your-account.app.invoicexpress.com", // required: your account URL
+  headers: { "X-Custom-Header": "value" },
+  credentials: "include", // "include" | "omit" | "same-origin"
+  // fetch: myFetch, // optional custom fetch (used by the test suite)
 });
 ```
 
-| Option             | Type                                   | Default                                      | Description                                   |
-| ------------------ | -------------------------------------- | -------------------------------------------- | --------------------------------------------- |
-| `BASE`             | `string`                               | `https://account_name.app.invoicexpress.com` | Base URL of your InvoiceXpress account.       |
-| `VERSION`          | `string`                               | `1.0.0`                                      | API version.                                  |
-| `HEADERS`          | `Record<string, string>` or resolver   | `undefined`                                  | Extra headers sent with every request.        |
-| `WITH_CREDENTIALS` | `boolean`                              | `false`                                      | Whether to send credentials with the request. |
-| `CREDENTIALS`      | `"include" \| "omit" \| "same-origin"` | `"include"`                                  | `fetch` credentials mode.                     |
-| `ENCODE_PATH`      | `(path: string) => string`             | `undefined`                                  | Custom path-encoding function.                |
+Need isolated clients (e.g. per tenant)? Create your own and pass it per call as
+`{ client: myClient }`:
+
+```ts
+import { createClient, createConfig, getTaxesJson } from "@diogopms/invoice-express-js";
+
+const tenant = createClient(
+  createConfig({ baseUrl: "https://tenant.app.invoicexpress.com" }),
+);
+await getTaxesJson({ client: tenant, query: { api_key } });
+```
 
 ## Usage
 
-The client exposes one property per resource. Every method takes a single `data` object and returns a `CancelablePromise` resolving to a typed response.
+Each operation is a function named after its HTTP method + path. Calls follow a
+uniform shape — `query` for query params (always including `api_key`), `path`
+for path params, `body` for the request body:
 
 ### Clients
 
 ```ts
-// List clients (paginated)
-const list = await client.clients.getClientsJson({
-  apiKey,
-  page: 1,
-  perPage: 20,
-});
+import {
+  getClientsJson,
+  getClientsByClientIdJson,
+  getClientsFindByNameJson,
+  postClientsJson,
+} from "@diogopms/invoice-express-js";
 
-// Get a client by ID
-const { client: found } = await client.clients.getClientsByClientIdJson({
-  apiKey,
-  clientId: 12345,
+await getClientsJson({ query: { api_key, page: 1, per_page: 20 } });
+await getClientsByClientIdJson({
+  path: { "client-id": 12345 },
+  query: { api_key },
 });
+await getClientsFindByNameJson({ query: { api_key, client_name: "Acme, Lda" } });
 
-// Find by name / code
-await client.clients.getClientsFindByNameJson({
-  apiKey,
-  clientName: "Acme, Lda",
-});
-await client.clients.getClientsFindByCodeJson({ apiKey, clientCode: 1001 });
-
-// Create a client
-const created = await client.clients.postClientsJson({
-  apiKey,
-  requestBody: {
+const { data } = await postClientsJson({
+  query: { api_key },
+  body: {
     client: {
       name: "Acme, Lda",
       email: "billing@acme.example",
@@ -161,437 +151,222 @@ const created = await client.clients.postClientsJson({
     },
   },
 });
-
-// List a client's invoices
-await client.clients.postClientsByClientIdInvoicesJson({
-  apiKey,
-  clientId: 12345,
-  requestBody: { filter: { status: ["draft", "sent"] } },
-});
 ```
 
-### Invoices
+### Invoices & invoice receipts
+
+Array filters use `type[]` / `status[]` query keys. Documents are addressed by
+`document-id`.
 
 ```ts
-const invoices = await client.invoices.getInvoicesJson({
-  apiKey,
-  page: 1,
-  perPage: 20,
-  nonArchived: true,
-  typeArray: ["Invoice", "InvoiceReceipt"],
-  statusArray: ["draft", "sent"],
-});
-
-// Cancel a payment (cancels the receipt generated for a partial payment)
-await client.invoices.putReceiptsByReceiptIdChangeStateJson({
-  apiKey,
-  receiptId: 67890,
-  requestBody: {
-    receipt: { state: "canceled", message: "Wrong payment values." },
+await getInvoicesJson({
+  query: {
+    api_key,
+    page: 1,
+    per_page: 20,
+    non_archived: true,
+    "type[]": ["Invoice", "InvoiceReceipt"],
+    "status[]": ["draft", "sent"],
   },
 });
 
-// Get a document's QR code (shared endpoint — works for invoices too)
-await client.guides.getApiQrCodesByDocumentIdJson({
-  apiKey,
-  documentId: 12345,
-});
-```
-
-### Invoice receipts
-
-```ts
-// Create an invoice receipt
-const receipt = await client.invoicesReceipts.postInvoiceReceiptsJson({
-  apiKey,
-  requestBody: {
+// Create a draft invoice receipt, finalize it, email it, fetch the PDF / QR code
+const receipt = await postInvoiceReceiptsJson({
+  query: { api_key },
+  body: {
     invoice_receipt: {
-      date: "08/06/2026",
-      due_date: "08/06/2026",
+      date: "09/06/2026",
+      due_date: "09/06/2026",
       status: "draft",
-      client: { name: "Acme, Lda", code: "ACME" },
+      client: { name: "Acme, Lda" },
       items: [{ name: "Consulting", unit_price: 100, quantity: 2 }],
     },
   },
 });
+const documentId = receipt.data!.invoice_receipt!.id;
 
-const documentId = receipt.invoice_receipt!.id;
-
-// Get a document
-await client.invoicesReceipts.getInvoiceReceiptsByDocumentIdJson({
-  apiKey,
-  documentId,
+await putInvoiceReceiptsByDocumentIdChangeStateJson({
+  path: { "document-id": documentId },
+  query: { api_key },
+  body: { invoice_receipt: { state: "finalized" } },
 });
+await getApiPdfByDocumentIdJson({ path: { "document-id": documentId }, query: { api_key } }); // poll until 200
+await getApiQrCodesByDocumentIdJson({ path: { "document-id": documentId }, query: { api_key } });
 
-// Change its state (e.g. finalize)
-await client.invoicesReceipts.putInvoiceReceiptsByDocumentIdChangeStateJson({
-  apiKey,
-  documentId,
-  requestBody: { invoice_receipt: { state: "finalized" } },
+// Generate / cancel a payment
+await postDocumentsByDocumentIdPartialPaymentsJson({
+  path: { "document-id": documentId },
+  query: { api_key },
+  body: { partial_payment: { amount: 50, payment_date: "09/06/2026" } },
 });
-
-// Send by email
-await client.invoicesReceipts.putInvoiceReceiptsByDocumentIdEmailDocumentJson({
-  apiKey,
-  documentId,
-  requestBody: { message: { subject: "Your invoice", body: "Thank you!" } },
+await putReceiptsByReceiptIdChangeStateJson({
+  path: { "receipt-id": 67890 },
+  query: { api_key },
+  body: { receipt: { state: "canceled", message: "Wrong values." } },
 });
-
-// Generate the PDF (poll until it resolves to a 200)
-await client.invoicesReceipts.getApiPdfByDocumentIdJson({ apiKey, documentId });
 ```
 
-### Estimates
+### Estimates & guides
 
-Estimates cover quotes, proformas and fees notes. The `estimatesType` path
-segment selects the document type, and the request/response body is wrapped under
-the matching singular key (`quote`, `proforma` or `fees_note`).
+The `{estimates-type}` / `{guides-type}` path segment picks the document type;
+the body/response is wrapped under the matching singular key.
 
 ```ts
-// Create a quote
-const created = await client.estimates.postByEstimatesTypeJson({
-  apiKey,
-  estimatesType: "quotes",
-  requestBody: {
+// estimates: quotes | proformas | fees_notes   (key: quote | proforma | fees_note)
+const quote = await postByEstimatesTypeJson({
+  path: { "estimates-type": "quotes" },
+  query: { api_key },
+  body: {
     quote: {
       date: "09/06/2026",
       due_date: "23/06/2026",
-      client: { name: "Acme, Lda", code: "ACME" },
-      items: [{ name: "Consulting", unit_price: 100, quantity: 2 }],
-    },
-  },
-});
-
-const documentId = created.quote!.id;
-
-// Get / update
-await client.estimates.getByEstimatesTypeByDocumentIdJson({
-  apiKey,
-  estimatesType: "quotes",
-  documentId,
-});
-await client.estimates.putByEstimatesTypeByDocumentIdJson({
-  apiKey,
-  estimatesType: "quotes",
-  documentId,
-  requestBody: {
-    quote: {
-      date: "09/06/2026",
-      due_date: "30/06/2026",
       client: { name: "Acme, Lda" },
-      items: [],
+      items: [{ name: "Consulting", unit_price: 100, quantity: 1 }],
     },
   },
 });
-
-// Finalize, then email
-await client.estimates.putByEstimatesTypeByDocumentIdChangeStateJson({
-  apiKey,
-  estimatesType: "quotes",
-  documentId,
-  requestBody: { quote: { state: "finalized" } },
-});
-await client.estimates.putByEstimatesTypeByDocumentIdEmailDocumentJson({
-  apiKey,
-  estimatesType: "quotes",
-  documentId,
-  requestBody: { message: { subject: "Your quote", body: "Thank you!" } },
+await putByEstimatesTypeByDocumentIdChangeStateJson({
+  path: { "estimates-type": "quotes", "document-id": quote.data!.quote!.id },
+  query: { api_key },
+  body: { quote: { state: "finalized" } },
 });
 
-// List all estimates (paginated)
-await client.estimates.getEstimatesJson({ apiKey, page: 1, perPage: 20 });
-
-// Generate the PDF (shared endpoint — poll until it resolves to a 200)
-await client.invoicesReceipts.getApiPdfByDocumentIdJson({ apiKey, documentId });
-```
-
-### Guides
-
-Guides cover shippings, transports and devolutions (transport documents). The
-`guidesType` path segment selects the document type, and the request/response
-body is wrapped under the matching singular key (`shipping`, `transport` or
-`devolution`).
-
-```ts
-// Create a transport guide
-const created = await client.guides.postByGuidesTypeJson({
-  apiKey,
-  guidesType: "transports",
-  requestBody: {
+// guides: shippings | transports | devolutions   (key: shipping | transport | devolution)
+await postByGuidesTypeJson({
+  path: { "guides-type": "transports" },
+  query: { api_key },
+  body: {
     transport: {
       date: "09/06/2026",
       loaded_at: "09/06/2026 19:00:00",
       tax_exemption: "M10",
-      address_from: {
-        detail: "Rua A, 1",
-        city: "Lisboa",
-        postal_code: "1000-001",
-        country: "Portugal",
-      },
-      address_to: {
-        detail: "Rua B, 2",
-        city: "Porto",
-        postal_code: "4000-002",
-        country: "Portugal",
-      },
-      client: { name: "Acme, Lda", code: "ACME" },
+      client: { name: "Acme, Lda" },
       items: [{ name: "Pallet", unit_price: 0, quantity: 3 }],
     },
   },
 });
-
-const documentId = created.transport!.id;
-
-// Get / update
-await client.guides.getByGuidesTypeByDocumentIdJson({
-  apiKey,
-  guidesType: "transports",
-  documentId,
-});
-
-// Finalize, then email
-await client.guides.putByGuidesTypeByDocumentIdChangeStateJson({
-  apiKey,
-  guidesType: "transports",
-  documentId,
-  requestBody: { transport: { state: "finalized" } },
-});
-await client.guides.putByGuidesTypeByDocumentIdEmailDocumentJson({
-  apiKey,
-  guidesType: "transports",
-  documentId,
-  requestBody: {
-    message: { subject: "Your transport guide", body: "In transit." },
-  },
-});
-
-// List all guides (paginated)
-await client.guides.getGuidesJson({ apiKey, page: 1, perPage: 20 });
-
-// QR code and PDF (shared endpoints — poll the PDF until it resolves to a 200)
-await client.guides.getApiQrCodesByDocumentIdJson({ apiKey, documentId });
-await client.invoicesReceipts.getApiPdfByDocumentIdJson({ apiKey, documentId });
 ```
 
-### Sequences
-
-Document numbering sequences. Create a sequence, set it as the account's current
-one, and register it with the Tax Authority.
+### Sequences, items & taxes
 
 ```ts
-// Create a sequence
-const created = await client.sequences.postSequencesJson({
-  apiKey,
-  requestBody: { sequence: { serie: "2026", default_sequence: "1" } },
+// Sequences
+const seq = await postSequencesJson({
+  query: { api_key },
+  body: { sequence: { serie: "2026", default_sequence: "1" } },
+});
+await putSequencesBySequenceIdSetCurrentJson({
+  path: { "sequence-id": seq.data!.sequence!.id },
+  query: { api_key },
 });
 
-const sequenceId = created.sequence!.id;
-
-// List / get
-await client.sequences.getSequencesJson({ apiKey });
-await client.sequences.getSequencesBySequenceIdJson({ apiKey, sequenceId });
-
-// Set as current, then register with the Tax Authority
-await client.sequences.putSequencesBySequenceIdSetCurrentJson({
-  apiKey,
-  sequenceId,
+// Items — NOTE: unit_price must be a string ("100"); a number is rejected with a 422
+const item = await postItemsJson({
+  query: { api_key },
+  body: { item: { name: "Consulting", unit_price: "100", tax: { name: "IVA23" } } },
 });
-await client.sequences.putSequencesBySequenceIdRegisterJson({
-  apiKey,
-  sequenceId,
-});
-```
+await deleteItemsByItemIdJson({ path: { "item-id": item.data!.item!.id }, query: { api_key } });
 
-### Items & taxes
-
-```ts
-await client.items.getItemsJson({ apiKey });
-await client.items.getItemsByItemIdJson({ apiKey, itemId: 999 });
-
-// Create / update / delete. NOTE: the items endpoint requires `unit_price` as a
-// string (e.g. "100") — a numeric value is rejected by the API with a 422.
-const item = await client.items.postItemsJson({
-  apiKey,
-  requestBody: {
-    item: { name: "Consulting", unit_price: "100", tax: { name: "IVA23" } },
-  },
-});
-await client.items.putItemsByItemIdJson({
-  apiKey,
-  itemId: item.item!.id,
-  requestBody: { item: { name: "Consulting (senior)", unit_price: "150" } },
-});
-await client.items.deleteItemsByItemIdJson({ apiKey, itemId: item.item!.id });
-
-await client.taxes.getTaxesJson({ apiKey });
-await client.taxes.getTaxesByTaxIdJson({ apiKey, taxId: 42 });
-```
-
-### Accounts
-
-Partner/reseller operations for managing accounts. Create an account (with a new
-or existing user), fetch and update it, and submit the AT communication.
-
-```ts
-// Create an account
-const created = await client.accounts.postApiAccountsCreateJson({
-  apiKey,
-  requestBody: {
-    account: {
-      organization_name: "Acme, Lda",
-      first_name: "Ada",
-      last_name: "Lovelace",
-      email: "ada@acme.example",
-      password: "s3cret!",
-      fiscal_id: "500000000",
-      tax_country: "PT",
-      language: "pt",
-      terms: "1",
-    },
-  },
-});
-
-const accountId = created.account!.id;
-
-// Get / update
-await client.accounts.getApiAccountsByAccountIdGetJson({ apiKey, accountId });
-await client.accounts.putApiAccountsByAccountIdUpdateJson({
-  apiKey,
-  accountId,
-  requestBody: {
-    account: { organization_name: "Acme II, Lda", email: "ada@acme.example" },
-  },
-});
-
-// Submit the AT (Tax Authority) communication
-await client.accounts.postApiV3AccountsAtCommunicationJson({
-  apiKey,
-  requestBody: {
-    at_communication: { login: "at-login", password: "at-password" },
-  },
+// Taxes — value is a string ("23.0") and region is required
+await postTaxesJson({
+  query: { api_key },
+  body: { tax: { name: "IVA23", value: "23.0", region: "PT" } },
 });
 ```
 
 ### Treasury
 
-Per-client treasury operations: read the balance, set the initial balance, and
-manage regularizations and treasury movements.
-
 ```ts
 const clientId = 12345;
-
-// Balance
-await client.treasury.getApiV3ClientsByClientIdBalanceJson({
-  apiKey,
-  clientId,
+await getApiV3ClientsByClientIdBalanceJson({ path: { "client-id": clientId }, query: { api_key } });
+await putApiV3ClientsByClientIdInitialBalanceJson({
+  path: { "client-id": clientId },
+  query: { api_key },
+  body: { initial_balance: { value: 250, date: "2026-01-01" } },
 });
-await client.treasury.putApiV3ClientsByClientIdInitialBalanceJson({
-  apiKey,
-  clientId,
-  requestBody: { value: 250.0, date: "2026-01-01" },
+await postApiV3ClientsByClientIdRegularizationJson({
+  path: { "client-id": clientId },
+  query: { api_key },
+  body: { regularization: { value: 123.45, date: "2026-06-09" } },
 });
-
-// Regularizations
-await client.treasury.getApiV3ClientsByClientIdRegularizationJson({
-  apiKey,
-  clientId,
-});
-const reg = await client.treasury.postApiV3ClientsByClientIdRegularizationJson({
-  apiKey,
-  clientId,
-  requestBody: { regularization: { value: 123.45, date: "2026-06-09" } },
-});
-await client.treasury.deleteApiV3ClientsByClientIdRegularizationByIdJson({
-  apiKey,
-  clientId,
-  id: reg.regularization![0].id,
-});
-
-// Treasury movements
-const mov =
-  await client.treasury.postApiV3ClientsByClientIdTreasuryMovementsJson({
-    apiKey,
-    clientId,
-    requestBody: {
-      treasury_movement: {
-        value: 100,
-        movement_type: "Payment",
-        date: "2026-06-09",
-      },
-    },
-  });
-await client.treasury.deleteApiV3ClientsByClientIdTreasuryMovementsByIdJson({
-  apiKey,
-  clientId,
-  id: mov.treasury_movement!.id!,
+await postApiV3ClientsByClientIdTreasuryMovementsJson({
+  path: { "client-id": clientId },
+  query: { api_key },
+  body: { treasury_movement: { value: 100, movement_type: "Payment", date: "2026-06-09" } },
 });
 ```
 
-### SAF-T export
+### Accounts & SAF-T
 
 ```ts
-// Returns { url } once ready, or { message } while still generating — keep polling.
-const saft = await client.saft.getApiExportSaftJson({
-  apiKey,
-  month: "6",
-  years: "2026",
+// Accounts (partner/reseller API)
+await postApiAccountsCreateJson({
+  query: { api_key },
+  body: { account: { organization_name: "Acme, Lda", email: "ada@acme.example" } },
 });
+
+// SAF-T export — returns { url } once ready, or { message } while still generating; keep polling
+await getApiExportSaftJson({ query: { api_key, month: "6", years: "2026" } });
 ```
 
 ## Error handling
 
-Failed requests throw an `ApiError` containing the HTTP status and response body.
+Operations **do not throw** on HTTP errors. Each call resolves to
+`{ data, error, request, response }`: on success `data` is set and `error` is
+`undefined`; on an error status `data` is `undefined` and `error` holds the typed
+response body.
 
 ```ts
-import { ApiError } from "@diogopms/invoice-express-js";
+const { data, error, response } = await getClientsByClientIdJson({
+  path: { "client-id": 0 },
+  query: { api_key },
+});
 
-try {
-  await client.clients.getClientsByClientIdJson({ apiKey, clientId: 0 });
-} catch (error) {
-  if (error instanceof ApiError) {
-    console.error(error.status); // e.g. 404
-    console.error(error.statusText);
-    console.error(error.body); // raw response body
-  } else {
-    throw error;
-  }
+if (error) {
+  console.error(response.status, error); // e.g. 404, { error: "..." }
+} else {
+  console.log(data.client);
 }
+```
+
+Prefer exceptions? Pass `throwOnError: true` to make a call throw instead:
+
+```ts
+const { data } = await getTaxesJson({ query: { api_key }, throwOnError: true });
 ```
 
 ## Interceptors
 
-Register middleware to inspect or mutate every request and response. Interceptors run in registration order.
+Register middleware on the shared `client` to inspect or mutate every request and
+response. Interceptors receive the `fetch` `Request` / `Response`.
 
 ```ts
-// Mutate the outgoing fetch RequestInit
-client.request.config.interceptors.request.use((req) => {
-  req.headers = { ...req.headers, "X-Trace-Id": crypto.randomUUID() };
-  return req;
+import { client } from "@diogopms/invoice-express-js";
+
+client.interceptors.request.use((request) => {
+  request.headers.set("X-Trace-Id", crypto.randomUUID());
+  return request;
 });
 
-// Inspect the raw Response
-client.request.config.interceptors.response.use((res) => {
-  console.log("←", res.status, res.url);
-  return res;
+client.interceptors.response.use((response) => {
+  console.log("←", response.status, response.url);
+  return response;
 });
 ```
 
 ## Cancellation
 
-Every method returns a `CancelablePromise`, so in-flight requests can be aborted.
+Pass an `AbortSignal` to cancel an in-flight request:
 
 ```ts
-const promise = client.invoices.getInvoicesJson({
-  apiKey,
-  page: 1,
-  perPage: 50,
-  nonArchived: true,
-  typeArray: ["Invoice"],
-  statusArray: ["draft"],
+const controller = new AbortController();
+
+const promise = getInvoicesJson({
+  query: { api_key, page: 1, per_page: 50, non_archived: true },
+  signal: controller.signal,
 });
 
-// later…
-promise.cancel();
+controller.abort(); // later…
 ```
 
 ## TypeScript
@@ -732,13 +507,14 @@ The suite under [`test/`](./test) uses Node's built-in test runner (no extra
 dependencies) and runs with `pnpm run test`:
 
 - **Smoke** ([`smoke.test.js`](./test/smoke.test.js)) — builds the package and
-  asserts the client exposes every resource service plus a representative
-  operation per service, guarding against the generator silently dropping or
-  renaming an operation.
-- **End-to-end** ([`e2e.test.js`](./test/e2e.test.js)) — drives the client
-  through its full request pipeline (URL building, query params, JSON body,
-  interceptors and `ApiError` mapping) against a mocked `fetch` transport, so the
-  whole stack is exercised without network access or account credentials.
+  asserts it exports a configurable `client` plus a representative operation for
+  every resource, guarding against the generator dropping or renaming an
+  operation.
+- **End-to-end** ([`e2e.test.js`](./test/e2e.test.js)) — drives the SDK through
+  its full request pipeline (URL building, query params, JSON body, interceptors
+  and the `{ data, error }` result model) against a `fetch` injected via
+  `client.setConfig`, so the whole stack is exercised without network access or
+  account credentials.
 
 ### Live verification
 

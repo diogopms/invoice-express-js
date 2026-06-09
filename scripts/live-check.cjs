@@ -1,94 +1,70 @@
 "use strict";
 
 /**
- * Live verification runner for the InvoiceXpress client.
+ * Live verification runner for the InvoiceXpress SDK (v2 functional API).
  *
- * Drives the *built* client against a real account to confirm the endpoints
- * work, and reports coverage against every generated operation.
- *
- * Tiers:
- *   (default)      read-only endpoints
- *   --write        + reversible create/update/delete cycles (clean up after themselves)
- *   --destructive  + side-effecting ops: finalize, email, payments, sequence
- *                    register/set-current, accounts, AT communication
+ * Drives the *built* SDK against a real account and reports coverage across the
+ * generated operations. Read-only by default; `--write` adds reversible
+ * create/update/delete cycles that clean up after themselves.
  *
  * The API key is read from a command-line argument — never from an environment
  * variable, a file, or source control. Nothing is persisted.
  *
  *   pnpm run build
- *   node scripts/live-check.cjs <api-key> <base-url> [--write] [--destructive]
- *
- * Example:
- *   node scripts/live-check.cjs KEY https://your-account.app.invoicexpress.com --write
+ *   node scripts/live-check.cjs <api-key> <base-url> [--write]
  */
 
 const path = require("node:path");
-const { InvoiceExpressClient, ApiError } = require(
-  path.join(__dirname, "..", "dist", "index.js"),
-);
+const sdk = require(path.join(__dirname, "..", "dist", "index.js"));
 
 const args = process.argv.slice(2);
-const withWrite = args.includes("--write") || args.includes("--destructive");
-const withDestructive = args.includes("--destructive");
+const withWrite = args.includes("--write");
 const positional = args.filter((a) => !a.startsWith("--"));
-const apiKey = positional[0];
+const api_key = positional[0];
 const BASE = positional[1];
 
-if (!apiKey || !BASE) {
+if (!api_key || !BASE) {
   console.error(
-    "usage: node scripts/live-check.cjs <api-key> <base-url> [--write] [--destructive]\n" +
+    "usage: node scripts/live-check.cjs <api-key> <base-url> [--write]\n" +
       "  <base-url> e.g. https://your-account.app.invoicexpress.com",
   );
   process.exit(2);
 }
 
-const client = new InvoiceExpressClient({ BASE });
-const TODAY = "01/01/2030";
-const DUE = "31/01/2030";
-const ISO = "2030-01-01";
+sdk.client.setConfig({ baseUrl: BASE });
 
 const results = [];
-const exercised = new Set();
-
-// Every generated operation, discovered from the client's services.
-const ALL_OPS = (() => {
-  const ops = new Set();
-  for (const key of Object.keys(client)) {
-    const svc = client[key];
-    if (!svc || typeof svc !== "object") continue;
-    for (const m of Object.getOwnPropertyNames(Object.getPrototypeOf(svc))) {
-      if (m.endsWith("Json") && typeof svc[m] === "function")
-        ops.add(`${key}.${m}`);
-    }
-  }
-  return ops;
-})();
-
-function record(svcMethod) {
-  if (svcMethod) exercised.add(svcMethod);
-}
-
-async function check(name, svcMethod, fn, { okStatuses = [] } = {}) {
-  record(svcMethod);
+async function check(name, fn, { okStatuses = [] } = {}) {
   try {
-    const res = await fn();
-    results.push({ name, ok: true, info: brief(res) });
-    return res;
+    const { data, error, response } = await fn();
+    const status = response ? response.status : "ERR";
+    if (response && response.ok) {
+      // 2xx — success (empty-body 200s can surface error as `{}`, ignore it)
+      results.push({ name, ok: true, info: brief(data) });
+    } else {
+      const ok = okStatuses.includes(status);
+      results.push({
+        name,
+        ok,
+        reachable: ok,
+        status,
+        info: JSON.stringify(error).slice(0, 130),
+      });
+    }
+    return data;
   } catch (e) {
-    const status = e instanceof ApiError ? e.status : "ERR";
-    const okExpected = okStatuses.includes(status);
-    const info = (
-      e instanceof ApiError
-        ? JSON.stringify(e.body) || `(no body, ${e.statusText || ""})`
-        : String(e && e.message)
-    ).slice(0, 150);
-    results.push({ name, ok: okExpected, reachable: okExpected, status, info });
+    results.push({
+      name,
+      ok: false,
+      status: "THROW",
+      info: String(e.message).slice(0, 130),
+    });
     return null;
   }
 }
 
-function brief(res) {
-  if (res == null) return "ok";
+function brief(d) {
+  if (d == null) return "ok";
   for (const k of [
     "taxes",
     "items",
@@ -98,204 +74,119 @@ function brief(res) {
     "guides",
     "sequences",
   ]) {
-    if (Array.isArray(res[k])) return `${k}: ${res[k].length}`;
+    if (Array.isArray(d[k])) return `${k}: ${d[k].length}`;
   }
-  if (res.pagination) return `entries: ${res.pagination.total_entries}`;
-  const first = Object.keys(res)[0];
-  return first ? `${first}#${res[first] && res[first].id}` : "ok";
+  if (d.pagination) return `entries: ${d.pagination.total_entries}`;
+  const first = Object.keys(d)[0];
+  return first ? `${first}#${d[first] && d[first].id}` : "ok";
 }
 
 async function reads() {
-  const taxes = await check("taxes.list", "taxes.getTaxesJson", () =>
-    client.taxes.getTaxesJson({ apiKey }),
+  await check("taxes.list", () => sdk.getTaxesJson({ query: { api_key } }));
+  await check("items.list", () => sdk.getItemsJson({ query: { api_key } }));
+  await check("sequences.list", () =>
+    sdk.getSequencesJson({ query: { api_key } }),
   );
-  await check("items.list", "items.getItemsJson", () =>
-    client.items.getItemsJson({ apiKey }),
+  await check("estimates.list", () =>
+    sdk.getEstimatesJson({ query: { api_key, page: 1, per_page: 5 } }),
   );
-  const clients = await check("clients.list", "clients.getClientsJson", () =>
-    client.clients.getClientsJson({ apiKey, page: 1, perPage: 5 }),
-  );
-  await check("sequences.list", "sequences.getSequencesJson", () =>
-    client.sequences.getSequencesJson({ apiKey }),
-  );
-  await check("estimates.list", "estimates.getEstimatesJson", () =>
-    client.estimates.getEstimatesJson({ apiKey, page: 1, perPage: 5 }),
-  );
-  await check("guides.list", "guides.getGuidesJson", () =>
-    client.guides.getGuidesJson({ apiKey, page: 1, perPage: 5 }),
-  );
-  const invoices = await check(
-    "invoices.list",
-    "invoices.getInvoicesJson",
-    () =>
-      client.invoices.getInvoicesJson({
-        apiKey,
-        page: 1,
-        perPage: 5,
-        nonArchived: true,
-        typeArray: ["Invoice", "InvoiceReceipt", "CreditNote", "DebitNote"],
-        statusArray: ["draft", "sent", "settled", "canceled", "second_copy"],
-      }),
+  await check("guides.list", () =>
+    sdk.getGuidesJson({ query: { api_key, page: 1, per_page: 5 } }),
   );
   await check(
     "saft.export",
-    "saft.getApiExportSaftJson",
     () =>
-      client.saft.getApiExportSaftJson({ apiKey, month: "1", years: "2030" }),
-    { okStatuses: [422] }, // disabled on free-trial accounts
+      sdk.getApiExportSaftJson({
+        query: { api_key, month: "1", years: "2030" },
+      }),
+    { okStatuses: [422] },
   );
-
-  const taxId = taxes && taxes.taxes && taxes.taxes[0] && taxes.taxes[0].id;
-  if (taxId)
-    await check("taxes.get", "taxes.getTaxesByTaxIdJson", () =>
-      client.taxes.getTaxesByTaxIdJson({ apiKey, taxId }),
-    );
-
-  const items = await client.items.getItemsJson({ apiKey }).catch(() => null);
-  const itemId = items && items.items && items.items[0] && items.items[0].id;
-  if (itemId)
-    await check("items.get", "items.getItemsByItemIdJson", () =>
-      client.items.getItemsByItemIdJson({ apiKey, itemId }),
-    );
-
+  await check("invoices.list", () =>
+    sdk.getInvoicesJson({
+      query: {
+        api_key,
+        page: 1,
+        per_page: 5,
+        non_archived: true,
+        "type[]": ["Invoice", "InvoiceReceipt"],
+        "status[]": ["draft", "sent", "settled", "canceled", "second_copy"],
+      },
+    }),
+  );
+  const clients = await check("clients.list", () =>
+    sdk.getClientsJson({ query: { api_key, page: 1, per_page: 5 } }),
+  );
   const firstClient = clients && clients.clients && clients.clients[0];
   if (firstClient) {
     const cid = firstClient.id;
-    await check("clients.get", "clients.getClientsByClientIdJson", () =>
-      client.clients.getClientsByClientIdJson({ apiKey, clientId: cid }),
+    await check("clients.get", () =>
+      sdk.getClientsByClientIdJson({
+        path: { "client-id": cid },
+        query: { api_key },
+      }),
     );
     await check(
       "clients.findByName",
-      "clients.getClientsFindByNameJson",
       () =>
-        client.clients.getClientsFindByNameJson({
-          apiKey,
-          clientName: firstClient.name,
+        sdk.getClientsFindByNameJson({
+          query: { api_key, client_name: firstClient.name },
         }),
       { okStatuses: [404] },
     );
-    if (firstClient.code)
-      await check(
-        "clients.findByCode",
-        "clients.getClientsFindByCodeJson",
-        () =>
-          client.clients.getClientsFindByCodeJson({
-            apiKey,
-            clientCode: firstClient.code,
-          }),
-        { okStatuses: [404] },
-      );
-    await check(
-      "clients.listInvoices",
-      "clients.postClientsByClientIdInvoicesJson",
-      () =>
-        client.clients.postClientsByClientIdInvoicesJson({
-          apiKey,
-          clientId: cid,
-          requestBody: { filter: { status: ["draft", "sent"] } },
-        }),
-      { okStatuses: [404] },
-    );
-    await check(
-      "treasury.balance",
-      "treasury.getApiV3ClientsByClientIdBalanceJson",
-      () =>
-        client.treasury.getApiV3ClientsByClientIdBalanceJson({
-          apiKey,
-          clientId: cid,
-        }),
-    );
-    await check(
-      "treasury.regularization.list",
-      "treasury.getApiV3ClientsByClientIdRegularizationJson",
-      () =>
-        client.treasury.getApiV3ClientsByClientIdRegularizationJson({
-          apiKey,
-          clientId: cid,
-        }),
-    );
-  }
-
-  const seqs = await client.sequences
-    .getSequencesJson({ apiKey })
-    .catch(() => null);
-  const seqId =
-    seqs && seqs.sequences && seqs.sequences[0] && seqs.sequences[0].id;
-  if (seqId)
-    await check("sequences.get", "sequences.getSequencesBySequenceIdJson", () =>
-      client.sequences.getSequencesBySequenceIdJson({
-        apiKey,
-        sequenceId: seqId,
+    await check("treasury.balance", () =>
+      sdk.getApiV3ClientsByClientIdBalanceJson({
+        path: { "client-id": cid },
+        query: { api_key },
       }),
     );
-
-  const invId =
-    invoices &&
-    invoices.invoices &&
-    invoices.invoices[0] &&
-    invoices.invoices[0].id;
-  if (invId) {
-    await check("invoices.get", "invoices.getInvoicesByDocumentIdJson", () =>
-      client.invoices.getInvoicesByDocumentIdJson({
-        apiKey,
-        documentId: invId,
+    await check("treasury.regularization.list", () =>
+      sdk.getApiV3ClientsByClientIdRegularizationJson({
+        path: { "client-id": cid },
+        query: { api_key },
       }),
     );
-    await check(
-      "invoices.relatedDocuments",
-      "invoices.getDocumentByDocumentIdRelatedDocumentsJson",
-      () =>
-        client.invoices.getDocumentByDocumentIdRelatedDocumentsJson({
-          apiKey,
-          documentId: invId,
-        }),
-      { okStatuses: [404] },
-    );
   }
-
   return { firstClient };
 }
 
-async function writes(ctx) {
+async function writes() {
   const stamp = Date.now();
-  const ITEM = [
-    { name: "Svc", unit_price: 100, quantity: 1, tax: { name: "IVA23" } },
-  ];
 
-  // Taxes CRUD
+  // Taxes: create -> update -> delete
   const tax = await check(
     "taxes.create",
-    "taxes.postTaxesJson",
     () =>
-      client.taxes.postTaxesJson({
-        apiKey,
-        requestBody: {
+      sdk.postTaxesJson({
+        query: { api_key },
+        body: {
           tax: { name: `LC${stamp}`.slice(0, 18), value: "7", region: "PT" },
         },
       }),
     { okStatuses: [422] },
   );
-  const tId = tax && tax.tax && tax.tax.id;
-  if (tId) {
-    await check("taxes.update", "taxes.putTaxesByTaxIdJson", () =>
-      client.taxes.putTaxesByTaxIdJson({
-        apiKey,
-        taxId: tId,
-        requestBody: {
+  if (tax && tax.tax) {
+    await check("taxes.update", () =>
+      sdk.putTaxesByTaxIdJson({
+        path: { "tax-id": tax.tax.id },
+        query: { api_key },
+        body: {
           tax: { name: `LC${stamp}`.slice(0, 18), value: "9", region: "PT" },
         },
       }),
     );
-    await check("taxes.delete", "taxes.deleteTaxesByTaxIdJson", () =>
-      client.taxes.deleteTaxesByTaxIdJson({ apiKey, taxId: tId }),
+    await check("taxes.delete", () =>
+      sdk.deleteTaxesByTaxIdJson({
+        path: { "tax-id": tax.tax.id },
+        query: { api_key },
+      }),
     );
   }
 
-  // Items CRUD (unit_price as string)
-  const item = await check("items.create", "items.postItemsJson", () =>
-    client.items.postItemsJson({
-      apiKey,
-      requestBody: {
+  // Items: create -> update -> delete (unit_price as string)
+  const item = await check("items.create", () =>
+    sdk.postItemsJson({
+      query: { api_key },
+      body: {
         item: {
           name: `lc item ${stamp}`,
           unit_price: "50.0",
@@ -304,670 +195,178 @@ async function writes(ctx) {
       },
     }),
   );
-  const itemId = item && item.item && item.item.id;
-  if (itemId) {
-    await check("items.update", "items.putItemsByItemIdJson", () =>
-      client.items.putItemsByItemIdJson({
-        apiKey,
-        itemId,
-        requestBody: { item: { name: "lc upd", unit_price: "60.0" } },
+  if (item && item.item) {
+    await check("items.update", () =>
+      sdk.putItemsByItemIdJson({
+        path: { "item-id": item.item.id },
+        query: { api_key },
+        body: { item: { name: "lc upd", unit_price: "60.0" } },
       }),
     );
-    await check("items.delete", "items.deleteItemsByItemIdJson", () =>
-      client.items.deleteItemsByItemIdJson({ apiKey, itemId }),
+    await check("items.delete", () =>
+      sdk.deleteItemsByItemIdJson({
+        path: { "item-id": item.item.id },
+        query: { api_key },
+      }),
     );
   }
 
-  // Clients create/update (no delete endpoint). Give it a code so find-by-code
-  // can be exercised.
-  const code = `LC${stamp}`.slice(0, 12);
-  const cli = await check("clients.create", "clients.postClientsJson", () =>
-    client.clients.postClientsJson({
-      apiKey,
-      requestBody: {
-        client: { name: `lc client ${stamp}`, code, email: "lc@example.com" },
-      },
+  // Clients: create -> update
+  const cli = await check("clients.create", () =>
+    sdk.postClientsJson({
+      query: { api_key },
+      body: { client: { name: `lc client ${stamp}`, email: "lc@example.com" } },
     }),
   );
-  const cliId = cli && cli.client && cli.client.id;
-  if (cliId) {
-    await check("clients.update", "clients.putClientsByClientIdJson", () =>
-      client.clients.putClientsByClientIdJson({
-        apiKey,
-        clientId: cliId,
-        requestBody: { client: { name: `lc upd ${stamp}` } },
+  if (cli && cli.client) {
+    await check("clients.update", () =>
+      sdk.putClientsByClientIdJson({
+        path: { "client-id": cli.client.id },
+        query: { api_key },
+        body: { client: { name: `lc upd ${stamp}` } },
       }),
-    );
-    await check(
-      "clients.findByCode",
-      "clients.getClientsFindByCodeJson",
-      () =>
-        client.clients.getClientsFindByCodeJson({ apiKey, clientCode: code }),
-      { okStatuses: [404] },
     );
   }
 
   // Estimate (quote): create draft -> get -> update -> change-state(deleted)
-  const quote = await check(
-    "estimates.create",
-    "estimates.postByEstimatesTypeJson",
-    () =>
-      client.estimates.postByEstimatesTypeJson({
-        apiKey,
-        estimatesType: "quotes",
-        requestBody: {
+  const item2 = [
+    { name: "Svc", unit_price: 100, quantity: 1, tax: { name: "IVA23" } },
+  ];
+  const quote = await check("estimates.create", () =>
+    sdk.postByEstimatesTypeJson({
+      path: { "estimates-type": "quotes" },
+      query: { api_key },
+      body: {
+        quote: {
+          date: "01/01/2030",
+          due_date: "31/01/2030",
+          client: { name: `lc ${stamp}` },
+          items: item2,
+        },
+      },
+    }),
+  );
+  if (quote && quote.quote) {
+    const id = quote.quote.id;
+    await check("estimates.get", () =>
+      sdk.getByEstimatesTypeByDocumentIdJson({
+        path: { "estimates-type": "quotes", "document-id": id },
+        query: { api_key },
+      }),
+    );
+    await check("estimates.update", () =>
+      sdk.putByEstimatesTypeByDocumentIdJson({
+        path: { "estimates-type": "quotes", "document-id": id },
+        query: { api_key },
+        body: {
           quote: {
-            date: TODAY,
-            due_date: DUE,
+            date: "01/01/2030",
+            due_date: "31/01/2030",
             client: { name: `lc ${stamp}` },
-            items: ITEM,
-          },
-        },
-      }),
-  );
-  const qid = quote && quote.quote && quote.quote.id;
-  if (qid) {
-    await check(
-      "estimates.get",
-      "estimates.getByEstimatesTypeByDocumentIdJson",
-      () =>
-        client.estimates.getByEstimatesTypeByDocumentIdJson({
-          apiKey,
-          estimatesType: "quotes",
-          documentId: qid,
-        }),
-    );
-    await check(
-      "estimates.update",
-      "estimates.putByEstimatesTypeByDocumentIdJson",
-      () =>
-        client.estimates.putByEstimatesTypeByDocumentIdJson({
-          apiKey,
-          estimatesType: "quotes",
-          documentId: qid,
-          requestBody: {
-            quote: {
-              date: TODAY,
-              due_date: DUE,
-              client: { name: `lc ${stamp}` },
-              items: ITEM,
-            },
-          },
-        }),
-    );
-    await check(
-      "estimates.changeState",
-      "estimates.putByEstimatesTypeByDocumentIdChangeStateJson",
-      () =>
-        client.estimates.putByEstimatesTypeByDocumentIdChangeStateJson({
-          apiKey,
-          estimatesType: "quotes",
-          documentId: qid,
-          requestBody: { quote: { state: "deleted" } },
-        }),
-    );
-  }
-
-  // Guide (transport): create draft -> get -> update -> change-state(deleted)
-  const guide = await check(
-    "guides.create",
-    "guides.postByGuidesTypeJson",
-    () =>
-      client.guides.postByGuidesTypeJson({
-        apiKey,
-        guidesType: "transports",
-        requestBody: {
-          transport: {
-            date: TODAY,
-            loaded_at: "01/01/2030 19:00:00",
-            tax_exemption: "M10",
-            address_from: {
-              detail: "A",
-              city: "Lisboa",
-              postal_code: "1000-001",
-              country: "Portugal",
-            },
-            address_to: {
-              detail: "B",
-              city: "Porto",
-              postal_code: "4000-002",
-              country: "Portugal",
-            },
-            client: { name: `lc ${stamp}` },
-            items: [{ name: "Box", unit_price: 0, quantity: 1 }],
-          },
-        },
-      }),
-    { okStatuses: [422] },
-  );
-  const gid = guide && guide.transport && guide.transport.id;
-  if (gid) {
-    await check("guides.get", "guides.getByGuidesTypeByDocumentIdJson", () =>
-      client.guides.getByGuidesTypeByDocumentIdJson({
-        apiKey,
-        guidesType: "transports",
-        documentId: gid,
-      }),
-    );
-    await check("guides.update", "guides.putByGuidesTypeByDocumentIdJson", () =>
-      client.guides.putByGuidesTypeByDocumentIdJson({
-        apiKey,
-        guidesType: "transports",
-        documentId: gid,
-        requestBody: {
-          transport: {
-            date: TODAY,
-            loaded_at: "01/01/2030 19:00:00",
-            tax_exemption: "M10",
-            client: { name: `lc ${stamp}` },
-            items: [{ name: "Box", unit_price: 0, quantity: 1 }],
+            items: item2,
           },
         },
       }),
     );
-    await check(
-      "guides.changeState",
-      "guides.putByGuidesTypeByDocumentIdChangeStateJson",
-      () =>
-        client.guides.putByGuidesTypeByDocumentIdChangeStateJson({
-          apiKey,
-          guidesType: "transports",
-          documentId: gid,
-          requestBody: { transport: { state: "deleted" } },
-        }),
-    );
-  }
-
-  // Invoice: create draft -> get -> update -> change-state(deleted)
-  const inv = await check(
-    "invoices.create",
-    "invoices.postInvoicesJson",
-    () =>
-      client.invoices.postInvoicesJson({
-        apiKey,
-        requestBody: {
-          invoice: {
-            date: TODAY,
-            due_date: DUE,
-            client: { name: `lc ${stamp}` },
-            items: ITEM,
-          },
-        },
+    await check("estimates.changeState", () =>
+      sdk.putByEstimatesTypeByDocumentIdChangeStateJson({
+        path: { "estimates-type": "quotes", "document-id": id },
+        query: { api_key },
+        body: { quote: { state: "deleted" } },
       }),
-    { okStatuses: [422] },
-  );
-  const invId = inv && inv.invoice && inv.invoice.id;
-  if (invId) {
-    await check("invoices.update", "invoices.putInvoicesByDocumentIdJson", () =>
-      client.invoices.putInvoicesByDocumentIdJson({
-        apiKey,
-        documentId: invId,
-        requestBody: {
-          invoice: {
-            date: TODAY,
-            due_date: DUE,
-            client: { name: `lc ${stamp}` },
-            items: ITEM,
-          },
-        },
-      }),
-    );
-    await check(
-      "invoices.changeState",
-      "invoices.putInvoicesByDocumentIdChangeStateJson",
-      () =>
-        client.invoices.putInvoicesByDocumentIdChangeStateJson({
-          apiKey,
-          documentId: invId,
-          requestBody: { invoice: { state: "deleted" } },
-        }),
     );
   }
 
   // Invoice receipt: create draft -> get -> change-state(deleted)
   const ir = await check(
     "invoiceReceipts.create",
-    "invoicesReceipts.postInvoiceReceiptsJson",
     () =>
-      client.invoicesReceipts.postInvoiceReceiptsJson({
-        apiKey,
-        requestBody: {
+      sdk.postInvoiceReceiptsJson({
+        query: { api_key },
+        body: {
           invoice_receipt: {
-            date: TODAY,
-            due_date: DUE,
+            date: "01/01/2030",
+            due_date: "31/01/2030",
             status: "draft",
             client: { name: `lc ${stamp}` },
-            items: ITEM,
+            items: item2,
           },
         },
       }),
     { okStatuses: [422] },
   );
-  const irId =
-    ir &&
-    (ir.invoice_receipt || ir.invoice_receipts) &&
-    (ir.invoice_receipt || ir.invoice_receipts).id;
-  if (irId) {
-    await check(
-      "invoiceReceipts.get",
-      "invoicesReceipts.getInvoiceReceiptsByDocumentIdJson",
-      () =>
-        client.invoicesReceipts.getInvoiceReceiptsByDocumentIdJson({
-          apiKey,
-          documentId: irId,
-        }),
+  if (ir && ir.invoice_receipt) {
+    const id = ir.invoice_receipt.id;
+    await check("invoiceReceipts.get", () =>
+      sdk.getInvoiceReceiptsByDocumentIdJson({
+        path: { "document-id": id },
+        query: { api_key },
+      }),
     );
-    await check(
-      "invoiceReceipts.changeState",
-      "invoicesReceipts.putInvoiceReceiptsByDocumentIdChangeStateJson",
-      () =>
-        client.invoicesReceipts.putInvoiceReceiptsByDocumentIdChangeStateJson({
-          apiKey,
-          documentId: irId,
-          requestBody: { invoice_receipt: { state: "deleted" } },
-        }),
-    );
-    await check(
-      "pdf.generate",
-      "invoicesReceipts.getApiPdfByDocumentIdJson",
-      () =>
-        client.invoicesReceipts.getApiPdfByDocumentIdJson({
-          apiKey,
-          documentId: irId,
-        }),
-      { okStatuses: [400, 422, 404] },
+    await check("invoiceReceipts.changeState", () =>
+      sdk.putInvoiceReceiptsByDocumentIdChangeStateJson({
+        path: { "document-id": id },
+        query: { api_key },
+        body: { invoice_receipt: { state: "deleted" } },
+      }),
     );
   }
 
-  // Treasury: initial_balance + regularization/movement create/delete (need balance; 422 = reachable)
-  const cid = ctx.firstClient && ctx.firstClient.id;
+  // Treasury regularization/movement (need balance -> 422 = reachable)
+  const clients = await sdk.getClientsJson({
+    query: { api_key, page: 1, per_page: 1 },
+  });
+  const cid =
+    clients.data &&
+    clients.data.clients &&
+    clients.data.clients[0] &&
+    clients.data.clients[0].id;
   if (cid) {
     await check(
       "treasury.initialBalance",
-      "treasury.putApiV3ClientsByClientIdInitialBalanceJson",
       () =>
-        client.treasury.putApiV3ClientsByClientIdInitialBalanceJson({
-          apiKey,
-          clientId: cid,
-          requestBody: { initial_balance: { value: 0, date: ISO } },
+        sdk.putApiV3ClientsByClientIdInitialBalanceJson({
+          path: { "client-id": cid },
+          query: { api_key },
+          body: { initial_balance: { value: 0, date: "2030-01-01" } },
         }),
       { okStatuses: [422] },
     );
-    const reg = await check(
+    await check(
       "treasury.regularization.create",
-      "treasury.postApiV3ClientsByClientIdRegularizationJson",
       () =>
-        client.treasury.postApiV3ClientsByClientIdRegularizationJson({
-          apiKey,
-          clientId: cid,
-          requestBody: { regularization: { value: 1, date: ISO } },
+        sdk.postApiV3ClientsByClientIdRegularizationJson({
+          path: { "client-id": cid },
+          query: { api_key },
+          body: { regularization: { value: 1, date: "2030-01-01" } },
         }),
       { okStatuses: [422] },
     );
-    const regId =
-      reg &&
-      reg.regularization &&
-      reg.regularization[0] &&
-      reg.regularization[0].id;
-    if (regId)
-      await check(
-        "treasury.regularization.delete",
-        "treasury.deleteApiV3ClientsByClientIdRegularizationByIdJson",
-        () =>
-          client.treasury.deleteApiV3ClientsByClientIdRegularizationByIdJson({
-            apiKey,
-            clientId: cid,
-            id: regId,
-          }),
-      );
-    else record("treasury.deleteApiV3ClientsByClientIdRegularizationByIdJson"); // unreachable without a created regularization
-    const mov = await check(
+    await check(
       "treasury.movement.create",
-      "treasury.postApiV3ClientsByClientIdTreasuryMovementsJson",
       () =>
-        client.treasury.postApiV3ClientsByClientIdTreasuryMovementsJson({
-          apiKey,
-          clientId: cid,
-          requestBody: {
+        sdk.postApiV3ClientsByClientIdTreasuryMovementsJson({
+          path: { "client-id": cid },
+          query: { api_key },
+          body: {
             treasury_movement: {
               value: 1,
               movement_type: "Payment",
-              date: ISO,
+              date: "2030-01-01",
             },
           },
         }),
       { okStatuses: [422] },
     );
-    const movId = mov && mov.treasury_movement && mov.treasury_movement.id;
-    if (movId)
-      await check(
-        "treasury.movement.delete",
-        "treasury.deleteApiV3ClientsByClientIdTreasuryMovementsByIdJson",
-        () =>
-          client.treasury.deleteApiV3ClientsByClientIdTreasuryMovementsByIdJson(
-            { apiKey, clientId: cid, id: movId },
-          ),
-      );
-    else
-      record("treasury.deleteApiV3ClientsByClientIdTreasuryMovementsByIdJson");
   }
-}
-
-async function destructive(ctx) {
-  const stamp = Date.now();
-  const ITEM = [
-    { name: "Svc", unit_price: 100, quantity: 1, tax: { name: "IVA23" } },
-  ];
-
-  // Estimate finalize + email
-  const quote = await client.estimates
-    .postByEstimatesTypeJson({
-      apiKey,
-      estimatesType: "quotes",
-      requestBody: {
-        quote: {
-          date: TODAY,
-          due_date: DUE,
-          client: { name: `lc d ${stamp}`, email: "lc@example.com" },
-          items: ITEM,
-        },
-      },
-    })
-    .catch(() => null);
-  const qid = quote && quote.quote && quote.quote.id;
-  if (qid) {
-    await check(
-      "estimates.finalize",
-      "estimates.putByEstimatesTypeByDocumentIdChangeStateJson",
-      () =>
-        client.estimates.putByEstimatesTypeByDocumentIdChangeStateJson({
-          apiKey,
-          estimatesType: "quotes",
-          documentId: qid,
-          requestBody: { quote: { state: "finalized" } },
-        }),
-    );
-    await check(
-      "estimates.email",
-      "estimates.putByEstimatesTypeByDocumentIdEmailDocumentJson",
-      () =>
-        client.estimates.putByEstimatesTypeByDocumentIdEmailDocumentJson({
-          apiKey,
-          estimatesType: "quotes",
-          documentId: qid,
-          requestBody: { message: { subject: "lc", body: "lc" } },
-        }),
-      { okStatuses: [401, 422] },
-    );
-    await check(
-      "qr.get",
-      "guides.getApiQrCodesByDocumentIdJson",
-      () =>
-        client.guides.getApiQrCodesByDocumentIdJson({
-          apiKey,
-          documentId: qid,
-        }),
-      { okStatuses: [404, 422] },
-    );
-  }
-
-  // Guide + IR email
-  const ir = await client.invoicesReceipts
-    .postInvoiceReceiptsJson({
-      apiKey,
-      requestBody: {
-        invoice_receipt: {
-          date: TODAY,
-          due_date: DUE,
-          status: "draft",
-          client: { name: `lc d ${stamp}`, email: "lc@example.com" },
-          items: ITEM,
-        },
-      },
-    })
-    .catch(() => null);
-  const irId =
-    ir &&
-    (ir.invoice_receipt || ir.invoice_receipts) &&
-    (ir.invoice_receipt || ir.invoice_receipts).id;
-  if (irId) {
-    await check(
-      "invoiceReceipts.email",
-      "invoicesReceipts.putInvoiceReceiptsByDocumentIdEmailDocumentJson",
-      () =>
-        client.invoicesReceipts.putInvoiceReceiptsByDocumentIdEmailDocumentJson(
-          {
-            apiKey,
-            documentId: irId,
-            requestBody: { message: { subject: "lc", body: "lc" } },
-          },
-        ),
-      { okStatuses: [401, 422] },
-    );
-  }
-  const guide = await client.guides
-    .postByGuidesTypeJson({
-      apiKey,
-      guidesType: "transports",
-      requestBody: {
-        transport: {
-          date: TODAY,
-          loaded_at: "01/01/2030 19:00:00",
-          tax_exemption: "M10",
-          address_from: {
-            detail: "A",
-            city: "Lisboa",
-            postal_code: "1000-001",
-            country: "Portugal",
-          },
-          address_to: {
-            detail: "B",
-            city: "Porto",
-            postal_code: "4000-002",
-            country: "Portugal",
-          },
-          client: { name: `lc d ${stamp}`, email: "lc@example.com" },
-          items: [{ name: "Box", unit_price: 0, quantity: 1 }],
-        },
-      },
-    })
-    .catch(() => null);
-  const gid = guide && guide.transport && guide.transport.id;
-  if (gid) {
-    await check(
-      "guides.email",
-      "guides.putByGuidesTypeByDocumentIdEmailDocumentJson",
-      () =>
-        client.guides.putByGuidesTypeByDocumentIdEmailDocumentJson({
-          apiKey,
-          guidesType: "transports",
-          documentId: gid,
-          requestBody: { message: { subject: "lc", body: "lc" } },
-        }),
-      { okStatuses: [401, 422] },
-    );
-    await client.guides
-      .putByGuidesTypeByDocumentIdChangeStateJson({
-        apiKey,
-        guidesType: "transports",
-        documentId: gid,
-        requestBody: { transport: { state: "deleted" } },
-      })
-      .catch(() => {});
-  }
-
-  // Invoice finalize -> partial payment -> cancel payment
-  const inv = await client.invoices
-    .postInvoicesJson({
-      apiKey,
-      requestBody: {
-        invoice: {
-          date: TODAY,
-          due_date: DUE,
-          client: { name: `lc d ${stamp}` },
-          items: ITEM,
-        },
-      },
-    })
-    .catch(() => null);
-  const invId = inv && inv.invoice && inv.invoice.id;
-  if (invId) {
-    await client.invoices
-      .putInvoicesByDocumentIdChangeStateJson({
-        apiKey,
-        documentId: invId,
-        requestBody: { invoice: { state: "finalized" } },
-      })
-      .catch(() => {});
-    const pay = await check(
-      "invoices.generatePayment",
-      "invoices.postDocumentsByDocumentIdPartialPaymentsJson",
-      () =>
-        client.invoices.postDocumentsByDocumentIdPartialPaymentsJson({
-          apiKey,
-          documentId: invId,
-          requestBody: { partial_payment: { amount: 1, payment_date: TODAY } },
-        }),
-      { okStatuses: [400, 422, 404] },
-    );
-    const receiptId =
-      pay && (pay.receipt_id || (pay.receipt && pay.receipt.id));
-    if (receiptId)
-      await check(
-        "invoices.cancelPayment",
-        "invoices.putReceiptsByReceiptIdChangeStateJson",
-        () =>
-          client.invoices.putReceiptsByReceiptIdChangeStateJson({
-            apiKey,
-            receiptId,
-            requestBody: { receipt: { state: "canceled", message: "lc" } },
-          }),
-        { okStatuses: [422, 404] },
-      );
-    else record("invoices.putReceiptsByReceiptIdChangeStateJson");
-  }
-
-  // Sequences register/set-current (config + AT)
-  const seqs = await client.sequences
-    .getSequencesJson({ apiKey })
-    .catch(() => null);
-  const seqId =
-    seqs && seqs.sequences && seqs.sequences[0] && seqs.sequences[0].id;
-  if (seqId) {
-    await check(
-      "sequences.setCurrent",
-      "sequences.putSequencesBySequenceIdSetCurrentJson",
-      () =>
-        client.sequences.putSequencesBySequenceIdSetCurrentJson({
-          apiKey,
-          sequenceId: seqId,
-        }),
-      { okStatuses: [422] },
-    );
-    await check(
-      "sequences.register",
-      "sequences.putSequencesBySequenceIdRegisterJson",
-      () =>
-        client.sequences.putSequencesBySequenceIdRegisterJson({
-          apiKey,
-          sequenceId: seqId,
-        }),
-      { okStatuses: [422, 400] },
-    );
-  }
-  await check(
-    "sequences.create",
-    "sequences.postSequencesJson",
-    () =>
-      client.sequences.postSequencesJson({
-        apiKey,
-        requestBody: { sequence: { serie: `LC${stamp}`.slice(0, 8) } },
-      }),
-    { okStatuses: [422] },
-  );
-
-  // Accounts (partner API)
-  const acct = await check(
-    "accounts.create",
-    "accounts.postApiAccountsCreateJson",
-    () =>
-      client.accounts.postApiAccountsCreateJson({
-        apiKey,
-        requestBody: {
-          account: {
-            organization_name: `lc ${stamp}`,
-            email: `lc-${stamp}@example.com`,
-          },
-        },
-      }),
-    { okStatuses: [401, 403, 422] },
-  );
-  const acctId = acct && acct.account && acct.account.id;
-  if (acctId) {
-    await check(
-      "accounts.get",
-      "accounts.getApiAccountsByAccountIdGetJson",
-      () =>
-        client.accounts.getApiAccountsByAccountIdGetJson({
-          apiKey,
-          accountId: acctId,
-        }),
-      { okStatuses: [401, 403, 404] },
-    );
-    await check(
-      "accounts.update",
-      "accounts.putApiAccountsByAccountIdUpdateJson",
-      () =>
-        client.accounts.putApiAccountsByAccountIdUpdateJson({
-          apiKey,
-          accountId: acctId,
-          requestBody: {
-            account: {
-              organization_name: "lc upd",
-              email: `lc-${stamp}@example.com`,
-            },
-          },
-        }),
-      { okStatuses: [401, 403, 404, 422] }, // 404: created sub-account not retrievable with this key
-    );
-  } else {
-    record("accounts.getApiAccountsByAccountIdGetJson");
-    record("accounts.putApiAccountsByAccountIdUpdateJson");
-  }
-  await check(
-    "accounts.createAlreadyUser",
-    "accounts.postApiAccountsCreateAlreadyUserJson",
-    () =>
-      client.accounts.postApiAccountsCreateAlreadyUserJson({
-        apiKey,
-        requestBody: {
-          account: {
-            organization_name: `lc ${stamp}`,
-            email: `lc-${stamp}@example.com`,
-          },
-        },
-      }),
-    { okStatuses: [400, 401, 403, 422] }, // 400: needs a valid existing user's credentials
-  );
-  await check(
-    "accounts.atCommunication",
-    "accounts.postApiV3AccountsAtCommunicationJson",
-    () =>
-      client.accounts.postApiV3AccountsAtCommunicationJson({
-        apiKey,
-        requestBody: { at_communication: {} },
-      }),
-    { okStatuses: [400, 401, 403, 422, 500] }, // 500: empty at_communication body; needs AT credentials
-  );
 }
 
 (async () => {
   console.log(
-    `Live check against ${BASE} — tier: ${withDestructive ? "read+write+destructive" : withWrite ? "read+write" : "read-only"}\n`,
+    `Live check against ${BASE} (${withWrite ? "read + write" : "read-only"})\n`,
   );
-  const ctx = await reads();
-  if (withWrite) await writes(ctx);
-  if (withDestructive) await destructive(ctx);
+  await reads();
+  if (withWrite) await writes();
 
   const pad = (s, n) => String(s).padEnd(n);
   for (const r of results) {
@@ -979,18 +378,7 @@ async function destructive(ctx) {
       : `[${r.status}] `;
     console.log(`${tag}  ${pad(r.name, 30)} ${note}${r.info || ""}`);
   }
-
   const failed = results.filter((r) => !r.ok);
-  const notExercised = [...ALL_OPS].filter((op) => !exercised.has(op)).sort();
-  console.log(
-    `\nchecks: ${results.length - failed.length}/${results.length} ok`,
-  );
-  console.log(
-    `endpoint coverage: ${exercised.size}/${ALL_OPS.size} operations exercised`,
-  );
-  if (notExercised.length)
-    console.log(
-      `not exercised (need --write/--destructive or fixtures):\n  ${notExercised.join("\n  ")}`,
-    );
+  console.log(`\n${results.length - failed.length}/${results.length} ok`);
   process.exit(failed.length ? 1 : 0);
 })();

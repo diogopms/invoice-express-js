@@ -10,7 +10,7 @@
     "forceConsistentCasingInFileNames": true,
     "moduleResolution": "node16",
 
-    "baseUrl": "src",
+    "rootDir": "src",
     "outDir": "dist",
     "sourceMap": true,
     "declaration": true,
