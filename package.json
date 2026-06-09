@@ -1,6 +1,6 @@
 {
   "name": "@diogopms/invoice-express-js",
-  "version": "1.0.13",
+  "version": "2.0.0",
   "description": "Typed JavaScript / TypeScript client for the InvoiceXpress API, generated from OpenAPI.",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -46,9 +46,9 @@
     "registry": "https://npm.pkg.github.com"
   },
   "devDependencies": {
-    "@hey-api/openapi-ts": "^0.52.11",
+    "@hey-api/openapi-ts": "^0.98.2",
     "prettier": "^3.8.3",
-    "typescript": "^5.9.3"
+    "typescript": "^6.0.3"
   },
   "engines": {
     "node": ">=20"

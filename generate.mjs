@@ -1,18 +1,16 @@
 import { createClient } from "@hey-api/openapi-ts";
+import { execSync } from "node:child_process";
 
-async function main() {
-  await createClient({
-    input: "./openapi.yaml",
-    output: {
-      format: "prettier",
-      lint: "eslint",
-      path: "./src",
-    },
-    client: "fetch",
-    name: "InvoiceExpressClient",
-    useOptions: true,
-  });
-}
+await createClient({
+  input: "./openapi.yaml",
+  output: { path: "./src" },
+  plugins: [
+    { name: "@hey-api/client-fetch", exportFromIndex: true },
+    "@hey-api/sdk",
+    "@hey-api/typescript",
+  ],
+});
 
-// eslint-disable-next-line no-floating-promise/no-floating-promise
-main();
+// hey-api's built-in prettier post-processor spawns `prettier` from PATH (not
+// available here); format the output ourselves instead.
+execSync("pnpm exec prettier --write ./src", { stdio: "inherit" });
