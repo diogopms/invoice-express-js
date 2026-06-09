@@ -97,8 +97,6 @@ import type {
   PostSequencesJsonResponse,
   GetSequencesBySequenceIdJsonData,
   GetSequencesBySequenceIdJsonResponse,
-  PutSequencesBySequenceIdJsonData,
-  PutSequencesBySequenceIdJsonResponse,
   PutSequencesBySequenceIdRegisterJsonData,
   PutSequencesBySequenceIdRegisterJsonResponse,
   PutSequencesBySequenceIdSetCurrentJsonData,
@@ -1582,38 +1580,6 @@ export class SequencesService {
       errors: {
         401: "Access denied. The API Key parameter is missing or is incorrectly entered.",
         404: "Not found. No sequence matches the supplied sequence-id.",
-      },
-    });
-  }
-
-  /**
-   * Update a sequence
-   * Updates an existing document sequence.
-   * @param data The data for the request.
-   * @param data.apiKey
-   * @param data.sequenceId
-   * @param data.requestBody
-   * @returns unknown Sequence was updated successfully.
-   * @throws ApiError
-   */
-  public putSequencesBySequenceIdJson(
-    data: PutSequencesBySequenceIdJsonData,
-  ): CancelablePromise<PutSequencesBySequenceIdJsonResponse> {
-    return this.httpRequest.request({
-      method: "PUT",
-      url: "/sequences/{sequence-id}.json",
-      path: {
-        "sequence-id": data.sequenceId,
-      },
-      query: {
-        api_key: data.apiKey,
-      },
-      body: data.requestBody,
-      mediaType: "application/json",
-      errors: {
-        401: "Access denied. The API Key parameter is missing or is incorrectly entered.",
-        404: "Not found. No sequence matches the supplied sequence-id.",
-        422: "Unprocessable Entity. Some parameters were incorrect.",
       },
     });
   }
