@@ -3,7 +3,7 @@ name: Release
 # Releases are NOT cut on merge to main — pushes only run CI (ci.yaml).
 # Instead this job runs on a schedule (every 4 hours): it determines the next
 # version from the commits since the last tag, and only if there is something
-# new does it tag, build and publish the package.
+# new does it create the git tag, publish the package and cut a GitHub Release.
 on:
   schedule:
     - cron: "0 */4 * * *" # every 4 hours
@@ -81,3 +81,12 @@ jobs:
         run: pnpm publish --registry=https://npm.pkg.github.com --no-git-checks
         env:
           NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Create GitHub Release
+        if: steps.tag.outputs.new_version
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.tag.outputs.new_tag }}
+          name: ${{ steps.tag.outputs.new_tag }}
+          body: ${{ steps.tag.outputs.changelog }}
+          token: ${{ secrets.GITHUB_TOKEN }}

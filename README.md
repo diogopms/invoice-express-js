@@ -683,9 +683,14 @@ CI runs `lint`, `generate:check`, `typecheck`, `typecheck:examples`, `build` and
 Merging to `main` does **not** cut a release — pushes only run CI. A scheduled
 workflow ([`release.yaml`](./.github/workflows/release.yaml)) runs **every 4
 hours**: it derives the next version from the commits since the last tag and,
-only if there is something new, tags the repo and publishes the package to the
-GitHub Packages registry. You can also trigger a release on demand from the
-Actions tab (`workflow_dispatch`).
+only if there is something new, it
+
+1. creates and pushes the git **tag**,
+2. **publishes** the package to the GitHub Packages registry, and
+3. cuts a **GitHub Release** with the auto-generated changelog.
+
+You can also trigger a release on demand from the Actions tab
+(`workflow_dispatch`).
 
 ### Testing
 
