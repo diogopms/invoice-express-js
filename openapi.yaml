@@ -595,6 +595,56 @@ paths:
         "422":
           description: Unprocessable Entity. Some parameters sent were incorrect.
 
+  /receipts/{receipt-id}/change-state.json:
+    put:
+      tags:
+        - Invoices
+      summary: Cancel a payment (receipt)
+      description: Cancels a payment by changing the state of its receipt to canceled.
+      parameters:
+        - name: api_key
+          in: query
+          required: true
+          schema:
+            type: string
+        - name: receipt-id
+          in: path
+          required: true
+          description: The ID of the receipt to cancel.
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - receipt
+              properties:
+                receipt:
+                  type: object
+                  required:
+                    - state
+                  properties:
+                    state:
+                      type: string
+                      enum:
+                        - canceled
+                      description: The new state of the receipt.
+                    message:
+                      type: string
+                      description: The reason for the cancellation.
+      responses:
+        "200":
+          description: The payment was canceled successfully.
+        "401":
+          description: Access denied. The API Key parameter is missing or is incorrectly entered.
+        "404":
+          description: Not found. No receipt matches the supplied receipt-id.
+        "422":
+          description: Unprocessable Entity. Some parameters sent were incorrect.
+
   /clients.json:
     get:
       tags:

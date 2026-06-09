@@ -147,6 +147,21 @@ const invoices = await client.invoices.getInvoicesJson({
   typeArray: ["Invoice", "InvoiceReceipt"],
   statusArray: ["draft", "sent"],
 });
+
+// Cancel a payment (cancels the receipt generated for a partial payment)
+await client.invoices.putReceiptsByReceiptIdChangeStateJson({
+  apiKey,
+  receiptId: 67890,
+  requestBody: {
+    receipt: { state: "canceled", message: "Wrong payment values." },
+  },
+});
+
+// Get a document's QR code (shared endpoint — works for invoices too)
+await client.guides.getApiQrCodesByDocumentIdJson({
+  apiKey,
+  documentId: 12345,
+});
 ```
 
 ### Invoice receipts
@@ -508,8 +523,8 @@ import type {
 |               | Change-state             | ✅              |
 |               | Related documents        | ✅              |
 |               | Generate payment         | ✅              |
-|               | Cancel payment           | Not Implemented |
-|               | Get QR Code              | Not Implemented |
+|               | Cancel payment           | ✅              |
+|               | Get QR Code              | ✅              |
 | **Estimates** | Send by email            | ✅              |
 |               | Generate PDF             | ✅              |
 |               | Get                      | ✅              |
