@@ -1035,6 +1035,351 @@ export const $GuidesResponse = {
   },
 } as const;
 
+export const $Estimate = {
+  type: "object",
+  required: [
+    "id",
+    "status",
+    "type",
+    "date",
+    "due_date",
+    "total",
+    "client",
+    "items",
+  ],
+  properties: {
+    id: {
+      type: "integer",
+    },
+    status: {
+      type: "string",
+    },
+    archived: {
+      type: "boolean",
+    },
+    type: {
+      type: "string",
+      description: "The estimate type (Quote, Proforma or FeesNote).",
+    },
+    sequence_number: {
+      type: "string",
+    },
+    inverted_sequence_number: {
+      type: "string",
+    },
+    atcud: {
+      type: "string",
+    },
+    tax_exemption: {
+      type: "string",
+    },
+    date: {
+      type: "string",
+      format: "date",
+    },
+    due_date: {
+      type: "string",
+      format: "date",
+    },
+    reference: {
+      type: "string",
+    },
+    observations: {
+      type: "string",
+    },
+    retention: {
+      type: "string",
+    },
+    permalink: {
+      type: "string",
+    },
+    saft_hash: {
+      type: "string",
+    },
+    sum: {
+      type: "number",
+    },
+    discount: {
+      type: "number",
+    },
+    before_taxes: {
+      type: "number",
+    },
+    taxes: {
+      type: "number",
+    },
+    total: {
+      type: "number",
+    },
+    currency: {
+      type: "string",
+    },
+    client: {
+      $ref: "#/components/schemas/Client",
+    },
+    items: {
+      type: "array",
+      items: {
+        $ref: "#/components/schemas/Item",
+      },
+    },
+    global_discount: {
+      $ref: "#/components/schemas/GlobalDiscount",
+    },
+  },
+} as const;
+
+export const $EstimateBody = {
+  type: "object",
+  required: ["date", "due_date", "client", "items"],
+  properties: {
+    date: {
+      type: "string",
+      description: "Document date in dd/mm/yyyy format.",
+    },
+    due_date: {
+      type: "string",
+      description: "Expiration date in dd/mm/yyyy format.",
+    },
+    reference: {
+      type: "string",
+    },
+    observations: {
+      type: "string",
+    },
+    retention: {
+      type: "number",
+      description: "Retention percentage (0–99.99).",
+    },
+    tax_exemption: {
+      type: "string",
+      description: "Tax exemption code (required when an item has no tax).",
+    },
+    tax_exemption_reason: {
+      type: "string",
+    },
+    sequence_id: {
+      type: "string",
+    },
+    manual_sequence_number: {
+      type: "string",
+    },
+    currency_code: {
+      type: "string",
+    },
+    rate: {
+      type: "string",
+      description:
+        "Exchange rate, required when currency_code differs from the account currency.",
+    },
+    client: {
+      type: "object",
+      required: ["name"],
+      properties: {
+        name: {
+          type: "string",
+        },
+        code: {
+          type: "string",
+        },
+        email: {
+          type: "string",
+        },
+        address: {
+          type: "string",
+        },
+        city: {
+          type: "string",
+        },
+        postal_code: {
+          type: "string",
+        },
+        country: {
+          type: "string",
+        },
+        fiscal_id: {
+          type: "string",
+        },
+        website: {
+          type: "string",
+        },
+        phone: {
+          type: "string",
+        },
+        fax: {
+          type: "string",
+        },
+        observations: {
+          type: "string",
+        },
+      },
+    },
+    items: {
+      type: "array",
+      items: {
+        $ref: "#/components/schemas/Item",
+      },
+    },
+    global_discount: {
+      $ref: "#/components/schemas/GlobalDiscount",
+    },
+  },
+} as const;
+
+export const $EstimateRequest = {
+  description: `Create/update payload. The root key must match the {estimates-type} path
+parameter: "quote" for quotes, "proforma" for proformas, "fees_note" for
+fees_notes.
+`,
+  oneOf: [
+    {
+      type: "object",
+      required: ["quote"],
+      properties: {
+        quote: {
+          $ref: "#/components/schemas/EstimateBody",
+        },
+      },
+    },
+    {
+      type: "object",
+      required: ["proforma"],
+      properties: {
+        proforma: {
+          $ref: "#/components/schemas/EstimateBody",
+        },
+      },
+    },
+    {
+      type: "object",
+      required: ["fees_note"],
+      properties: {
+        fees_note: {
+          $ref: "#/components/schemas/EstimateBody",
+        },
+      },
+    },
+  ],
+} as const;
+
+export const $EstimateResponse = {
+  description: `A single estimate, wrapped under the key matching its type
+("quote", "proforma" or "fees_note").
+`,
+  oneOf: [
+    {
+      type: "object",
+      required: ["quote"],
+      properties: {
+        quote: {
+          $ref: "#/components/schemas/Estimate",
+        },
+      },
+    },
+    {
+      type: "object",
+      required: ["proforma"],
+      properties: {
+        proforma: {
+          $ref: "#/components/schemas/Estimate",
+        },
+      },
+    },
+    {
+      type: "object",
+      required: ["fees_note"],
+      properties: {
+        fees_note: {
+          $ref: "#/components/schemas/Estimate",
+        },
+      },
+    },
+  ],
+} as const;
+
+export const $EstimateStateRequest = {
+  description: `Change-state payload. The root key must match the {estimates-type} path
+parameter ("quote", "proforma" or "fees_note").
+`,
+  oneOf: [
+    {
+      type: "object",
+      required: ["quote"],
+      properties: {
+        quote: {
+          $ref: "#/components/schemas/EstimateStateChange",
+        },
+      },
+    },
+    {
+      type: "object",
+      required: ["proforma"],
+      properties: {
+        proforma: {
+          $ref: "#/components/schemas/EstimateStateChange",
+        },
+      },
+    },
+    {
+      type: "object",
+      required: ["fees_note"],
+      properties: {
+        fees_note: {
+          $ref: "#/components/schemas/EstimateStateChange",
+        },
+      },
+    },
+  ],
+} as const;
+
+export const $EstimateStateChange = {
+  type: "object",
+  required: ["state"],
+  properties: {
+    state: {
+      type: "string",
+      enum: ["finalized", "deleted", "accepted", "refused", "canceled"],
+      description: "The new state of the estimate.",
+    },
+    message: {
+      type: "string",
+      description:
+        "The reason for changing the state (required for cancellation).",
+    },
+  },
+} as const;
+
+export const $EstimatesResponse = {
+  type: "object",
+  required: ["estimates", "pagination"],
+  properties: {
+    estimates: {
+      type: "array",
+      items: {
+        $ref: "#/components/schemas/Estimate",
+      },
+    },
+    pagination: {
+      type: "object",
+      required: ["total_entries", "current_page", "total_pages", "per_page"],
+      properties: {
+        total_entries: {
+          type: "integer",
+        },
+        current_page: {
+          type: "integer",
+        },
+        total_pages: {
+          type: "integer",
+        },
+        per_page: {
+          type: "integer",
+        },
+      },
+    },
+  },
+} as const;
+
 export const $ErrorResponse = {
   type: "object",
   properties: {
