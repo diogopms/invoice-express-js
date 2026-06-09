@@ -265,7 +265,9 @@ async function writes(ctx) {
     () =>
       client.taxes.postTaxesJson({
         apiKey,
-        requestBody: { tax: { name: `LC${stamp}`.slice(0, 18), value: 7 } },
+        requestBody: {
+          tax: { name: `LC${stamp}`.slice(0, 18), value: "7", region: "PT" },
+        },
       }),
     { okStatuses: [422] },
   );
@@ -275,7 +277,9 @@ async function writes(ctx) {
       client.taxes.putTaxesByTaxIdJson({
         apiKey,
         taxId: tId,
-        requestBody: { tax: { name: `LC${stamp}`.slice(0, 18), value: 9 } },
+        requestBody: {
+          tax: { name: `LC${stamp}`.slice(0, 18), value: "9", region: "PT" },
+        },
       }),
     );
     await check("taxes.delete", "taxes.deleteTaxesByTaxIdJson", () =>
@@ -325,7 +329,7 @@ async function writes(ctx) {
       client.clients.putClientsByClientIdJson({
         apiKey,
         clientId: cliId,
-        requestBody: { client: { name: "lc upd" } },
+        requestBody: { client: { name: `lc upd ${stamp}` } },
       }),
     );
 
@@ -571,7 +575,7 @@ async function writes(ctx) {
         client.treasury.putApiV3ClientsByClientIdInitialBalanceJson({
           apiKey,
           clientId: cid,
-          requestBody: { value: 0, date: ISO },
+          requestBody: { initial_balance: { value: 0, date: ISO } },
         }),
       { okStatuses: [422] },
     );
