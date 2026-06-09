@@ -690,6 +690,351 @@ export const $TaxRequest = {
   },
 } as const;
 
+export const $Address = {
+  type: "object",
+  properties: {
+    detail: {
+      type: "string",
+    },
+    city: {
+      type: "string",
+    },
+    postal_code: {
+      type: "string",
+    },
+    country: {
+      type: "string",
+    },
+  },
+} as const;
+
+export const $Guide = {
+  type: "object",
+  required: ["id", "status", "type", "date", "client", "items"],
+  properties: {
+    id: {
+      type: "integer",
+    },
+    status: {
+      type: "string",
+    },
+    archived: {
+      type: "boolean",
+    },
+    type: {
+      type: "string",
+      description: "The guide type (Shipping, Transport or Devolution).",
+    },
+    sequence_number: {
+      type: "string",
+    },
+    inverted_sequence_number: {
+      type: "string",
+    },
+    atcud: {
+      type: "string",
+    },
+    tax_exemption: {
+      type: "string",
+    },
+    date: {
+      type: "string",
+      format: "date",
+    },
+    loaded_at: {
+      type: "string",
+      description: "Loading date and time (dd/mm/yyyy HH:MM:SS).",
+    },
+    reference: {
+      type: "string",
+    },
+    observations: {
+      type: "string",
+    },
+    permalink: {
+      type: "string",
+    },
+    saft_hash: {
+      type: "string",
+    },
+    sum: {
+      type: "number",
+    },
+    discount: {
+      type: "number",
+    },
+    before_taxes: {
+      type: "number",
+    },
+    taxes: {
+      type: "number",
+    },
+    total: {
+      type: "number",
+    },
+    currency: {
+      type: "string",
+    },
+    address_from: {
+      $ref: "#/components/schemas/Address",
+    },
+    address_to: {
+      $ref: "#/components/schemas/Address",
+    },
+    client: {
+      $ref: "#/components/schemas/Client",
+    },
+    items: {
+      type: "array",
+      items: {
+        $ref: "#/components/schemas/Item",
+      },
+    },
+  },
+} as const;
+
+export const $GuideBody = {
+  type: "object",
+  required: ["date", "client", "items"],
+  properties: {
+    date: {
+      type: "string",
+      description: "Document date in dd/mm/yyyy format.",
+    },
+    loaded_at: {
+      type: "string",
+      description: "Loading date and time in dd/mm/yyyy HH:MM:SS format.",
+    },
+    reference: {
+      type: "string",
+    },
+    observations: {
+      type: "string",
+    },
+    tax_exemption: {
+      type: "string",
+      description: "Tax exemption code (required when an item has no tax).",
+    },
+    tax_exemption_reason: {
+      type: "string",
+    },
+    sequence_id: {
+      type: "string",
+    },
+    manual_sequence_number: {
+      type: "string",
+    },
+    address_from: {
+      $ref: "#/components/schemas/Address",
+    },
+    address_to: {
+      $ref: "#/components/schemas/Address",
+    },
+    client: {
+      type: "object",
+      required: ["name"],
+      properties: {
+        name: {
+          type: "string",
+        },
+        code: {
+          type: "string",
+        },
+        email: {
+          type: "string",
+        },
+        address: {
+          type: "string",
+        },
+        city: {
+          type: "string",
+        },
+        postal_code: {
+          type: "string",
+        },
+        country: {
+          type: "string",
+        },
+        fiscal_id: {
+          type: "string",
+        },
+        website: {
+          type: "string",
+        },
+        phone: {
+          type: "string",
+        },
+        fax: {
+          type: "string",
+        },
+        observations: {
+          type: "string",
+        },
+      },
+    },
+    items: {
+      type: "array",
+      items: {
+        $ref: "#/components/schemas/Item",
+      },
+    },
+  },
+} as const;
+
+export const $GuideRequest = {
+  description: `Create/update payload. The root key must match the {guides-type} path
+parameter: "shipping" for shippings, "transport" for transports,
+"devolution" for devolutions.
+`,
+  oneOf: [
+    {
+      type: "object",
+      required: ["shipping"],
+      properties: {
+        shipping: {
+          $ref: "#/components/schemas/GuideBody",
+        },
+      },
+    },
+    {
+      type: "object",
+      required: ["transport"],
+      properties: {
+        transport: {
+          $ref: "#/components/schemas/GuideBody",
+        },
+      },
+    },
+    {
+      type: "object",
+      required: ["devolution"],
+      properties: {
+        devolution: {
+          $ref: "#/components/schemas/GuideBody",
+        },
+      },
+    },
+  ],
+} as const;
+
+export const $GuideResponse = {
+  description: `A single guide, wrapped under the key matching its type
+("shipping", "transport" or "devolution").
+`,
+  oneOf: [
+    {
+      type: "object",
+      required: ["shipping"],
+      properties: {
+        shipping: {
+          $ref: "#/components/schemas/Guide",
+        },
+      },
+    },
+    {
+      type: "object",
+      required: ["transport"],
+      properties: {
+        transport: {
+          $ref: "#/components/schemas/Guide",
+        },
+      },
+    },
+    {
+      type: "object",
+      required: ["devolution"],
+      properties: {
+        devolution: {
+          $ref: "#/components/schemas/Guide",
+        },
+      },
+    },
+  ],
+} as const;
+
+export const $GuideStateRequest = {
+  description: `Change-state payload. The root key must match the {guides-type} path
+parameter ("shipping", "transport" or "devolution").
+`,
+  oneOf: [
+    {
+      type: "object",
+      required: ["shipping"],
+      properties: {
+        shipping: {
+          $ref: "#/components/schemas/GuideStateChange",
+        },
+      },
+    },
+    {
+      type: "object",
+      required: ["transport"],
+      properties: {
+        transport: {
+          $ref: "#/components/schemas/GuideStateChange",
+        },
+      },
+    },
+    {
+      type: "object",
+      required: ["devolution"],
+      properties: {
+        devolution: {
+          $ref: "#/components/schemas/GuideStateChange",
+        },
+      },
+    },
+  ],
+} as const;
+
+export const $GuideStateChange = {
+  type: "object",
+  required: ["state"],
+  properties: {
+    state: {
+      type: "string",
+      enum: ["finalized", "deleted", "canceled"],
+      description: "The new state of the guide.",
+    },
+    message: {
+      type: "string",
+      description:
+        "The reason for changing the state (required for cancellation).",
+    },
+  },
+} as const;
+
+export const $GuidesResponse = {
+  type: "object",
+  required: ["guides", "pagination"],
+  properties: {
+    guides: {
+      type: "array",
+      items: {
+        $ref: "#/components/schemas/Guide",
+      },
+    },
+    pagination: {
+      type: "object",
+      required: ["total_entries", "current_page", "total_pages", "per_page"],
+      properties: {
+        total_entries: {
+          type: "integer",
+        },
+        current_page: {
+          type: "integer",
+        },
+        total_pages: {
+          type: "integer",
+        },
+        per_page: {
+          type: "integer",
+        },
+      },
+    },
+  },
+} as const;
+
 export const $ErrorResponse = {
   type: "object",
   properties: {
