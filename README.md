@@ -667,6 +667,15 @@ The full set of scripts:
 
 CI runs `lint`, `generate:check`, `typecheck`, `typecheck:examples`, `build` and `test` on every pull request, so a spec edit that isn't accompanied by a regenerated client will fail the build.
 
+### Releases
+
+Merging to `main` does **not** cut a release — pushes only run CI. A scheduled
+workflow ([`release.yaml`](./.github/workflows/release.yaml)) runs **every 4
+hours**: it derives the next version from the commits since the last tag and,
+only if there is something new, tags the repo and publishes the package to the
+GitHub Packages registry. You can also trigger a release on demand from the
+Actions tab (`workflow_dispatch`).
+
 ### Testing
 
 The suite under [`test/`](./test) uses Node's built-in test runner (no extra
