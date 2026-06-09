@@ -101,6 +101,16 @@ import type {
   PutSequencesBySequenceIdRegisterJsonResponse,
   PutSequencesBySequenceIdSetCurrentJsonData,
   PutSequencesBySequenceIdSetCurrentJsonResponse,
+  PostApiAccountsCreateJsonData,
+  PostApiAccountsCreateJsonResponse,
+  PostApiAccountsCreateAlreadyUserJsonData,
+  PostApiAccountsCreateAlreadyUserJsonResponse,
+  GetApiAccountsByAccountIdGetJsonData,
+  GetApiAccountsByAccountIdGetJsonResponse,
+  PutApiAccountsByAccountIdUpdateJsonData,
+  PutApiAccountsByAccountIdUpdateJsonResponse,
+  PostApiV3AccountsAtCommunicationJsonData,
+  PostApiV3AccountsAtCommunicationJsonResponse,
 } from "./types.gen";
 
 export class InvoicesReceiptsService {
@@ -1613,6 +1623,150 @@ export class SequencesService {
       errors: {
         401: "Access denied. The API Key parameter is missing or is incorrectly entered.",
         404: "Not found. No sequence matches the supplied sequence-id.",
+      },
+    });
+  }
+}
+
+export class AccountsService {
+  constructor(public readonly httpRequest: BaseHttpRequest) {}
+
+  /**
+   * Create an account
+   * Creates a new account together with its owner user. Used by partners/resellers.
+   * @param data The data for the request.
+   * @param data.apiKey
+   * @param data.requestBody
+   * @returns AccountResponse Account was created successfully.
+   * @throws ApiError
+   */
+  public postApiAccountsCreateJson(
+    data: PostApiAccountsCreateJsonData,
+  ): CancelablePromise<PostApiAccountsCreateJsonResponse> {
+    return this.httpRequest.request({
+      method: "POST",
+      url: "/api/accounts/create.json",
+      query: {
+        api_key: data.apiKey,
+      },
+      body: data.requestBody,
+      mediaType: "application/json",
+      errors: {
+        401: "Access denied. The API Key parameter is missing or is incorrectly entered.",
+        422: "Unprocessable Entity. Some parameters were incorrect.",
+      },
+    });
+  }
+
+  /**
+   * Create an account for an existing user
+   * Creates a new account and associates it with an already-existing user.
+   * @param data The data for the request.
+   * @param data.apiKey
+   * @param data.requestBody
+   * @returns AccountResponse Account was created successfully.
+   * @throws ApiError
+   */
+  public postApiAccountsCreateAlreadyUserJson(
+    data: PostApiAccountsCreateAlreadyUserJsonData,
+  ): CancelablePromise<PostApiAccountsCreateAlreadyUserJsonResponse> {
+    return this.httpRequest.request({
+      method: "POST",
+      url: "/api/accounts/create_already_user.json",
+      query: {
+        api_key: data.apiKey,
+      },
+      body: data.requestBody,
+      mediaType: "application/json",
+      errors: {
+        401: "Access denied. The API Key parameter is missing or is incorrectly entered.",
+        422: "Unprocessable Entity. Some parameters were incorrect.",
+      },
+    });
+  }
+
+  /**
+   * Get an account
+   * @param data The data for the request.
+   * @param data.apiKey
+   * @param data.accountId
+   * @returns AccountResponse The account was returned successfully.
+   * @throws ApiError
+   */
+  public getApiAccountsByAccountIdGetJson(
+    data: GetApiAccountsByAccountIdGetJsonData,
+  ): CancelablePromise<GetApiAccountsByAccountIdGetJsonResponse> {
+    return this.httpRequest.request({
+      method: "GET",
+      url: "/api/accounts/{account-id}/get.json",
+      path: {
+        "account-id": data.accountId,
+      },
+      query: {
+        api_key: data.apiKey,
+      },
+      errors: {
+        401: "Access denied. The API Key parameter is missing or is incorrectly entered.",
+        404: "Not found. No account matches the supplied account-id.",
+      },
+    });
+  }
+
+  /**
+   * Update an account
+   * Updates an existing account.
+   * @param data The data for the request.
+   * @param data.apiKey
+   * @param data.accountId
+   * @param data.requestBody
+   * @returns unknown Account was updated successfully.
+   * @throws ApiError
+   */
+  public putApiAccountsByAccountIdUpdateJson(
+    data: PutApiAccountsByAccountIdUpdateJsonData,
+  ): CancelablePromise<PutApiAccountsByAccountIdUpdateJsonResponse> {
+    return this.httpRequest.request({
+      method: "PUT",
+      url: "/api/accounts/{account-id}/update.json",
+      path: {
+        "account-id": data.accountId,
+      },
+      query: {
+        api_key: data.apiKey,
+      },
+      body: data.requestBody,
+      mediaType: "application/json",
+      errors: {
+        401: "Access denied. The API Key parameter is missing or is incorrectly entered.",
+        404: "Not found. No account matches the supplied account-id.",
+        422: "Unprocessable Entity. Some parameters were incorrect.",
+      },
+    });
+  }
+
+  /**
+   * Submit AT communication
+   * Communicates the account's series to the Portuguese Tax Authority (AT).
+   * @param data The data for the request.
+   * @param data.apiKey
+   * @param data.requestBody
+   * @returns unknown The AT communication was submitted successfully.
+   * @throws ApiError
+   */
+  public postApiV3AccountsAtCommunicationJson(
+    data: PostApiV3AccountsAtCommunicationJsonData,
+  ): CancelablePromise<PostApiV3AccountsAtCommunicationJsonResponse> {
+    return this.httpRequest.request({
+      method: "POST",
+      url: "/api/v3/accounts/at_communication.json",
+      query: {
+        api_key: data.apiKey,
+      },
+      body: data.requestBody,
+      mediaType: "application/json",
+      errors: {
+        401: "Access denied. The API Key parameter is missing or is incorrectly entered.",
+        422: "Unprocessable Entity. Some parameters were incorrect.",
       },
     });
   }
