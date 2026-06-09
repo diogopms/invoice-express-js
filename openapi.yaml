@@ -1903,6 +1903,166 @@ paths:
           description: Not found. The supplied document-id doesn’t match any existing document.
         "422":
           description: Unprocessable Entity. Some parameters sent were incorrect.
+  /sequences.json:
+    get:
+      tags:
+        - Sequences
+      summary: List all sequences
+      description: Retrieves the list of document sequences for the account.
+      parameters:
+        - name: api_key
+          in: query
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: The list of sequences.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SequencesResponse"
+        "401":
+          description: Access denied. The API Key parameter is missing or is incorrectly entered.
+    post:
+      tags:
+        - Sequences
+      summary: Create a sequence
+      description: Creates a new document sequence.
+      parameters:
+        - name: api_key
+          in: query
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SequenceRequest"
+      responses:
+        "201":
+          description: Sequence was created successfully.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SequenceResponse"
+        "401":
+          description: Access denied. The API Key parameter is missing or is incorrectly entered.
+        "422":
+          description: Unprocessable Entity. Some parameters were incorrect.
+
+  /sequences/{sequence-id}.json:
+    get:
+      tags:
+        - Sequences
+      summary: Get a sequence
+      parameters:
+        - name: api_key
+          in: query
+          required: true
+          schema:
+            type: string
+        - name: sequence-id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: The sequence was returned successfully.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SequenceResponse"
+        "401":
+          description: Access denied. The API Key parameter is missing or is incorrectly entered.
+        "404":
+          description: Not found. No sequence matches the supplied sequence-id.
+    put:
+      tags:
+        - Sequences
+      summary: Update a sequence
+      description: Updates an existing document sequence.
+      parameters:
+        - name: api_key
+          in: query
+          required: true
+          schema:
+            type: string
+        - name: sequence-id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SequenceRequest"
+      responses:
+        "200":
+          description: Sequence was updated successfully.
+        "401":
+          description: Access denied. The API Key parameter is missing or is incorrectly entered.
+        "404":
+          description: Not found. No sequence matches the supplied sequence-id.
+        "422":
+          description: Unprocessable Entity. Some parameters were incorrect.
+
+  /sequences/{sequence-id}/register.json:
+    put:
+      tags:
+        - Sequences
+      summary: Register a sequence
+      description: Registers a document sequence with the Tax Authority (AT). Requires AT credentials configured on the account.
+      parameters:
+        - name: api_key
+          in: query
+          required: true
+          schema:
+            type: string
+        - name: sequence-id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: The sequence was registered successfully.
+        "401":
+          description: Access denied. The API Key parameter is missing or is incorrectly entered.
+        "404":
+          description: Not found. No sequence matches the supplied sequence-id.
+        "422":
+          description: Unprocessable Entity. Some parameters were incorrect.
+
+  /sequences/{sequence-id}/set_current.json:
+    put:
+      tags:
+        - Sequences
+      summary: Set a sequence as current
+      description: Sets the given sequence as the account's current (default) sequence.
+      parameters:
+        - name: api_key
+          in: query
+          required: true
+          schema:
+            type: string
+        - name: sequence-id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: The current sequence was updated successfully.
+        "401":
+          description: Access denied. The API Key parameter is missing or is incorrectly entered.
+        "404":
+          description: Not found. No sequence matches the supplied sequence-id.
 components:
   schemas:
     Tax:
@@ -2897,6 +3057,92 @@ components:
               type: integer
             per_page:
               type: integer
+    Sequence:
+      type: object
+      required:
+        - id
+        - serie
+      properties:
+        id:
+          type: integer
+        serie:
+          type: string
+          description: The series identifier (e.g. "2026").
+        default_sequence:
+          type: boolean
+          description: Whether this is the account's current/default sequence.
+        registered:
+          type: boolean
+          description: Whether the sequence has been registered with the Tax Authority.
+        current_invoice_number:
+          type: integer
+        current_invoice_receipt_number:
+          type: integer
+        current_simplified_invoice_number:
+          type: integer
+        current_credit_note_number:
+          type: integer
+        current_debit_note_number:
+          type: integer
+        current_receipt_number:
+          type: integer
+        current_money_receipt_number:
+          type: integer
+        current_quote_number:
+          type: integer
+        current_proforma_number:
+          type: integer
+        current_fees_note_number:
+          type: integer
+        current_shipping_number:
+          type: integer
+        current_transport_number:
+          type: integer
+        current_devolution_number:
+          type: integer
+    SequenceBody:
+      type: object
+      required:
+        - serie
+      properties:
+        serie:
+          type: string
+          description: The series identifier (e.g. "2026").
+        default_sequence:
+          type: string
+          enum: ["0", "1"]
+          description: Set to "1" to make this the account's current/default sequence.
+        current_invoice_number:
+          type: integer
+        current_credit_note_number:
+          type: integer
+        current_debit_note_number:
+          type: integer
+        current_receipt_number:
+          type: integer
+    SequenceRequest:
+      type: object
+      required:
+        - sequence
+      properties:
+        sequence:
+          $ref: "#/components/schemas/SequenceBody"
+    SequenceResponse:
+      type: object
+      required:
+        - sequence
+      properties:
+        sequence:
+          $ref: "#/components/schemas/Sequence"
+    SequencesResponse:
+      type: object
+      required:
+        - sequences
+      properties:
+        sequences:
+          type: array
+          items:
+            $ref: "#/components/schemas/Sequence"
     ErrorResponse:
       type: object
 

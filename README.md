@@ -4,7 +4,7 @@ A typed JavaScript / TypeScript client for the [InvoiceXpress](https://invoicexp
 
 The client is generated from an OpenAPI specification with [`@hey-api/openapi-ts`](https://heyapi.dev/) and ships with full TypeScript types for every request and response.
 
-- 📦 Single client class exposing every resource (`clients`, `invoices`, `invoicesReceipts`, `estimates`, `guides`, `items`, `taxes`, `saft`)
+- 📦 Single client class exposing every resource (`clients`, `invoices`, `invoicesReceipts`, `estimates`, `guides`, `sequences`, `items`, `taxes`, `saft`)
 - 🟦 First-class TypeScript types for request payloads and responses
 - 🔁 Request / response interceptors
 - ⏹️ Cancelable requests
@@ -80,14 +80,14 @@ const client = new InvoiceExpressClient({
 });
 ```
 
-| Option             | Type                                                  | Default                                          | Description                                  |
-| ------------------ | ----------------------------------------------------- | ------------------------------------------------ | -------------------------------------------- |
-| `BASE`             | `string`                                              | `https://account_name.app.invoicexpress.com`     | Base URL of your InvoiceXpress account.      |
-| `VERSION`          | `string`                                              | `1.0.0`                                          | API version.                                 |
-| `HEADERS`          | `Record<string, string>` or resolver                  | `undefined`                                      | Extra headers sent with every request.       |
-| `WITH_CREDENTIALS` | `boolean`                                             | `false`                                          | Whether to send credentials with the request.|
-| `CREDENTIALS`      | `"include" \| "omit" \| "same-origin"`                | `"include"`                                      | `fetch` credentials mode.                    |
-| `ENCODE_PATH`      | `(path: string) => string`                            | `undefined`                                      | Custom path-encoding function.               |
+| Option             | Type                                   | Default                                      | Description                                   |
+| ------------------ | -------------------------------------- | -------------------------------------------- | --------------------------------------------- |
+| `BASE`             | `string`                               | `https://account_name.app.invoicexpress.com` | Base URL of your InvoiceXpress account.       |
+| `VERSION`          | `string`                               | `1.0.0`                                      | API version.                                  |
+| `HEADERS`          | `Record<string, string>` or resolver   | `undefined`                                  | Extra headers sent with every request.        |
+| `WITH_CREDENTIALS` | `boolean`                              | `false`                                      | Whether to send credentials with the request. |
+| `CREDENTIALS`      | `"include" \| "omit" \| "same-origin"` | `"include"`                                  | `fetch` credentials mode.                     |
+| `ENCODE_PATH`      | `(path: string) => string`             | `undefined`                                  | Custom path-encoding function.                |
 
 ## Usage
 
@@ -97,7 +97,11 @@ The client exposes one property per resource. Every method takes a single `data`
 
 ```ts
 // List clients (paginated)
-const list = await client.clients.getClientsJson({ apiKey, page: 1, perPage: 20 });
+const list = await client.clients.getClientsJson({
+  apiKey,
+  page: 1,
+  perPage: 20,
+});
 
 // Get a client by ID
 const { client: found } = await client.clients.getClientsByClientIdJson({
@@ -106,7 +110,10 @@ const { client: found } = await client.clients.getClientsByClientIdJson({
 });
 
 // Find by name / code
-await client.clients.getClientsFindByNameJson({ apiKey, clientName: "Acme, Lda" });
+await client.clients.getClientsFindByNameJson({
+  apiKey,
+  clientName: "Acme, Lda",
+});
 await client.clients.getClientsFindByCodeJson({ apiKey, clientCode: 1001 });
 
 // Create a client
@@ -162,7 +169,10 @@ const receipt = await client.invoicesReceipts.postInvoiceReceiptsJson({
 const documentId = receipt.invoice_receipts!.id;
 
 // Get a document
-await client.invoicesReceipts.getInvoiceReceiptsByDocumentIdJson({ apiKey, documentId });
+await client.invoicesReceipts.getInvoiceReceiptsByDocumentIdJson({
+  apiKey,
+  documentId,
+});
 
 // Change its state (e.g. finalize)
 await client.invoicesReceipts.putInvoiceReceiptsByDocumentIdChangeStateJson({
@@ -206,12 +216,23 @@ const created = await client.estimates.postByEstimatesTypeJson({
 const documentId = created.quote!.id;
 
 // Get / update
-await client.estimates.getByEstimatesTypeByDocumentIdJson({ apiKey, estimatesType: "quotes", documentId });
+await client.estimates.getByEstimatesTypeByDocumentIdJson({
+  apiKey,
+  estimatesType: "quotes",
+  documentId,
+});
 await client.estimates.putByEstimatesTypeByDocumentIdJson({
   apiKey,
   estimatesType: "quotes",
   documentId,
-  requestBody: { quote: { date: "09/06/2026", due_date: "30/06/2026", client: { name: "Acme, Lda" }, items: [] } },
+  requestBody: {
+    quote: {
+      date: "09/06/2026",
+      due_date: "30/06/2026",
+      client: { name: "Acme, Lda" },
+      items: [],
+    },
+  },
 });
 
 // Finalize, then email
@@ -252,8 +273,18 @@ const created = await client.guides.postByGuidesTypeJson({
       date: "09/06/2026",
       loaded_at: "09/06/2026 19:00:00",
       tax_exemption: "M10",
-      address_from: { detail: "Rua A, 1", city: "Lisboa", postal_code: "1000-001", country: "Portugal" },
-      address_to: { detail: "Rua B, 2", city: "Porto", postal_code: "4000-002", country: "Portugal" },
+      address_from: {
+        detail: "Rua A, 1",
+        city: "Lisboa",
+        postal_code: "1000-001",
+        country: "Portugal",
+      },
+      address_to: {
+        detail: "Rua B, 2",
+        city: "Porto",
+        postal_code: "4000-002",
+        country: "Portugal",
+      },
       client: { name: "Acme, Lda", code: "ACME" },
       items: [{ name: "Pallet", unit_price: 0, quantity: 3 }],
     },
@@ -263,7 +294,11 @@ const created = await client.guides.postByGuidesTypeJson({
 const documentId = created.transport!.id;
 
 // Get / update
-await client.guides.getByGuidesTypeByDocumentIdJson({ apiKey, guidesType: "transports", documentId });
+await client.guides.getByGuidesTypeByDocumentIdJson({
+  apiKey,
+  guidesType: "transports",
+  documentId,
+});
 
 // Finalize, then email
 await client.guides.putByGuidesTypeByDocumentIdChangeStateJson({
@@ -276,7 +311,9 @@ await client.guides.putByGuidesTypeByDocumentIdEmailDocumentJson({
   apiKey,
   guidesType: "transports",
   documentId,
-  requestBody: { message: { subject: "Your transport guide", body: "In transit." } },
+  requestBody: {
+    message: { subject: "Your transport guide", body: "In transit." },
+  },
 });
 
 // List all guides (paginated)
@@ -285,6 +322,42 @@ await client.guides.getGuidesJson({ apiKey, page: 1, perPage: 20 });
 // QR code and PDF (shared endpoints — poll the PDF until it resolves to a 200)
 await client.guides.getApiQrCodesByDocumentIdJson({ apiKey, documentId });
 await client.invoicesReceipts.getApiPdfByDocumentIdJson({ apiKey, documentId });
+```
+
+### Sequences
+
+Document numbering sequences. Create a sequence, set it as the account's current
+one, and register it with the Tax Authority.
+
+```ts
+// Create a sequence
+const created = await client.sequences.postSequencesJson({
+  apiKey,
+  requestBody: { sequence: { serie: "2026", default_sequence: "1" } },
+});
+
+const sequenceId = created.sequence!.id;
+
+// List / get
+await client.sequences.getSequencesJson({ apiKey });
+await client.sequences.getSequencesBySequenceIdJson({ apiKey, sequenceId });
+
+// Update
+await client.sequences.putSequencesBySequenceIdJson({
+  apiKey,
+  sequenceId,
+  requestBody: { sequence: { serie: "2026", current_invoice_number: 100 } },
+});
+
+// Set as current, then register with the Tax Authority
+await client.sequences.putSequencesBySequenceIdSetCurrentJson({
+  apiKey,
+  sequenceId,
+});
+await client.sequences.putSequencesBySequenceIdRegisterJson({
+  apiKey,
+  sequenceId,
+});
 ```
 
 ### Items & taxes
@@ -301,7 +374,11 @@ await client.taxes.getTaxesByTaxIdJson({ apiKey, taxId: 42 });
 
 ```ts
 // Returns { url } once ready, or { message } while still generating — keep polling.
-const saft = await client.saft.getApiExportSaftJson({ apiKey, month: "6", years: "2026" });
+const saft = await client.saft.getApiExportSaftJson({
+  apiKey,
+  month: "6",
+  years: "2026",
+});
 ```
 
 ## Error handling
@@ -347,7 +424,14 @@ client.request.config.interceptors.response.use((res) => {
 Every method returns a `CancelablePromise`, so in-flight requests can be aborted.
 
 ```ts
-const promise = client.invoices.getInvoicesJson({ apiKey, page: 1, perPage: 50, nonArchived: true, typeArray: ["Invoice"], statusArray: ["draft"] });
+const promise = client.invoices.getInvoicesJson({
+  apiKey,
+  page: 1,
+  perPage: 50,
+  nonArchived: true,
+  typeArray: ["Invoice"],
+  statusArray: ["draft"],
+});
 
 // later…
 promise.cancel();
@@ -358,74 +442,80 @@ promise.cancel();
 All request and response shapes are exported, so you can type your own helpers:
 
 ```ts
-import type { Client, Invoice, ClientRequest, InvoicesResponse } from "@diogopms/invoice-express-js";
+import type {
+  Client,
+  Invoice,
+  ClientRequest,
+  InvoicesResponse,
+} from "@diogopms/invoice-express-js";
 ```
 
 ## Operations implemented
 
-| API Section      | Operation                  | Status          |
-|------------------|----------------------------|-----------------|
-| **Invoices**     | Send by email              | ✅ |
-|                  | Generate PDF               | ✅ |
-|                  | Get                        | ✅ |
-|                  | List all                   | ✅ |
-|                  | Create                     | ✅ |
-|                  | Update                     | ✅ |
-|                  | Change-state               | ✅ |
-|                  | Related documents          | ✅ |
-|                  | Generate payment           | ✅ |
-|                  | Cancel payment             | Not Implemented |
-|                  | Get QR Code                | Not Implemented |
-| **Estimates**    | Send by email              | ✅ |
-|                  | Generate PDF               | ✅ |
-|                  | Get                        | ✅ |
-|                  | List all                   | ✅ |
-|                  | Create                     | ✅ |
-|                  | Update                     | ✅ |
-|                  | Change-state               | ✅ |
-| **Guides**       | Send by email              | ✅ |
-|                  | Generate PDF               | ✅ |
-|                  | Get                        | ✅ |
-|                  | List all                   | ✅ |
-|                  | Create                     | ✅ |
-|                  | Update                     | ✅ |
-|                  | Change-state               | ✅ |
-|                  | Get QR Code                | ✅ |
-| **Clients**      | List all                   | ✅ |
-|                  | Get                        | ✅ |
-|                  | Update                     | ✅ |
-|                  | Create                     | ✅ |
-|                  | Find by name               | ✅ |
-|                  | Find by code               | ✅ |
-|                  | List invoices              | ✅ |
-| **Items**        | List all                   | ✅ |
-|                  | Get                        | ✅ |
-|                  | Update                     | ✅ |
-|                  | Create                     | ✅ |
-|                  | Delete                     | ✅ |
-| **Sequences**    | Register                   | Not Implemented |
-|                  | List all                   | Not Implemented |
-|                  | Get                        | Not Implemented |
-|                  | Update                     | Not Implemented |
-|                  | Create                     | Not Implemented |
-| **Taxes**        | List all                   | ✅ |
-|                  | Get                        | ✅ |
-|                  | Update                     | ✅ |
-|                  | Create                     | ✅ |
-|                  | Delete                     | ✅ |
-| **Accounts**     | Get                        | Not Implemented |
-|                  | Update                     | Not Implemented |
-|                  | Create                     | Not Implemented |
-|                  | Create for existing user   | Not Implemented |
-|                  | At Communication           | Not Implemented |
-| **SAF-T**        | Export SAF-T               | ✅ |
-| **Treasury**     | Get client balance         | Not Implemented |
-|                  | Update initial balance     | Not Implemented |
-|                  | Get regularization         | Not Implemented |
-|                  | Create regularization      | Not Implemented |
-|                  | Delete regularization      | Not Implemented |
-|                  | Create treasury movement   | Not Implemented |
-|                  | Delete treasury movement   | Not Implemented |
+| API Section   | Operation                | Status          |
+| ------------- | ------------------------ | --------------- |
+| **Invoices**  | Send by email            | ✅              |
+|               | Generate PDF             | ✅              |
+|               | Get                      | ✅              |
+|               | List all                 | ✅              |
+|               | Create                   | ✅              |
+|               | Update                   | ✅              |
+|               | Change-state             | ✅              |
+|               | Related documents        | ✅              |
+|               | Generate payment         | ✅              |
+|               | Cancel payment           | Not Implemented |
+|               | Get QR Code              | Not Implemented |
+| **Estimates** | Send by email            | ✅              |
+|               | Generate PDF             | ✅              |
+|               | Get                      | ✅              |
+|               | List all                 | ✅              |
+|               | Create                   | ✅              |
+|               | Update                   | ✅              |
+|               | Change-state             | ✅              |
+| **Guides**    | Send by email            | ✅              |
+|               | Generate PDF             | ✅              |
+|               | Get                      | ✅              |
+|               | List all                 | ✅              |
+|               | Create                   | ✅              |
+|               | Update                   | ✅              |
+|               | Change-state             | ✅              |
+|               | Get QR Code              | ✅              |
+| **Clients**   | List all                 | ✅              |
+|               | Get                      | ✅              |
+|               | Update                   | ✅              |
+|               | Create                   | ✅              |
+|               | Find by name             | ✅              |
+|               | Find by code             | ✅              |
+|               | List invoices            | ✅              |
+| **Items**     | List all                 | ✅              |
+|               | Get                      | ✅              |
+|               | Update                   | ✅              |
+|               | Create                   | ✅              |
+|               | Delete                   | ✅              |
+| **Sequences** | Register                 | ✅              |
+|               | List all                 | ✅              |
+|               | Get                      | ✅              |
+|               | Update                   | ✅              |
+|               | Create                   | ✅              |
+|               | Set current              | ✅              |
+| **Taxes**     | List all                 | ✅              |
+|               | Get                      | ✅              |
+|               | Update                   | ✅              |
+|               | Create                   | ✅              |
+|               | Delete                   | ✅              |
+| **Accounts**  | Get                      | Not Implemented |
+|               | Update                   | Not Implemented |
+|               | Create                   | Not Implemented |
+|               | Create for existing user | Not Implemented |
+|               | At Communication         | Not Implemented |
+| **SAF-T**     | Export SAF-T             | ✅              |
+| **Treasury**  | Get client balance       | Not Implemented |
+|               | Update initial balance   | Not Implemented |
+|               | Get regularization       | Not Implemented |
+|               | Create regularization    | Not Implemented |
+|               | Delete regularization    | Not Implemented |
+|               | Create treasury movement | Not Implemented |
+|               | Delete treasury movement | Not Implemented |
 
 ## Development
 
@@ -441,14 +531,14 @@ To add or change operations, edit `openapi.yaml` and re-run `pnpm run generate`.
 
 The full set of scripts:
 
-| Script                  | Purpose                                                                 |
-| ----------------------- | ---------------------------------------------------------------------- |
-| `pnpm run generate`     | Regenerate `./src` from `openapi.yaml`.                                 |
+| Script                    | Purpose                                                                |
+| ------------------------- | ---------------------------------------------------------------------- |
+| `pnpm run generate`       | Regenerate `./src` from `openapi.yaml`.                                |
 | `pnpm run generate:check` | Regenerate and fail if the committed client drifts from the spec (CI). |
-| `pnpm run build`        | Compile TypeScript to `./dist`.                                         |
-| `pnpm run typecheck`    | Type-check without emitting.                                            |
-| `pnpm run lint`         | Check formatting with Prettier.                                         |
-| `pnpm run format`       | Apply Prettier formatting.                                              |
+| `pnpm run build`          | Compile TypeScript to `./dist`.                                        |
+| `pnpm run typecheck`      | Type-check without emitting.                                           |
+| `pnpm run lint`           | Check formatting with Prettier.                                        |
+| `pnpm run format`         | Apply Prettier formatting.                                             |
 
 CI runs `lint`, `generate:check`, `typecheck` and `build` on every pull request, so a spec edit that isn't accompanied by a regenerated client will fail the build.
 
@@ -456,7 +546,7 @@ CI runs `lint`, `generate:check`, `typecheck` and `build` on every pull request,
 
 - [ ] Add tests
 - [ ] Add an `examples/` folder
-- [ ] Implement more operations (Sequences, Accounts, Treasury)
+- [ ] Implement more operations (Accounts, Treasury)
 
 ## License
 
