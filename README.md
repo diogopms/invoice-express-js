@@ -669,6 +669,7 @@ The full set of scripts:
 | `pnpm run typecheck`          | Type-check without emitting.                                           |
 | `pnpm run typecheck:examples` | Type-check the `examples/` against the client.                         |
 | `pnpm run test`               | Build, then run the smoke tests (`node --test`).                       |
+| `pnpm run test:live`          | Build, then run the live verification against a real account.          |
 | `pnpm run lint`               | Check formatting with Prettier.                                        |
 | `pnpm run format`             | Apply Prettier formatting.                                             |
 
@@ -687,6 +688,25 @@ dependencies) and runs with `pnpm run test`:
   through its full request pipeline (URL building, query params, JSON body,
   interceptors and `ApiError` mapping) against a mocked `fetch` transport, so the
   whole stack is exercised without network access or account credentials.
+
+### Live verification
+
+[`scripts/live-check.cjs`](./scripts/live-check.cjs) drives the **built client
+against a real account** and reports coverage across every generated operation
+(`exercised N/62`). The API key is passed as a **command-line argument** — never
+read from an environment variable, a file, or source control, and nothing is
+persisted.
+
+```bash
+pnpm run build
+# read-only (lists + get-by-id across every resource)
+pnpm run test:live <api-key> https://your-account.app.invoicexpress.com
+# + reversible create/update/delete cycles that clean up after themselves
+pnpm run test:live <api-key> https://your-account.app.invoicexpress.com --write
+# + side-effecting ops (finalize, email, payments, sequence register/set-current,
+#   accounts, AT communication) — run only against a disposable/test account
+pnpm run test:live <api-key> https://your-account.app.invoicexpress.com --destructive
+```
 
 ### Examples
 
