@@ -1380,6 +1380,129 @@ export const $EstimatesResponse = {
   },
 } as const;
 
+export const $Sequence = {
+  type: "object",
+  required: ["id", "serie"],
+  properties: {
+    id: {
+      type: "integer",
+    },
+    serie: {
+      type: "string",
+      description: 'The series identifier (e.g. "2026").',
+    },
+    default_sequence: {
+      type: "boolean",
+      description: "Whether this is the account's current/default sequence.",
+    },
+    registered: {
+      type: "boolean",
+      description:
+        "Whether the sequence has been registered with the Tax Authority.",
+    },
+    current_invoice_number: {
+      type: "integer",
+    },
+    current_invoice_receipt_number: {
+      type: "integer",
+    },
+    current_simplified_invoice_number: {
+      type: "integer",
+    },
+    current_credit_note_number: {
+      type: "integer",
+    },
+    current_debit_note_number: {
+      type: "integer",
+    },
+    current_receipt_number: {
+      type: "integer",
+    },
+    current_money_receipt_number: {
+      type: "integer",
+    },
+    current_quote_number: {
+      type: "integer",
+    },
+    current_proforma_number: {
+      type: "integer",
+    },
+    current_fees_note_number: {
+      type: "integer",
+    },
+    current_shipping_number: {
+      type: "integer",
+    },
+    current_transport_number: {
+      type: "integer",
+    },
+    current_devolution_number: {
+      type: "integer",
+    },
+  },
+} as const;
+
+export const $SequenceBody = {
+  type: "object",
+  required: ["serie"],
+  properties: {
+    serie: {
+      type: "string",
+      description: 'The series identifier (e.g. "2026").',
+    },
+    default_sequence: {
+      type: "string",
+      enum: ["0", "1"],
+      description: `Set to "1" to make this the account's current/default sequence.`,
+    },
+    current_invoice_number: {
+      type: "integer",
+    },
+    current_credit_note_number: {
+      type: "integer",
+    },
+    current_debit_note_number: {
+      type: "integer",
+    },
+    current_receipt_number: {
+      type: "integer",
+    },
+  },
+} as const;
+
+export const $SequenceRequest = {
+  type: "object",
+  required: ["sequence"],
+  properties: {
+    sequence: {
+      $ref: "#/components/schemas/SequenceBody",
+    },
+  },
+} as const;
+
+export const $SequenceResponse = {
+  type: "object",
+  required: ["sequence"],
+  properties: {
+    sequence: {
+      $ref: "#/components/schemas/Sequence",
+    },
+  },
+} as const;
+
+export const $SequencesResponse = {
+  type: "object",
+  required: ["sequences"],
+  properties: {
+    sequences: {
+      type: "array",
+      items: {
+        $ref: "#/components/schemas/Sequence",
+      },
+    },
+  },
+} as const;
+
 export const $ErrorResponse = {
   type: "object",
   properties: {

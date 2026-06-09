@@ -10,6 +10,7 @@ import { InvoicesService } from "./services.gen";
 import { InvoicesReceiptsService } from "./services.gen";
 import { ItemsService } from "./services.gen";
 import { SaftService } from "./services.gen";
+import { SequencesService } from "./services.gen";
 import { TaxesService } from "./services.gen";
 
 type HttpRequestConstructor = new (config: OpenAPIConfig) => BaseHttpRequest;
@@ -22,6 +23,7 @@ export class InvoiceExpressClient {
   public readonly invoicesReceipts: InvoicesReceiptsService;
   public readonly items: ItemsService;
   public readonly saft: SaftService;
+  public readonly sequences: SequencesService;
   public readonly taxes: TaxesService;
 
   public readonly request: BaseHttpRequest;
@@ -53,6 +55,7 @@ export class InvoiceExpressClient {
     this.invoicesReceipts = new InvoicesReceiptsService(this.request);
     this.items = new ItemsService(this.request);
     this.saft = new SaftService(this.request);
+    this.sequences = new SequencesService(this.request);
     this.taxes = new TaxesService(this.request);
   }
 }
