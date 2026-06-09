@@ -250,8 +250,14 @@ export type ItemRequest = {
 export type TaxRequest = {
   tax: {
     name: string;
-    value: number;
-    region?: string;
+    /**
+     * Tax rate, sent as a string (e.g. "23.0"). A numeric value is rejected by the /taxes.json endpoint with a 500.
+     */
+    value: string;
+    /**
+     * Required (e.g. "PT"); the API returns "region is empty" otherwise.
+     */
+    region: string;
     code?: string;
     default_tax?: boolean;
   };
@@ -768,14 +774,16 @@ export type TreasuryMovementResponse = {
 };
 
 export type InitialBalanceRequest = {
-  /**
-   * The client's initial balance amount.
-   */
-  value: number;
-  /**
-   * Balance date in YYYY-MM-DD format.
-   */
-  date?: string;
+  initial_balance: {
+    /**
+     * The client's initial balance amount.
+     */
+    value: number;
+    /**
+     * Balance date in YYYY-MM-DD format.
+     */
+    date?: string;
+  };
 };
 
 export type BalanceResponse = {
@@ -1404,14 +1412,6 @@ export type GetSequencesBySequenceIdJsonData = {
 };
 
 export type GetSequencesBySequenceIdJsonResponse = SequenceResponse;
-
-export type PutSequencesBySequenceIdJsonData = {
-  apiKey: string;
-  requestBody: SequenceRequest;
-  sequenceId: number;
-};
-
-export type PutSequencesBySequenceIdJsonResponse = unknown;
 
 export type PutSequencesBySequenceIdRegisterJsonData = {
   apiKey: string;

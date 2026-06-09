@@ -357,13 +357,6 @@ const sequenceId = created.sequence!.id;
 await client.sequences.getSequencesJson({ apiKey });
 await client.sequences.getSequencesBySequenceIdJson({ apiKey, sequenceId });
 
-// Update
-await client.sequences.putSequencesBySequenceIdJson({
-  apiKey,
-  sequenceId,
-  requestBody: { sequence: { serie: "2026", current_invoice_number: 100 } },
-});
-
 // Set as current, then register with the Tax Authority
 await client.sequences.putSequencesBySequenceIdSetCurrentJson({
   apiKey,
@@ -625,7 +618,6 @@ import type {
 | **Sequences** | Register                 | ✅     |
 |               | List all                 | ✅     |
 |               | Get                      | ✅     |
-|               | Update                   | ✅     |
 |               | Create                   | ✅     |
 |               | Set current              | ✅     |
 | **Taxes**     | List all                 | ✅     |
