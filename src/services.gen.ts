@@ -113,6 +113,20 @@ import type {
   PutApiAccountsByAccountIdUpdateJsonResponse,
   PostApiV3AccountsAtCommunicationJsonData,
   PostApiV3AccountsAtCommunicationJsonResponse,
+  GetApiV3ClientsByClientIdBalanceJsonData,
+  GetApiV3ClientsByClientIdBalanceJsonResponse,
+  PutApiV3ClientsByClientIdInitialBalanceJsonData,
+  PutApiV3ClientsByClientIdInitialBalanceJsonResponse,
+  GetApiV3ClientsByClientIdRegularizationJsonData,
+  GetApiV3ClientsByClientIdRegularizationJsonResponse,
+  PostApiV3ClientsByClientIdRegularizationJsonData,
+  PostApiV3ClientsByClientIdRegularizationJsonResponse,
+  DeleteApiV3ClientsByClientIdRegularizationByIdJsonData,
+  DeleteApiV3ClientsByClientIdRegularizationByIdJsonResponse,
+  PostApiV3ClientsByClientIdTreasuryMovementsJsonData,
+  PostApiV3ClientsByClientIdTreasuryMovementsJsonResponse,
+  DeleteApiV3ClientsByClientIdTreasuryMovementsByIdJsonData,
+  DeleteApiV3ClientsByClientIdTreasuryMovementsByIdJsonResponse,
 } from "./types.gen";
 
 export class InvoicesReceiptsService {
@@ -1801,6 +1815,220 @@ export class AccountsService {
       errors: {
         401: "Access denied. The API Key parameter is missing or is incorrectly entered.",
         422: "Unprocessable Entity. Some parameters were incorrect.",
+      },
+    });
+  }
+}
+
+export class TreasuryService {
+  constructor(public readonly httpRequest: BaseHttpRequest) {}
+
+  /**
+   * Get a client's balance
+   * Returns the treasury balance of a specific client.
+   * @param data The data for the request.
+   * @param data.apiKey
+   * @param data.clientId
+   * @returns BalanceResponse The client's balance.
+   * @throws ApiError
+   */
+  public getApiV3ClientsByClientIdBalanceJson(
+    data: GetApiV3ClientsByClientIdBalanceJsonData,
+  ): CancelablePromise<GetApiV3ClientsByClientIdBalanceJsonResponse> {
+    return this.httpRequest.request({
+      method: "GET",
+      url: "/api/v3/clients/{client-id}/balance.json",
+      path: {
+        "client-id": data.clientId,
+      },
+      query: {
+        api_key: data.apiKey,
+      },
+      errors: {
+        401: "Access denied. The API Key parameter is missing or is incorrectly entered.",
+        404: "Not found. No client matches the supplied client-id.",
+      },
+    });
+  }
+
+  /**
+   * Update a client's initial balance
+   * Updates the initial treasury balance of a specific client.
+   * @param data The data for the request.
+   * @param data.apiKey
+   * @param data.clientId
+   * @param data.requestBody
+   * @returns unknown The initial balance was updated successfully.
+   * @throws ApiError
+   */
+  public putApiV3ClientsByClientIdInitialBalanceJson(
+    data: PutApiV3ClientsByClientIdInitialBalanceJsonData,
+  ): CancelablePromise<PutApiV3ClientsByClientIdInitialBalanceJsonResponse> {
+    return this.httpRequest.request({
+      method: "PUT",
+      url: "/api/v3/clients/{client-id}/initial_balance.json",
+      path: {
+        "client-id": data.clientId,
+      },
+      query: {
+        api_key: data.apiKey,
+      },
+      body: data.requestBody,
+      mediaType: "application/json",
+      errors: {
+        401: "Access denied. The API Key parameter is missing or is incorrectly entered.",
+        404: "Not found. No client matches the supplied client-id.",
+        422: "Unprocessable Entity. Some parameters were incorrect.",
+      },
+    });
+  }
+
+  /**
+   * List a client's regularizations
+   * Returns the list of a client's treasury regularizations.
+   * @param data The data for the request.
+   * @param data.apiKey
+   * @param data.clientId
+   * @returns RegularizationsResponse The client's regularizations.
+   * @throws ApiError
+   */
+  public getApiV3ClientsByClientIdRegularizationJson(
+    data: GetApiV3ClientsByClientIdRegularizationJsonData,
+  ): CancelablePromise<GetApiV3ClientsByClientIdRegularizationJsonResponse> {
+    return this.httpRequest.request({
+      method: "GET",
+      url: "/api/v3/clients/{client-id}/regularization.json",
+      path: {
+        "client-id": data.clientId,
+      },
+      query: {
+        api_key: data.apiKey,
+      },
+      errors: {
+        401: "Access denied. The API Key parameter is missing or is incorrectly entered.",
+        404: "Not found. No client matches the supplied client-id.",
+      },
+    });
+  }
+
+  /**
+   * Create a regularization
+   * Creates a new treasury regularization for a client.
+   * @param data The data for the request.
+   * @param data.apiKey
+   * @param data.clientId
+   * @param data.requestBody
+   * @returns RegularizationsResponse The regularization was created successfully.
+   * @throws ApiError
+   */
+  public postApiV3ClientsByClientIdRegularizationJson(
+    data: PostApiV3ClientsByClientIdRegularizationJsonData,
+  ): CancelablePromise<PostApiV3ClientsByClientIdRegularizationJsonResponse> {
+    return this.httpRequest.request({
+      method: "POST",
+      url: "/api/v3/clients/{client-id}/regularization.json",
+      path: {
+        "client-id": data.clientId,
+      },
+      query: {
+        api_key: data.apiKey,
+      },
+      body: data.requestBody,
+      mediaType: "application/json",
+      errors: {
+        401: "Access denied. The API Key parameter is missing or is incorrectly entered.",
+        422: "Unprocessable Entity. Some parameters were incorrect.",
+      },
+    });
+  }
+
+  /**
+   * Delete a regularization
+   * Deletes a client's treasury regularization.
+   * @param data The data for the request.
+   * @param data.apiKey
+   * @param data.clientId
+   * @param data.id
+   * @returns unknown The regularization was deleted successfully.
+   * @throws ApiError
+   */
+  public deleteApiV3ClientsByClientIdRegularizationByIdJson(
+    data: DeleteApiV3ClientsByClientIdRegularizationByIdJsonData,
+  ): CancelablePromise<DeleteApiV3ClientsByClientIdRegularizationByIdJsonResponse> {
+    return this.httpRequest.request({
+      method: "DELETE",
+      url: "/api/v3/clients/{client-id}/regularization/{id}.json",
+      path: {
+        "client-id": data.clientId,
+        id: data.id,
+      },
+      query: {
+        api_key: data.apiKey,
+      },
+      errors: {
+        401: "Access denied. The API Key parameter is missing or is incorrectly entered.",
+        404: "Not found. No regularization matches the supplied id.",
+      },
+    });
+  }
+
+  /**
+   * Create a treasury movement
+   * Creates a new treasury movement for a client.
+   * @param data The data for the request.
+   * @param data.apiKey
+   * @param data.clientId
+   * @param data.requestBody
+   * @returns TreasuryMovementResponse The treasury movement was created successfully.
+   * @throws ApiError
+   */
+  public postApiV3ClientsByClientIdTreasuryMovementsJson(
+    data: PostApiV3ClientsByClientIdTreasuryMovementsJsonData,
+  ): CancelablePromise<PostApiV3ClientsByClientIdTreasuryMovementsJsonResponse> {
+    return this.httpRequest.request({
+      method: "POST",
+      url: "/api/v3/clients/{client-id}/treasury_movements.json",
+      path: {
+        "client-id": data.clientId,
+      },
+      query: {
+        api_key: data.apiKey,
+      },
+      body: data.requestBody,
+      mediaType: "application/json",
+      errors: {
+        401: "Access denied. The API Key parameter is missing or is incorrectly entered.",
+        422: "Unprocessable Entity. Some parameters were incorrect.",
+      },
+    });
+  }
+
+  /**
+   * Delete a treasury movement
+   * Deletes a client's treasury movement.
+   * @param data The data for the request.
+   * @param data.apiKey
+   * @param data.clientId
+   * @param data.id
+   * @returns unknown The treasury movement was deleted successfully.
+   * @throws ApiError
+   */
+  public deleteApiV3ClientsByClientIdTreasuryMovementsByIdJson(
+    data: DeleteApiV3ClientsByClientIdTreasuryMovementsByIdJsonData,
+  ): CancelablePromise<DeleteApiV3ClientsByClientIdTreasuryMovementsByIdJsonResponse> {
+    return this.httpRequest.request({
+      method: "DELETE",
+      url: "/api/v3/clients/{client-id}/treasury_movements/{id}.json",
+      path: {
+        "client-id": data.clientId,
+        id: data.id,
+      },
+      query: {
+        api_key: data.apiKey,
+      },
+      errors: {
+        401: "Access denied. The API Key parameter is missing or is incorrectly entered.",
+        404: "Not found. No treasury movement matches the supplied id.",
       },
     });
   }
