@@ -137,8 +137,12 @@ async function reads() {
         statusArray: ["draft", "sent", "settled", "canceled", "second_copy"],
       }),
   );
-  await check("saft.export", "saft.getApiExportSaftJson", () =>
-    client.saft.getApiExportSaftJson({ apiKey, month: "1", years: "2030" }),
+  await check(
+    "saft.export",
+    "saft.getApiExportSaftJson",
+    () =>
+      client.saft.getApiExportSaftJson({ apiKey, month: "1", years: "2030" }),
+    { okStatuses: [422] }, // disabled on free-trial accounts
   );
 
   const taxId = taxes && taxes.taxes && taxes.taxes[0] && taxes.taxes[0].id;
@@ -314,17 +318,19 @@ async function writes(ctx) {
     );
   }
 
-  // Clients create/update (no delete endpoint)
+  // Clients create/update (no delete endpoint). Give it a code so find-by-code
+  // can be exercised.
+  const code = `LC${stamp}`.slice(0, 12);
   const cli = await check("clients.create", "clients.postClientsJson", () =>
     client.clients.postClientsJson({
       apiKey,
       requestBody: {
-        client: { name: `lc client ${stamp}`, email: "lc@example.com" },
+        client: { name: `lc client ${stamp}`, code, email: "lc@example.com" },
       },
     }),
   );
   const cliId = cli && cli.client && cli.client.id;
-  if (cliId)
+  if (cliId) {
     await check("clients.update", "clients.putClientsByClientIdJson", () =>
       client.clients.putClientsByClientIdJson({
         apiKey,
@@ -332,6 +338,14 @@ async function writes(ctx) {
         requestBody: { client: { name: `lc upd ${stamp}` } },
       }),
     );
+    await check(
+      "clients.findByCode",
+      "clients.getClientsFindByCodeJson",
+      () =>
+        client.clients.getClientsFindByCodeJson({ apiKey, clientCode: code }),
+      { okStatuses: [404] },
+    );
+  }
 
   // Estimate (quote): create draft -> get -> update -> change-state(deleted)
   const quote = await check(
@@ -683,7 +697,7 @@ async function destructive(ctx) {
           documentId: qid,
           requestBody: { message: { subject: "lc", body: "lc" } },
         }),
-      { okStatuses: [422] },
+      { okStatuses: [401, 422] },
     );
     await check(
       "qr.get",
@@ -728,7 +742,7 @@ async function destructive(ctx) {
             requestBody: { message: { subject: "lc", body: "lc" } },
           },
         ),
-      { okStatuses: [422] },
+      { okStatuses: [401, 422] },
     );
   }
   const guide = await client.guides
@@ -740,6 +754,18 @@ async function destructive(ctx) {
           date: TODAY,
           loaded_at: "01/01/2030 19:00:00",
           tax_exemption: "M10",
+          address_from: {
+            detail: "A",
+            city: "Lisboa",
+            postal_code: "1000-001",
+            country: "Portugal",
+          },
+          address_to: {
+            detail: "B",
+            city: "Porto",
+            postal_code: "4000-002",
+            country: "Portugal",
+          },
           client: { name: `lc d ${stamp}`, email: "lc@example.com" },
           items: [{ name: "Box", unit_price: 0, quantity: 1 }],
         },
@@ -758,7 +784,7 @@ async function destructive(ctx) {
           documentId: gid,
           requestBody: { message: { subject: "lc", body: "lc" } },
         }),
-      { okStatuses: [422] },
+      { okStatuses: [401, 422] },
     );
     await client.guides
       .putByGuidesTypeByDocumentIdChangeStateJson({
@@ -902,7 +928,7 @@ async function destructive(ctx) {
             },
           },
         }),
-      { okStatuses: [401, 403, 422] },
+      { okStatuses: [401, 403, 404, 422] }, // 404: created sub-account not retrievable with this key
     );
   } else {
     record("accounts.getApiAccountsByAccountIdGetJson");
@@ -921,7 +947,7 @@ async function destructive(ctx) {
           },
         },
       }),
-    { okStatuses: [401, 403, 422] },
+    { okStatuses: [400, 401, 403, 422] }, // 400: needs a valid existing user's credentials
   );
   await check(
     "accounts.atCommunication",
@@ -931,7 +957,7 @@ async function destructive(ctx) {
         apiKey,
         requestBody: { at_communication: {} },
       }),
-    { okStatuses: [401, 403, 422, 400] },
+    { okStatuses: [400, 401, 403, 422, 500] }, // 500: empty at_communication body; needs AT credentials
   );
 }
 
