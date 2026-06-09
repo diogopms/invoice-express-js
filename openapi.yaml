@@ -260,7 +260,7 @@ paths:
               schema:
                 type: object
                 properties:
-                  invoice_receipts:
+                  invoice_receipt:
                     $ref: "#/components/schemas/Invoice"
         "401":
           description: Access denied. The API Key parameter is missing or is incorrectly entered.
