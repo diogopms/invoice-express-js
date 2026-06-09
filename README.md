@@ -10,7 +10,7 @@ The client is generated from an OpenAPI specification with [`@hey-api/openapi-ts
 - ⏹️ Cancelable requests
 - 🌐 Built on `fetch` — no runtime dependencies
 
-> **Status:** early stage. A subset of the InvoiceXpress API is implemented — see [Operations implemented](#operations-implemented).
+> **Status:** every documented InvoiceXpress operation is implemented and verified live against the API — see [Operations implemented](#operations-implemented). (One known server-side caveat: guide update; see the note there.)
 
 ## Installation
 
