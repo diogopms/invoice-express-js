@@ -381,6 +381,21 @@ await client.sequences.putSequencesBySequenceIdRegisterJson({
 await client.items.getItemsJson({ apiKey });
 await client.items.getItemsByItemIdJson({ apiKey, itemId: 999 });
 
+// Create / update / delete. NOTE: the items endpoint requires `unit_price` as a
+// string (e.g. "100") — a numeric value is rejected by the API with a 422.
+const item = await client.items.postItemsJson({
+  apiKey,
+  requestBody: {
+    item: { name: "Consulting", unit_price: "100", tax: { name: "IVA23" } },
+  },
+});
+await client.items.putItemsByItemIdJson({
+  apiKey,
+  itemId: item.item!.id,
+  requestBody: { item: { name: "Consulting (senior)", unit_price: "150" } },
+});
+await client.items.deleteItemsByItemIdJson({ apiKey, itemId: item.item!.id });
+
 await client.taxes.getTaxesJson({ apiKey });
 await client.taxes.getTaxesByTaxIdJson({ apiKey, taxId: 42 });
 ```
