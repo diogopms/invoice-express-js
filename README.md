@@ -661,11 +661,17 @@ CI runs `lint`, `generate:check`, `typecheck`, `typecheck:examples`, `build` and
 
 ### Testing
 
-A lightweight smoke suite under [`test/`](./test) builds the package and asserts
-that the generated client exposes every resource service and a representative
-operation per service — guarding against the generator silently dropping or
-renaming an operation. It uses Node's built-in test runner (no extra
-dependencies). Run it with `pnpm run test`.
+The suite under [`test/`](./test) uses Node's built-in test runner (no extra
+dependencies) and runs with `pnpm run test`:
+
+- **Smoke** ([`smoke.test.js`](./test/smoke.test.js)) — builds the package and
+  asserts the client exposes every resource service plus a representative
+  operation per service, guarding against the generator silently dropping or
+  renaming an operation.
+- **End-to-end** ([`e2e.test.js`](./test/e2e.test.js)) — drives the client
+  through its full request pipeline (URL building, query params, JSON body,
+  interceptors and `ApiError` mapping) against a mocked `fetch` transport, so the
+  whole stack is exercised without network access or account credentials.
 
 ### Examples
 
