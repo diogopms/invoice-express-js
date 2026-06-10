@@ -520,20 +520,28 @@ dependencies) and runs with `pnpm run test`:
 
 [`scripts/live-check.cjs`](./scripts/live-check.cjs) drives the **built client
 against a real account** and reports coverage across every generated operation
-(`exercised N/62`). The API key is passed as a **command-line argument** — never
-read from an environment variable, a file, or source control, and nothing is
-persisted.
+(`operation coverage: N/61`). The API key is passed as a **command-line
+argument** — never read from an environment variable, a file, or source
+control, and nothing is persisted.
 
 ```bash
 pnpm run build
-# read-only (lists + get-by-id across every resource)
+# read-only (lists + get-by-id + find-by across every resource)
 pnpm run test:live <api-key> https://your-account.app.invoicexpress.com
 # + reversible create/update/delete cycles that clean up after themselves
 pnpm run test:live <api-key> https://your-account.app.invoicexpress.com --write
-# + side-effecting ops (finalize, email, payments, sequence register/set-current,
-#   accounts, AT communication) — run only against a disposable/test account
+# + full document lifecycles: finalize, PDF/QR, payments, cancel receipt/invoice,
+#   guides, emails, sequences — run only against a disposable/test account
 pnpm run test:live <api-key> https://your-account.app.invoicexpress.com --destructive
+# + the partner Accounts API (creates a NON-deletable sub-account)
+pnpm run test:live <api-key> https://your-account.app.invoicexpress.com --destructive --accounts
 ```
+
+The `--destructive` tier exercises 56/61 operations end to end (the remaining 5
+are the Accounts ops behind `--accounts`). It also documents two server-side
+quirks it works around: deleting a treasury movement returns a 500 even though
+the deletion is applied, and a document a deleted movement had touched can stay
+"paid" and uncancelable.
 
 ### Examples
 
