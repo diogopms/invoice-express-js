@@ -27,7 +27,7 @@ async function main(): Promise<void> {
 
   // Create a client. If the fiscal_id / name already exists InvoiceXpress
   // returns the existing record instead of creating a duplicate.
-  const created = await postClientsJson({
+  const { data: created, error: createError } = await postClientsJson({
     query: { api_key },
     body: {
       client: {
@@ -37,7 +37,11 @@ async function main(): Promise<void> {
       },
     },
   });
-  console.log("created client", created.data?.client?.id);
+  if (createError) {
+    console.error("create failed", createError);
+    return;
+  }
+  console.log("created client", created?.client?.id);
 }
 
 main();
