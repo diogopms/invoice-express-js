@@ -8,6 +8,13 @@ name: Release
 # Packages, and cut a GitHub Release. If nothing releasable has landed since
 # the last tag, `new_version` is empty and every step is skipped — a no-op.
 #
+# To FORCE a release (e.g. after a docs-only change), trigger it manually and
+# pick a bump level:
+#   * GitHub UI: Actions > Release > "Run workflow" > set "bump" to patch/minor/major.
+#   * CLI:       gh workflow run release.yaml -f bump=patch
+# With `bump=auto` (the default) a manual run behaves exactly like the schedule:
+# it releases only if a feat/fix/breaking-change commit has landed.
+#
 # Two publish targets, both token-authenticated. The "Configure registry auth"
 # step writes the per-registry _authToken lines into a runtime .npmrc (the
 # tokens are GitHub Actions secret expressions rendered into the script, never
@@ -20,7 +27,17 @@ name: Release
 on:
   schedule:
     - cron: "0 */4 * * *" # every 4 hours
-  workflow_dispatch: {} # allow a manual release run
+  workflow_dispatch:
+    inputs:
+      bump:
+        description: "Force a release with this bump when no releasable commits exist (auto = behave like the schedule)"
+        type: choice
+        options:
+          - auto
+          - patch
+          - minor
+          - major
+        default: auto
 
 # Never run two releases at once.
 concurrency:
@@ -47,11 +64,13 @@ jobs:
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           tag_prefix: ""
-          # Don't fall back to a patch bump for non-releasable commits (docs,
-          # test, ci, chore, …). With `false`, the action only emits a new
-          # version when a feat/fix/breaking-change commit has landed; otherwise
-          # `new_version` is empty and the release is skipped entirely.
-          default_bump: false
+          # `default_bump` is the bump used only when NO conventional commit
+          # since the last tag dictates one. Normally `false`, so non-releasable
+          # commits (docs, test, ci, chore, …) leave `new_version` empty and the
+          # release is skipped. A manual run can override it: passing
+          # bump=patch|minor|major forces that bump even on a docs-only change.
+          # A feat/fix/breaking-change commit always wins over this fallback.
+          default_bump: ${{ (github.event_name == 'workflow_dispatch' && inputs.bump != 'auto') && inputs.bump || false }}
           release_branches: main
 
       - name: Install Node.js
