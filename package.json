@@ -43,7 +43,7 @@
   "author": "Diogo Serrano",
   "license": "ISC",
   "publishConfig": {
-    "registry": "https://npm.pkg.github.com"
+    "access": "public"
   },
   "devDependencies": {
     "@hey-api/openapi-ts": "^0.98.2",
