@@ -36,15 +36,11 @@ The client is generated from an OpenAPI specification with [`@hey-api/openapi-ts
 
 ## Installation
 
-This package is published to the **GitHub Packages** registry under the `@diogopms` scope. Tell your package manager where to find the scope by adding the following to a `.npmrc` file at the root of your project:
+This package is published to **two registries** under the `@diogopms` scope — the public **npm registry** and **GitHub Packages**. Install from whichever you prefer.
 
-```ini
-@diogopms:registry=https://npm.pkg.github.com
-```
+### From npm (recommended)
 
-Installing from GitHub Packages requires authentication — follow GitHub's guide on [authenticating to GitHub Packages](https://docs.github.com/en/packages/working-with-a-github-packages-registry/working-with-the-npm-registry#authenticating-to-github-packages).
-
-Then install:
+The public npm registry needs no extra configuration:
 
 ```bash
 npm install @diogopms/invoice-express-js
@@ -53,6 +49,16 @@ pnpm add @diogopms/invoice-express-js
 # or
 yarn add @diogopms/invoice-express-js
 ```
+
+### From GitHub Packages
+
+Alternatively, install from GitHub Packages. Point the `@diogopms` scope at the registry by adding the following to a `.npmrc` file at the root of your project:
+
+```ini
+@diogopms:registry=https://npm.pkg.github.com
+```
+
+Installing from GitHub Packages requires authentication — follow GitHub's guide on [authenticating to GitHub Packages](https://docs.github.com/en/packages/working-with-a-github-packages-registry/working-with-the-npm-registry#authenticating-to-github-packages). Then install with any of the commands above.
 
 ## Quick start
 
@@ -495,7 +501,7 @@ hours**: it derives the next version from the commits since the last tag and,
 only if there is something new, it
 
 1. creates and pushes the git **tag**,
-2. **publishes** the package to the GitHub Packages registry, and
+2. **publishes** the package to both the public npm registry and GitHub Packages, and
 3. cuts a **GitHub Release** with the auto-generated changelog.
 
 You can also trigger a release on demand from the Actions tab
