@@ -13,6 +13,7 @@ import {
   getItemsByItemIdJson,
   putItemsByItemIdJson,
   deleteItemsByItemIdJson,
+  type ItemRequest,
 } from "../src";
 
 client.setConfig({ baseUrl: "https://your-account.app.invoicexpress.com" });
@@ -28,17 +29,18 @@ async function main(): Promise<void> {
   console.log(`${list?.items.length ?? 0} items`);
 
   // Create an item.
+  const newItem: ItemRequest = {
+    item: {
+      name: "Consulting",
+      description: "Hourly consulting",
+      unit_price: "100", // string — see the note above
+      unit: "hour",
+      tax: { name: "IVA23" },
+    },
+  };
   const { data: created, error } = await postItemsJson({
     query: { api_key },
-    body: {
-      item: {
-        name: "Consulting",
-        description: "Hourly consulting",
-        unit_price: "100", // string — see the note above
-        unit: "hour",
-        tax: { name: "IVA23" },
-      },
-    },
+    body: newItem,
   });
   if (error) {
     console.error("create failed", error);
@@ -51,10 +53,13 @@ async function main(): Promise<void> {
     path: { "item-id": itemId },
     query: { api_key },
   });
+  const itemUpdate: ItemRequest = {
+    item: { name: "Consulting", unit_price: "120" },
+  };
   await putItemsByItemIdJson({
     path: { "item-id": itemId },
     query: { api_key },
-    body: { item: { name: "Consulting", unit_price: "120" } },
+    body: itemUpdate,
   });
   await deleteItemsByItemIdJson({
     path: { "item-id": itemId },

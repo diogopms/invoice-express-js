@@ -21,3 +21,12 @@ Runnable, type-checked usage examples for `@diogopms/invoice-express-js`.
 These import the client from `../src` so they are type-checked against the
 generated types in CI (`pnpm run typecheck:examples`). Replace `BASE` with your
 account URL and `apiKey` with your API key before running one for real.
+
+Each request body is declared as an explicitly-typed constant so you can see the
+exact shape an endpoint expects at a glance — named request types where one
+exists (e.g. `InvoiceRequest`, `ClientRequest`, `TaxRequest`), or the per-operation
+indexed type for inline bodies (e.g.
+`PutInvoicesByDocumentIdChangeStateJsonData["body"]`). All of these types are
+exported from the package root, so you can import and reuse them in your own code.
+The annotations are optional in practice — the SDK functions already infer and
+check the body type — but they make the examples self-documenting.

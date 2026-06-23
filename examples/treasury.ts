@@ -13,6 +13,9 @@ import {
   deleteApiV3ClientsByClientIdRegularizationByIdJson,
   postApiV3ClientsByClientIdTreasuryMovementsJson,
   deleteApiV3ClientsByClientIdTreasuryMovementsByIdJson,
+  type InitialBalanceRequest,
+  type RegularizationRequest,
+  type TreasuryMovementRequest,
 } from "../src";
 
 client.setConfig({ baseUrl: "https://your-account.app.invoicexpress.com" });
@@ -31,24 +34,28 @@ async function main(): Promise<void> {
   console.log("balance", balance?.balance);
 
   // Set the client's initial balance.
+  const initialBalance: InitialBalanceRequest = {
+    initial_balance: { value: 250, date: "2026-01-01" },
+  };
   await putApiV3ClientsByClientIdInitialBalanceJson({
     path: { "client-id": clientId },
     query: { api_key },
-    body: { initial_balance: { value: 250, date: "2026-01-01" } },
+    body: initialBalance,
   });
 
   // Create a regularization, then list and delete it.
+  const newRegularization: RegularizationRequest = {
+    regularization: {
+      value: 123.45,
+      date: "2026-06-11",
+      observation: "Adjust",
+    },
+  };
   const { data: reg, error } =
     await postApiV3ClientsByClientIdRegularizationJson({
       path: { "client-id": clientId },
       query: { api_key },
-      body: {
-        regularization: {
-          value: 123.45,
-          date: "2026-06-11",
-          observation: "Adjust",
-        },
-      },
+      body: newRegularization,
     });
   if (error) {
     console.error("regularization failed", error);
@@ -70,18 +77,19 @@ async function main(): Promise<void> {
   // Create a treasury movement, then delete it. NOTE: the delete call returns
   // HTTP 500 even though the movement is actually removed — an InvoiceXpress
   // server-side quirk; treat that 500 as success here.
+  const newMovement: TreasuryMovementRequest = {
+    treasury_movement: {
+      value: 100,
+      movement_type: "Payment",
+      payment_method: "TB",
+      date: "2026-06-11",
+    },
+  };
   const { data: movement } =
     await postApiV3ClientsByClientIdTreasuryMovementsJson({
       path: { "client-id": clientId },
       query: { api_key },
-      body: {
-        treasury_movement: {
-          value: 100,
-          movement_type: "Payment",
-          payment_method: "TB",
-          date: "2026-06-11",
-        },
-      },
+      body: newMovement,
     });
   const movementId = movement?.treasury_movement?.id;
   if (movementId) {
