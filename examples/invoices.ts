@@ -16,6 +16,10 @@ import {
   putReceiptsByReceiptIdChangeStateJson,
   getApiPdfByDocumentIdJson,
   getApiQrCodesByDocumentIdJson,
+  type InvoiceRequest,
+  type PostDocumentsByDocumentIdPartialPaymentsJsonData,
+  type PutInvoicesByDocumentIdChangeStateJsonData,
+  type PutReceiptsByReceiptIdChangeStateJsonData,
 } from "../src";
 
 client.setConfig({ baseUrl: "https://your-account.app.invoicexpress.com" });
@@ -44,23 +48,24 @@ async function main(): Promise<void> {
   // Create a draft invoice. A client / items that don't exist yet are created
   // on the fly from the names given. Items carry their own tax here; if an item
   // has no tax you must set `tax_exemption` on the invoice instead.
+  const newInvoice: InvoiceRequest = {
+    invoice: {
+      date: "11/06/2026",
+      due_date: "25/06/2026",
+      client: { name: "Acme, Lda", fiscal_id: "500000000" },
+      items: [
+        {
+          name: "Consulting",
+          unit_price: 100,
+          quantity: 2,
+          tax: { name: "IVA23" },
+        },
+      ],
+    },
+  };
   const { data: created, error: createError } = await postInvoicesJson({
     query: { api_key },
-    body: {
-      invoice: {
-        date: "11/06/2026",
-        due_date: "25/06/2026",
-        client: { name: "Acme, Lda", fiscal_id: "500000000" },
-        items: [
-          {
-            name: "Consulting",
-            unit_price: 100,
-            quantity: 2,
-            tax: { name: "IVA23" },
-          },
-        ],
-      },
-    },
+    body: newInvoice,
   });
   if (createError || !created?.invoice?.id) {
     console.error("create failed", createError);
@@ -73,45 +78,51 @@ async function main(): Promise<void> {
     path: { "document-id": documentId },
     query: { api_key },
   });
+  const invoiceUpdate: InvoiceRequest = {
+    invoice: {
+      date: "11/06/2026",
+      due_date: "30/06/2026",
+      observations: "Net 30.",
+      client: { name: "Acme, Lda" },
+      items: [
+        {
+          name: "Consulting",
+          unit_price: 100,
+          quantity: 2,
+          tax: { name: "IVA23" },
+        },
+      ],
+    },
+  };
   await putInvoicesByDocumentIdJson({
     path: { "document-id": documentId },
     query: { api_key },
-    body: {
-      invoice: {
-        date: "11/06/2026",
-        due_date: "30/06/2026",
-        observations: "Net 30.",
-        client: { name: "Acme, Lda" },
-        items: [
-          {
-            name: "Consulting",
-            unit_price: 100,
-            quantity: 2,
-            tax: { name: "IVA23" },
-          },
-        ],
-      },
-    },
+    body: invoiceUpdate,
   });
 
   // Finalize it so it becomes a legal document.
+  const finalize: PutInvoicesByDocumentIdChangeStateJsonData["body"] = {
+    invoice: { state: "finalized" },
+  };
   await putInvoicesByDocumentIdChangeStateJson({
     path: { "document-id": documentId },
     query: { api_key },
-    body: { invoice: { state: "finalized" } },
+    body: finalize,
   });
 
   // Register a partial payment — this generates a receipt document.
-  await postDocumentsByDocumentIdPartialPaymentsJson({
-    path: { "document-id": documentId },
-    query: { api_key },
-    body: {
+  const partialPayment: PostDocumentsByDocumentIdPartialPaymentsJsonData["body"] =
+    {
       partial_payment: {
         amount: 123,
         payment_date: "11/06/2026",
         payment_mechanism: "TB",
       },
-    },
+    };
+  await postDocumentsByDocumentIdPartialPaymentsJson({
+    path: { "document-id": documentId },
+    query: { api_key },
+    body: partialPayment,
   });
 
   // The receipt shows up under the invoice's related documents.
@@ -134,10 +145,13 @@ async function main(): Promise<void> {
 
   // Cancel the payment receipt (a reason is required).
   if (receipt) {
+    const cancelReceipt: PutReceiptsByReceiptIdChangeStateJsonData["body"] = {
+      receipt: { state: "canceled", message: "Paid by mistake." },
+    };
     await putReceiptsByReceiptIdChangeStateJson({
       path: { "receipt-id": receipt.id },
       query: { api_key },
-      body: { receipt: { state: "canceled", message: "Paid by mistake." } },
+      body: cancelReceipt,
     });
   }
 }

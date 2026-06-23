@@ -11,6 +11,7 @@ import {
   getTaxesByTaxIdJson,
   putTaxesByTaxIdJson,
   deleteTaxesByTaxIdJson,
+  type TaxRequest,
 } from "../src";
 
 client.setConfig({ baseUrl: "https://your-account.app.invoicexpress.com" });
@@ -23,9 +24,12 @@ async function main(): Promise<void> {
   console.log(`${list?.taxes.length ?? 0} taxes`);
 
   // Create a tax.
+  const newTax: TaxRequest = {
+    tax: { name: "IVA13", value: "13.0", region: "PT" },
+  };
   const { data: created, error } = await postTaxesJson({
     query: { api_key },
-    body: { tax: { name: "IVA13", value: "13.0", region: "PT" } },
+    body: newTax,
   });
   if (error || !created?.tax?.id) {
     console.error("create failed", error);
@@ -35,12 +39,13 @@ async function main(): Promise<void> {
 
   // Get, update, then delete it.
   await getTaxesByTaxIdJson({ path: { "tax-id": taxId }, query: { api_key } });
+  const taxUpdate: TaxRequest = {
+    tax: { name: "IVA13", value: "13.0", region: "PT", default_tax: false },
+  };
   await putTaxesByTaxIdJson({
     path: { "tax-id": taxId },
     query: { api_key },
-    body: {
-      tax: { name: "IVA13", value: "13.0", region: "PT", default_tax: false },
-    },
+    body: taxUpdate,
   });
   await deleteTaxesByTaxIdJson({
     path: { "tax-id": taxId },

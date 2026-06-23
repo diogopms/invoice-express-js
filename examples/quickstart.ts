@@ -5,7 +5,12 @@
  * (they do not throw on HTTP errors). Configure the shared `client` once with
  * your account URL; pass your API key as the `api_key` query parameter.
  */
-import { client, getClientsJson, postClientsJson } from "../src";
+import {
+  client,
+  getClientsJson,
+  postClientsJson,
+  type ClientRequest,
+} from "../src";
 
 // Your account name is the subdomain of your InvoiceXpress URL:
 // https://<account-name>.app.invoicexpress.com
@@ -27,15 +32,16 @@ async function main(): Promise<void> {
 
   // Create a client. If the fiscal_id / name already exists InvoiceXpress
   // returns the existing record instead of creating a duplicate.
+  const newClient: ClientRequest = {
+    client: {
+      name: "Acme, Lda",
+      email: "billing@acme.example",
+      fiscal_id: "500000000",
+    },
+  };
   const { data: created, error: createError } = await postClientsJson({
     query: { api_key },
-    body: {
-      client: {
-        name: "Acme, Lda",
-        email: "billing@acme.example",
-        fiscal_id: "500000000",
-      },
-    },
+    body: newClient,
   });
   if (createError) {
     console.error("create failed", createError);

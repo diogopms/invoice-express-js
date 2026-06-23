@@ -9,6 +9,7 @@ import {
   getSequencesBySequenceIdJson,
   putSequencesBySequenceIdRegisterJson,
   putSequencesBySequenceIdSetCurrentJson,
+  type SequenceRequest,
 } from "../src";
 
 client.setConfig({ baseUrl: "https://your-account.app.invoicexpress.com" });
@@ -21,9 +22,12 @@ async function main(): Promise<void> {
   console.log(`${list?.sequences.length ?? 0} sequences`);
 
   // Create a sequence. `default_sequence: "1"` makes it the current one.
+  const newSequence: SequenceRequest = {
+    sequence: { serie: "2026", default_sequence: "0" },
+  };
   const { data: created, error } = await postSequencesJson({
     query: { api_key },
-    body: { sequence: { serie: "2026", default_sequence: "0" } },
+    body: newSequence,
   });
   if (error || !created?.sequence?.id) {
     console.error("create failed", error);

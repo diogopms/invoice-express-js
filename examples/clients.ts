@@ -9,6 +9,8 @@ import {
   getClientsFindByNameJson,
   getClientsFindByCodeJson,
   postClientsByClientIdInvoicesJson,
+  type ClientRequest,
+  type PostClientsByClientIdInvoicesJsonData,
 } from "../src";
 
 client.setConfig({ baseUrl: "https://your-account.app.invoicexpress.com" });
@@ -39,23 +41,27 @@ async function main(): Promise<void> {
   console.log("client", fetched?.client?.name);
 
   // Update a few fields. Only the keys you send are changed.
+  const clientUpdate: ClientRequest = {
+    client: {
+      name: "Acme, Lda",
+      email: "accounts@acme.example",
+      phone: "+351 210 000 000",
+    },
+  };
   await putClientsByClientIdJson({
     path: { "client-id": clientId },
     query: { api_key },
-    body: {
-      client: {
-        name: "Acme, Lda",
-        email: "accounts@acme.example",
-        phone: "+351 210 000 000",
-      },
-    },
+    body: clientUpdate,
   });
 
   // List the invoices issued to this client (optionally filtered by status/type).
+  const invoicesFilter: PostClientsByClientIdInvoicesJsonData["body"] = {
+    filter: { status: ["draft", "sent"] },
+  };
   const { data: invoices } = await postClientsByClientIdInvoicesJson({
     path: { "client-id": clientId },
     query: { api_key, page: 1, per_page: 20 },
-    body: { filter: { status: ["draft", "sent"] } },
+    body: invoicesFilter,
   });
   console.log(`${invoices?.pagination.total_entries ?? 0} invoices for client`);
 }
