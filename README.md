@@ -11,7 +11,8 @@ The client is generated from an OpenAPI specification with [`@hey-api/openapi-ts
 - 📦 A tree-shakeable **function per operation** for every resource (clients, invoices, invoice receipts, estimates, guides, sequences, accounts, treasury, items, taxes, SAF-T)
 - 🟦 First-class TypeScript types for request payloads and responses
 - 🟩 Results returned as `{ data, error }` — no `try/catch` required
-- 🔁 Request / response interceptors and `AbortSignal` cancellation
+- 🔁 Request / response / error interceptors and `AbortSignal` cancellation
+- 🪵 Optional logging + `fetch` decorator helpers (timeout, retry, custom client)
 - 🌐 Built on `fetch` — no runtime dependencies
 
 > **Status:** every documented InvoiceXpress operation is implemented and verified live against the API — see [Operations implemented](#operations-implemented). (One known server-side caveat: guide update; see the note there.)
@@ -27,6 +28,7 @@ The client is generated from an OpenAPI specification with [`@hey-api/openapi-ts
 - [Usage](#usage)
 - [Error handling](#error-handling)
 - [Interceptors](#interceptors)
+- [Logging & custom HTTP client](#logging--custom-http-client)
 - [Cancellation](#cancellation)
 - [TypeScript](#typescript)
 - [Operations implemented](#operations-implemented)
@@ -358,7 +360,66 @@ client.interceptors.response.use((response) => {
   console.log("←", response.status, response.url);
   return response;
 });
+
+// Errors (network failures, non-2xx when throwing) run through error interceptors.
+client.interceptors.error.use((error, response, request) => {
+  console.error("✗", request?.url, response?.status, error);
+  return error; // return the (possibly transformed) error
+});
 ```
+
+Each `.use(...)` returns an id you can pass to `.eject(id)` to remove the
+interceptor later.
+
+## Logging & custom HTTP client
+
+For common cross-cutting needs there's an optional helper module,
+`@diogopms/invoice-express-js/interceptors`. It's a thin, dependency-free layer
+over the interceptor and `fetch` hooks above — use it, or wire those hooks
+yourself.
+
+**Logging** — `attachLogging` registers request, response and error
+interceptors in one call (with timing, and `api_key` redacted from logged URLs)
+and returns a disposer:
+
+```ts
+import { client } from "@diogopms/invoice-express-js";
+import { attachLogging } from "@diogopms/invoice-express-js/interceptors";
+
+const detach = attachLogging(client, { logger: console, level: "info" });
+// ...later: detach();
+```
+
+Pass any `{ info, warn, error, debug? }` logger (pino, winston, …). Need the raw
+interceptors instead? `createLoggingInterceptors(options)` returns
+`{ onRequest, onResponse, onError }`.
+
+**Custom HTTP client / fetch decorators** — the client accepts any
+`fetch`-compatible function via `setConfig({ fetch })`. `composeFetch` stacks
+decorators (applied left-to-right, so the first is the outermost wrapper);
+`withLogging`, `withTimeout` and `withRetry` are included:
+
+```ts
+import { client } from "@diogopms/invoice-express-js";
+import {
+  composeFetch, withLogging, withTimeout, withRetry,
+} from "@diogopms/invoice-express-js/interceptors";
+
+client.setConfig({
+  baseUrl: "https://your-account.app.invoicexpress.com",
+  fetch: composeFetch(
+    globalThis.fetch,
+    withLogging(),
+    withTimeout(10_000),
+    withRetry({ retries: 2 }), // conservative: idempotent 5xx + 429 only
+  ),
+});
+```
+
+Write your own decorator with the `FetchMiddleware` type — `(next) => (input,
+init) => Promise<Response>` — or pass a different base client (e.g. `undici`'s
+`fetch`, or one bound to a proxy dispatcher) as the first `composeFetch`
+argument. See [`examples/logging-and-fetch.ts`](./examples/logging-and-fetch.ts).
 
 ## Cancellation
 
@@ -521,6 +582,9 @@ dependencies) and runs with `pnpm run test`:
   and the `{ data, error }` result model) against a `fetch` injected via
   `client.setConfig`, so the whole stack is exercised without network access or
   account credentials.
+- **Interceptors** ([`interceptors.test.js`](./test/interceptors.test.js)) —
+  covers the optional logging helpers and `fetch` decorators (`composeFetch`,
+  `withLogging`, `withTimeout`, `withRetry`) against fake transports.
 
 ### Live verification
 
