@@ -1,7 +1,7 @@
 name: Release
 
 # Releases are NOT cut on merge to main — pushes only run CI (ci.yaml).
-# Instead this job runs on a schedule (every 7 days): it determines the next
+# Instead this job runs on a schedule (monthly): it determines the next
 # version from the conventional commits since the last tag. Only if there is a
 # release-worthy change (a feat/fix/breaking-change commit) does it create the
 # git tag, publish the package to BOTH the public npm registry and GitHub
@@ -26,7 +26,7 @@ name: Release
 #  * GitHub Packages (npm.pkg.github.com) — the built-in GITHUB_TOKEN.
 on:
   schedule:
-    - cron: "0 0 * * 0" # every 7 days (weekly, Sunday 00:00 UTC)
+    - cron: "0 5 1 * *" # monthly (first of the month, 05:00 UTC)
   workflow_dispatch:
     inputs:
       bump:
