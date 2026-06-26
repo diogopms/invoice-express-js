@@ -17,6 +17,7 @@ Runnable, type-checked usage examples for `@diogopms/invoice-express-js`.
 | [`accounts.ts`](./accounts.ts)               | Partner Accounts API: create, get, update, AT communication.               |
 | [`saft.ts`](./saft.ts)                       | Export a SAF-T file, polling until the download URL is ready.              |
 | [`advanced.ts`](./advanced.ts)               | Interceptors, AbortSignal cancellation, `throwOnError`, isolated clients.  |
+| [`logging-and-fetch.ts`](./logging-and-fetch.ts) | `attachLogging` + composable `fetch` decorators (logging, timeout, retry). |
 
 These import the client from `../src` so they are type-checked against the
 generated types in CI (`pnpm run typecheck:examples`). Replace `BASE` with your
